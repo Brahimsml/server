@@ -4,7 +4,7 @@ function CategoryComboBox({ value, onSelectChange }) {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/categories")
+    fetch("https://server-2plo.onrender.com/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch(console.log);

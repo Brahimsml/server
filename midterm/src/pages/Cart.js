@@ -95,7 +95,7 @@ const Cart = () => {
         qty: Number(item.quantity) || 1,
       }));
 
-      const res = await axios.post("http://localhost:5000/orders", {
+      const res = await axios.post("https://server-2plo.onrender.com/orders", {
         customer_name: customer.customer_name.trim(),
         customer_phone: customer.customer_phone.trim(),
         customer_address: customer.customer_address.trim(),

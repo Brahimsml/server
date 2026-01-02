@@ -10,7 +10,7 @@ const Menu = () => {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/places");
+        const res = await axios.get("https://server-2plo.onrender.com/places");
         setPlaces(res.data);
       } catch (err) {
         console.error("Error fetching places:", err);
@@ -39,7 +39,7 @@ const Menu = () => {
           {places.map((loc) => (
             <PlacesItem
               key={loc.id}
-              image={`http://localhost:5000/images/${loc.image}`}
+              image={`https://server-2plo.onrender.com/images/${loc.image}`}
               name={loc.name}
               tel={loc.tel}
               address={loc.address}
