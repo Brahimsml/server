@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
@@ -5,43 +7,56 @@ const path = require("path");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 
-const SECRET = "pc_store_secret_key";
-
+/*
+   APP CONFIG
+*/
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 /*
+   JWT SECRET
+*/
+const SECRET = process.env.JWT_SECRET || "pc_store_secret_key";
+
+/*
    STATIC IMAGES
- */
+*/
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-/* 
+/*
    MULTER CONFIG
 */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "images/"),
   filename: (req, file, cb) =>
-    cb(null, file.originalname + "_" + Date.now() + path.extname(file.originalname)),
+    cb(
+      null,
+      file.originalname +
+        "_" +
+        Date.now() +
+        path.extname(file.originalname)
+    ),
 });
 const upload = multer({ storage });
 
-/* 
-   DB CONNECTION
- */
+/*
+   DB CONNECTION (LOCAL + ONLINE)
+*/
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "pc_store",
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "pc_store",
+  port: process.env.DB_PORT || 3306,
 });
 
 db.connect((err) => {
   if (err) {
-    console.log("❌ DB connection error:", err);
+    console.error("❌ DB connection error:", err);
     return;
   }
-  console.log("✅ Connected to MySQL (pc_store)");
+  console.log("✅ Connected to MySQL database");
 });
 
 /*
@@ -53,21 +68,22 @@ const verifyAdmin = (req, res, next) => {
 
   const token = auth.split(" ")[1];
   jwt.verify(token, SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Token invalid/expired" });
+    if (err)
+      return res.status(401).json({ message: "Token invalid or expired" });
     req.admin = decoded;
     next();
   });
 };
 
 /*
-   Test route
+   TEST ROUTE
 */
 app.get("/", (req, res) => {
   res.send("PC Store backend working ✅");
 });
 
-/* 
-   admin login (JWT)
+/*
+   ADMIN LOGIN
 */
 app.post("/admin/login", (req, res) => {
   const { email, password } = req.body;
@@ -86,7 +102,7 @@ app.post("/admin/login", (req, res) => {
       { expiresIn: "1h" }
     );
 
-    return res.json({
+    res.json({
       message: "Login success",
       token,
       admin: { id: data[0].id, email: data[0].email },
@@ -95,7 +111,7 @@ app.post("/admin/login", (req, res) => {
 });
 
 /*
-   categories
+   CATEGORIES
 */
 app.get("/categories", (req, res) => {
   db.query("SELECT * FROM categories", (err, data) => {
@@ -104,11 +120,9 @@ app.get("/categories", (req, res) => {
   });
 });
 
-/* 
-   PLACES CRUD
+/*
+   PLACES
 */
-
-// PUBLIC
 app.get("/places", (req, res) => {
   db.query("SELECT * FROM places", (err, data) => {
     if (err) return res.status(500).json(err);
@@ -116,49 +130,64 @@ app.get("/places", (req, res) => {
   });
 });
 
-
 app.get("/places/search/:id", (req, res) => {
-  db.query("SELECT * FROM places WHERE id=?", [req.params.id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
+  db.query(
+    "SELECT * FROM places WHERE id=?",
+    [req.params.id],
+    (err, data) => {
+      if (err) return res.status(500).json(err);
+      res.json(data);
+    }
+  );
 });
 
-// ADMIN
 app.post("/places", verifyAdmin, upload.single("image"), (req, res) => {
   const { name, address, tel } = req.body;
   const image = req.file ? req.file.filename : null;
 
-  const q = "INSERT INTO places (name,address,tel,image) VALUES (?,?,?,?)";
+  const q =
+    "INSERT INTO places (name,address,tel,image) VALUES (?,?,?,?)";
   db.query(q, [name, address, tel, image], (err, data) => {
     if (err) return res.status(500).json(err);
-    res.json(data);
+    res.json({ message: "Place added ✅" });
   });
 });
+
+app.post(
+  "/places/modify/:id",
+  verifyAdmin,
+  upload.single("image"),
+  (req, res) => {
+    const { name, address, tel, existingImage } = req.body;
+    const image = req.file ? req.file.filename : existingImage;
+
+    const q =
+      "UPDATE places SET name=?, address=?, tel=?, image=? WHERE id=?";
+    db.query(
+      q,
+      [name, address, tel, image, req.params.id],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Place updated ✅" });
+      }
+    );
+  }
+);
 
 app.delete("/places/:id", verifyAdmin, (req, res) => {
-  db.query("DELETE FROM places WHERE id=?", [req.params.id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Place deleted ✅" });
-  });
-});
-
-app.post("/places/modify/:id", verifyAdmin, upload.single("image"), (req, res) => {
-  const { name, address, tel, existingImage } = req.body;
-  const image = req.file ? req.file.filename : existingImage;
-
-  const q = "UPDATE places SET name=?, address=?, tel=?, image=? WHERE id=?";
-  db.query(q, [name, address, tel, image, req.params.id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Place updated ✅" });
-  });
+  db.query(
+    "DELETE FROM places WHERE id=?",
+    [req.params.id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Place deleted ✅" });
+    }
+  );
 });
 
 /*
-   PRODUCTS CRUD
- */
-
-// PUBLIC
+   PRODUCTS
+*/
 app.get("/products", (req, res) => {
   const q = `
     SELECT p.*, c.name AS category_name
@@ -172,15 +201,17 @@ app.get("/products", (req, res) => {
   });
 });
 
-
 app.get("/products/search/:id", (req, res) => {
-  db.query("SELECT * FROM products WHERE id=?", [req.params.id], (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
+  db.query(
+    "SELECT * FROM products WHERE id=?",
+    [req.params.id],
+    (err, data) => {
+      if (err) return res.status(500).json(err);
+      res.json(data);
+    }
+  );
 });
 
-// ADMIN
 app.post("/products", verifyAdmin, upload.single("image"), (req, res) => {
   const { category_id, name, price, label, description } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -190,51 +221,79 @@ app.post("/products", verifyAdmin, upload.single("image"), (req, res) => {
   db.query(
     q,
     [category_id, name, price, image, label || null, description],
-    (err, data) => {
+    (err) => {
       if (err) return res.status(500).json(err);
       res.json({ message: "Product added ✅" });
     }
   );
 });
 
+app.post(
+  "/products/modify/:id",
+  verifyAdmin,
+  upload.single("image"),
+  (req, res) => {
+    const {
+      category_id,
+      name,
+      price,
+      label,
+      description,
+      existingImage,
+    } = req.body;
+
+    const image = req.file ? req.file.filename : existingImage;
+
+    const q = `
+      UPDATE products
+      SET category_id=?, name=?, price=?, image=?, label=?, description=?
+      WHERE id=?
+    `;
+    db.query(
+      q,
+      [
+        category_id,
+        name,
+        price,
+        image,
+        label || null,
+        description,
+        req.params.id,
+      ],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Product updated ✅" });
+      }
+    );
+  }
+);
+
 app.delete("/products/:id", verifyAdmin, (req, res) => {
-  db.query("DELETE FROM products WHERE id=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Product deleted ✅" });
-  });
-});
-
-app.post("/products/modify/:id", verifyAdmin, upload.single("image"), (req, res) => {
-  const { category_id, name, price, label, description, existingImage } = req.body;
-  const image = req.file ? req.file.filename : existingImage;
-
-  const q = `
-    UPDATE products
-    SET category_id=?, name=?, price=?, image=?, label=?, description=?
-    WHERE id=?
-  `;
   db.query(
-    q,
-    [category_id, name, price, image, label || null, description, req.params.id],
+    "DELETE FROM products WHERE id=?",
+    [req.params.id],
     (err) => {
       if (err) return res.status(500).json(err);
-      res.json({ message: "Product updated ✅" });
+      res.json({ message: "Product deleted ✅" });
     }
   );
 });
 
 /*
-   ORDERS / CHECKOUT
- */
+   ORDERS
+*/
 const cleanPrice = (p) => Number(String(p).replace(/[$,]/g, ""));
 
-// PUBLIC checkout
 app.post("/orders", (req, res) => {
-  const { customer_name, customer_phone, customer_address, items } = req.body;
+  const {
+    customer_name,
+    customer_phone,
+    customer_address,
+    items,
+  } = req.body;
 
-  if (!items || !items.length) {
+  if (!items || !items.length)
     return res.status(400).json({ message: "Cart empty" });
-  }
 
   const total = items.reduce(
     (sum, it) => sum + cleanPrice(it.price) * (it.qty || 1),
@@ -244,154 +303,100 @@ app.post("/orders", (req, res) => {
   const qOrder =
     "INSERT INTO orders (customer_name,customer_phone,customer_address,total) VALUES (?,?,?,?)";
 
-  db.query(qOrder, [customer_name, customer_phone, customer_address, total], (err, result) => {
-    if (err) return res.status(500).json(err);
+  db.query(
+    qOrder,
+    [customer_name, customer_phone, customer_address, total],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
 
-    const orderId = result.insertId;
+      const orderId = result.insertId;
+      const qItems =
+        "INSERT INTO order_items (order_id,product_id,product_name,price,quantity) VALUES ?";
 
-    const qItems =
-      "INSERT INTO order_items (order_id,product_id,product_name,price,quantity) VALUES ?";
+      const values = items.map((it) => [
+        orderId,
+        it.id,
+        it.name,
+        cleanPrice(it.price),
+        it.qty || 1,
+      ]);
 
-    const values = items.map((it) => [
-      orderId,
-      it.id,
-      it.name,
-      cleanPrice(it.price),
-      it.qty || 1,
-    ]);
-
-    db.query(qItems, [values], (err2) => {
-      if (err2) return res.status(500).json(err2);
-      res.json({ message: "Order placed ✅", order_id: orderId, total });
-    });
-  });
+      db.query(qItems, [values], (err2) => {
+        if (err2) return res.status(500).json(err2);
+        res.json({
+          message: "Order placed ✅",
+          order_id: orderId,
+          total,
+        });
+      });
+    }
+  );
 });
 
-// ADMIN orders
-app.get("/orders", verifyAdmin, (req, res) => {
-  db.query("SELECT * FROM orders ORDER BY id DESC", (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
-
-app.get("/orders/:id", verifyAdmin, (req, res) => {
-  const id = req.params.id;
-
-  db.query("SELECT * FROM orders WHERE id=?", [id], (err, order) => {
-    if (err) return res.status(500).json(err);
-    if (!order || order.length === 0) return res.status(404).json({ message: "Not found" });
-
-    db.query("SELECT * FROM order_items WHERE order_id=?", [id], (err2, items) => {
-      if (err2) return res.status(500).json(err2);
-      res.json({ order: order[0], items });
-    });
-  });
-});
-
-app.delete("/orders/:id", verifyAdmin, (req, res) => {
-  db.query("DELETE FROM orders WHERE id=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Order deleted ✅" });
-  });
-});
-/* 
-   CONTACT FORM
- */
-
-// PUBLIC submit contact
+/*
+   CONTACT
+*/
 app.post("/contact", (req, res) => {
-  const { fname, email, message } = req.body; // frontend sends fname
+  const { fname, email, message } = req.body;
 
-  if (!fname || !email || !message) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
+  if (!fname || !email || !message)
+    return res.status(400).json({ message: "All fields required" });
 
-
-  const q = "INSERT INTO contacts (full_name, email, message) VALUES (?,?,?)";
+  const q =
+    "INSERT INTO contacts (full_name,email,message) VALUES (?,?,?)";
 
   db.query(q, [fname.trim(), email.trim(), message.trim()], (err, result) => {
-    if (err) {
-      console.error("Contact insert error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-
-    res.json({ message: "Message sent successfully ✅", id: result.insertId });
+    if (err) return res.status(500).json({ message: "Server error" });
+    res.json({ message: "Message sent ✅", id: result.insertId });
   });
 });
 
-// ADMIN view contacts
-app.get("/contacts", verifyAdmin, (req, res) => {
-  db.query("SELECT * FROM contacts ORDER BY id DESC", (err, data) => {
-    if (err) return res.status(500).json(err);
-    res.json(data);
-  });
-});
-
-//  ADMIN delete a contact
-app.delete("/contacts/:id", verifyAdmin, (req, res) => {
-  db.query("DELETE FROM contacts WHERE id=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Message deleted ✅" });
-  });
-});
 /*
-   ADMIN DASHBOARD STATS (JWT)
- */
+   ADMIN STATS
+*/
 app.get("/admin/stats", verifyAdmin, (req, res) => {
   const stats = {};
 
-  const qProducts = "SELECT COUNT(*) AS totalProducts FROM products";
-  const qPlaces = "SELECT COUNT(*) AS totalPlaces FROM places";
-  const qOrders = "SELECT COUNT(*) AS totalOrders, COALESCE(SUM(total),0) AS totalRevenue FROM orders";
-  const qContacts = "SELECT COUNT(*) AS totalMessages FROM contacts";
+  db.query(
+    "SELECT COUNT(*) AS totalProducts FROM products",
+    (e1, r1) => {
+      if (e1) return res.status(500).json(e1);
+      stats.totalProducts = r1[0].totalProducts;
 
-  db.query(qProducts, (err1, r1) => {
-    if (err1) return res.status(500).json(err1);
-    stats.totalProducts = r1[0].totalProducts;
+      db.query(
+        "SELECT COUNT(*) AS totalPlaces FROM places",
+        (e2, r2) => {
+          if (e2) return res.status(500).json(e2);
+          stats.totalPlaces = r2[0].totalPlaces;
 
-    db.query(qPlaces, (err2, r2) => {
-      if (err2) return res.status(500).json(err2);
-      stats.totalPlaces = r2[0].totalPlaces;
-
-      db.query(qOrders, (err3, r3) => {
-        if (err3) return res.status(500).json(err3);
-        stats.totalOrders = r3[0].totalOrders;
-        stats.totalRevenue = Number(r3[0].totalRevenue || 0);
-
-        db.query(qContacts, (err4, r4) => {
-          if (err4) return res.status(500).json(err4);
-          stats.totalMessages = r4[0].totalMessages;
-
-          //  Recent orders (last 5)
           db.query(
-            "SELECT id, customer_name, total, status, created_at FROM orders ORDER BY id DESC LIMIT 5",
-            (err5, recentOrders) => {
-              if (err5) return res.status(500).json(err5);
+            "SELECT COUNT(*) AS totalOrders, COALESCE(SUM(total),0) AS totalRevenue FROM orders",
+            (e3, r3) => {
+              if (e3) return res.status(500).json(e3);
+              stats.totalOrders = r3[0].totalOrders;
+              stats.totalRevenue = Number(r3[0].totalRevenue);
 
-              //  Recent messages (last 5)
               db.query(
-                "SELECT id, full_name, email, created_at FROM contacts ORDER BY id DESC LIMIT 5",
-                (err6, recentMessages) => {
-                  if (err6) return res.status(500).json(err6);
+                "SELECT COUNT(*) AS totalMessages FROM contacts",
+                (e4, r4) => {
+                  if (e4) return res.status(500).json(e4);
+                  stats.totalMessages = r4[0].totalMessages;
 
-                  return res.json({
-                    stats,
-                    recentOrders,
-                    recentMessages,
-                  });
+                  res.json({ stats });
                 }
               );
             }
           );
-        });
-      });
-    });
-  });
+        }
+      );
+    }
+  );
 });
-
 
 /*
    START SERVER
- */
-app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
+*/
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () =>
+  console.log(`✅ Server running on port ${PORT}`)
+);
