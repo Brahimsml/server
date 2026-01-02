@@ -43,13 +43,18 @@ const upload = multer({ storage });
 /*
    ✅ DB CONNECTION (POOL + SSL — FIXED)
 */
-const db = mysql.createConnection({
+const db = mysql.createPool({
+  connectionLimit: 10,
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
+  port: process.env.MYSQLPORT,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
 
 /*
    JWT MIDDLEWARE (ADMIN)
