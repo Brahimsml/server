@@ -1,0 +1,130 @@
+/* ====== Container with background image ====== */
+.about-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 80px auto;
+  padding: 50px 30px;
+
+  /* Background image + overlay */
+  background: linear-gradient(rgba(245,248,255,0.85), rgba(224,231,255,0.85)),
+              url('../Assets/about-bg.jpg') no-repeat center center;
+  background-size: cover;
+
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  font-family: 'Inter', sans-serif;
+  color: #1f2937;
+  gap: 40px;
+}
+
+/* ====== Text Column ====== */
+.about-text {
+  flex: 1 1 550px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Headings */
+.about-text h1 {
+  font-size: 2.8rem;
+  color: goldenrod;
+  margin-bottom: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  position: relative;
+}
+
+.about-text h1::after {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 4px;
+  background: go;
+  border-radius: 3px;
+  margin-top: 8px;
+}
+
+/* Paragraphs */
+.about-text p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #374151;
+  margin: 0;
+}
+
+/* Highlight Boxes */
+.about-highlight {
+  background: #ffffff;
+  padding: 20px 25px;
+  border-left: 5px solid goldenrod;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px gold;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-highlight:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 35px goldenrod;
+}
+
+.about-highlight.secondary {
+  border-left-color: goldenrod;
+}
+
+/* ====== Image Column (right aligned) ====== */
+.about-image {
+  flex: 1 1 500px;
+  display: flex;
+  justify-content: flex-end; /* image on right */
+  align-items: center;
+}
+
+.about-image img {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s ease;
+}
+
+.about-image img:hover {
+  transform: scale(1.05);
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 900px) {
+  .about-container {
+    flex-direction: column-reverse; /* image below text on small screens */
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .about-text {
+    max-width: 100%;
+    gap: 20px;
+  }
+
+  .about-image {
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .about-image img {
+    max-width: 90%;
+  }
+
+  .about-text h1 {
+    font-size: 2.2rem;
+  }
+
+  .about-text p,
+  .about-highlight {
+    font-size: 1rem;
+  }
+}

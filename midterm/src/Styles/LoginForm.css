@@ -1,0 +1,44 @@
+/* src/styles/LoginForm.css */
+body {
+  background: linear-gradient(135deg, #f2f6ff, #e5edff);
+}
+
+form {
+  max-width: 350px;
+  margin: 100px auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 30px 20px;
+  box-shadow: 0 8px 25px darkblue;
+  text-align: center;
+}
+
+h2 {
+  color: blue;
+  margin-bottom: 20px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: darkblue;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: blue;
+}

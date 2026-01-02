@@ -1,0 +1,226 @@
+/* ------------------- Home Page ------------------- */
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  padding: 0;
+  margin: 0;
+}
+
+/* ------------------- Hero Section ------------------- */
+.hero {
+  width: 100%;
+  min-height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+
+.hero-overlay {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content {
+  max-width: 700px;
+  padding: 20px;
+}
+
+.hero-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+/* ------------------- PROFESSIONAL SORT BUTTONS ------------------- */
+.category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+
+.category-filter button {
+  padding: 8px 22px;
+  border-radius: 25px;
+  border: 2px solid goldenrod;
+  background: gold;
+  cursor: pointer;
+  font-weight: 600;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.category-filter button:hover,
+.category-filter button.active {
+  background: goldenrod;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* ------------------- Products Section ------------------- */
+.product-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* ------------------- CENTERED Product Grid ------------------- */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1400px;
+  justify-items: center; /* <-- This centers the cards */
+}
+
+/* ------------------- Product Card ------------------- */
+.product-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+/* ------------------- Product Image ------------------- */
+.product-card img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* ------------------- Product Info ------------------- */
+.product-card h3 {
+  font-size: 1rem;
+  color:goldenrod;
+  margin-bottom: 5px;
+}
+
+.product-card .description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  min-height: 30px;
+  margin-bottom: 8px;
+}
+
+.product-card .price {
+  font-weight: bold;
+  color: #111827;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+/* ------------------- Buy Now Button ------------------- */
+.product-card .buy-now {
+  background: linear-gradient(135deg, goldenrod, #155bb5);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.product-card .buy-now:hover {
+  background: linear-gradient(135deg, #155bb5, goldenrod);
+  transform: translateY(-2px);
+}
+
+/* ------------------- ALWAYS-VISIBLE BEST SELLER LABEL ------------------- */
+.product-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(45deg, #ff4c3b, #ff7f50);
+  color: #fff;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 6px;
+  z-index: 10;
+}
+
+/* ------------------- Overlay Buttons ------------------- */
+.overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card:hover .overlay {
+  opacity: 1;
+}
+
+.overlay button {
+  background: linear-gradient(135deg, #1a73e8, #155bb5);
+  border: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.overlay button:hover {
+  background: linear-gradient(135deg, #155bb5, #0f3a7a);
+}
+
+/* ------------------- Responsive ------------------- */
+@media (max-width: 1024px) {
+  .hero-content h1 { font-size: 2rem; }
+  .hero-content p { font-size: 1rem; }
+}
+
+@media (max-width: 768px) {
+  .product-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .hero-content h1 { font-size: 1.7rem; }
+  .hero-content p { font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .hero-content h1 { font-size: 1.5rem; }
+}
