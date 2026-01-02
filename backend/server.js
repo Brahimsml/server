@@ -43,16 +43,12 @@ const upload = multer({ storage });
 /*
    ✅ DB CONNECTION (POOL + SSL — FIXED)
 */
-const db = mysql.createPool({
-  connectionLimit: 10,
+const db = mysql.createConnection({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  port: process.env.MYSQLPORT
 });
 db.connect(err => {
   if (err) {
