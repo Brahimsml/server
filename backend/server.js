@@ -54,7 +54,13 @@ const db = mysql.createPool({
     rejectUnauthorized: false
   }
 });
-
+db.connect(err => {
+  if (err) {
+    console.error("MySQL connection failed:", err);
+    return; // Stop queries if connection fails
+  }
+  console.log("MySQL connected successfully");
+});
 
 /*
    JWT MIDDLEWARE (ADMIN)
