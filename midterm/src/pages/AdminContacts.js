@@ -8,7 +8,7 @@ function AdminContacts() {
 
   const fetchContacts = async () => {
     try {
-      const res = await api.get("/contacts"); //  protected, token auto sent
+      const res = await api.get("https://server-2plo.onrender.com/contacts"); //  protected, token auto sent
       setContacts(res.data);
       setError("");
     } catch (err) {

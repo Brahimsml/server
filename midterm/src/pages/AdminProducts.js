@@ -6,7 +6,7 @@ function AdminProducts() {
   const [products, setProducts] = useState([]);
 
   const fetchProducts = async () => {
-    const res = await api.get("/products"); // GET public
+    const res = await api.get("https://server-2plo.onrender.com/products"); // GET public
     setProducts(res.data);
   };
 
@@ -54,7 +54,7 @@ function AdminProducts() {
               <td>
                 {p.image && (
                   <img
-                    src={`http://localhost:5000/images/${p.image}`}
+                    src={`https://server-2plo.onrender.com/images/${p.image}`}
                     alt={p.name}
                     width="70"
                     style={{ borderRadius: 8 }}

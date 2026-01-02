@@ -6,7 +6,7 @@ const AdminPlaces = () => {
   const [places, setPlaces] = useState([]);
 
   const fetchPlaces = async () => {
-    const res = await api.get("/places"); // GET public
+    const res = await api.get("https://server-2plo.onrender.com/places"); // GET public
     setPlaces(res.data);
   };
 

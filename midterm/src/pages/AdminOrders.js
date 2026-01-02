@@ -8,7 +8,7 @@ function AdminOrders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await api.get("/orders"); // GET public
+      const res = await api.get("https://server-2plo.onrender.com/orders"); // GET public
       setOrders(res.data);
     } catch (err) {
       console.error(err);
