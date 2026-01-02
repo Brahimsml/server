@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 import axios from "axios";
 import { CartContext } from "../Context/CartContext";
-import "../Styles/Cart.css";
+import "../Styles/card.css";
 
 const Cart = () => {
   const ctx = useContext(CartContext);
@@ -128,144 +128,67 @@ const Cart = () => {
 
   return (
     <div className="cart">
-      <h1>Shopping Cart</h1>
+  <div className="cart-container">
+    <h1>Shopping Cart</h1>
 
-      {/*  messages */}
-      {successMsg && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            background: "#eaffea",
-            borderRadius: 8,
-          }}
-        >
-          {successMsg}
-        </div>
-      )}
-      {errorMsg && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            background: "#ffecec",
-            borderRadius: 8,
-          }}
-        >
-          {errorMsg}
-        </div>
-      )}
+    {successMsg && <div className="msg success">{successMsg}</div>}
+    {errorMsg && <div className="msg error">{errorMsg}</div>}
 
-      {cart.length === 0 ? (
-        <p className="cart-empty">Your cart is empty.</p>
-      ) : (
-        <>
-          <div className="cart-items-horizontal">
-            {cart.map((item) => (
-              <div className="cart-item" key={item.id}>
-                {/*  FIXED IMAGE */}
-                <img
-                  src={getImgSrc(item.image)}
-                  alt={item.name}
-                  onError={(e) => {
-                    // optional fallback if image missing
-                    e.currentTarget.src =
-                      "https://via.placeholder.com/120x90?text=No+Image";
-                  }}
-                />
+    {cart.length === 0 ? (
+      <p className="cart-empty">Your cart is empty.</p>
+    ) : (
+      <>
+        <div className="cart-items">
+          {cart.map((item) => (
+            <div className="cart-item" key={item.id}>
+              <img
+                src={getImgSrc(item.image)}
+                alt={item.name}
+                className="cart-img"
+                onError={(e) =>
+                  (e.currentTarget.src =
+                    "https://via.placeholder.com/300x200?text=No+Image")
+                }
+              />
 
-                <div className="cart-item-info">
-                  <h3>{item.name}</h3>
-                  <p className="price-text">{item.price}</p>
+              <div className="cart-info">
+                <h3>{item.name}</h3>
+                <p className="price-text">${item.price}</p>
 
-                  <div className="quantity-box">
-                    <button className="quantity-btn" onClick={() => decQty(item)}>
-                      -
-                    </button>
-                    <span>{item.quantity || 1}</span>
-                    <button className="quantity-btn" onClick={() => incQty(item)}>
-                      +
-                    </button>
-                  </div>
+                <div className="quantity-box">
+                  <button onClick={() => decQty(item)}>-</button>
+                  <span>{item.quantity || 1}</span>
+                  <button onClick={() => incQty(item)}>+</button>
                 </div>
-
-                <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
-                  Remove
-                </button>
               </div>
-            ))}
-          </div>
 
-          <div className="cart-summary">
-            Total: <strong>${total.toFixed(2)}</strong>
-          </div>
+              <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
 
-          {/*  Checkout Form */}
-          <div
-            style={{
-              marginTop: 20,
-              background: "#fff",
-              padding: 15,
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ marginBottom: 10, color: "goldenrod" }}>
-              Checkout Details
-            </h3>
+        <div className="cart-summary">
+          Total: <strong>${total.toFixed(2)}</strong>
+        </div>
 
-            <input
-              name="customer_name"
-              value={customer.customer_name}
-              onChange={handleCustomerChange}
-              placeholder="Full Name"
-              style={{
-                width: "100%",
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 8,
-                border: "1px solid #ddd",
-              }}
-            />
-            <input
-              name="customer_phone"
-              value={customer.customer_phone}
-              onChange={handleCustomerChange}
-              placeholder="Phone"
-              style={{
-                width: "100%",
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 8,
-                border: "1px solid #ddd",
-              }}
-            />
-            <input
-              name="customer_address"
-              value={customer.customer_address}
-              onChange={handleCustomerChange}
-              placeholder="Delivery Address"
-              style={{
-                width: "100%",
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 8,
-                border: "1px solid #ddd",
-              }}
-            />
+        <div className="checkout-box">
+          <h3>Checkout Details</h3>
 
-            <button
-              className="checkout-btn"
-              onClick={handleCheckout}
-              disabled={loading}
-              style={{ opacity: loading ? 0.7 : 1 }}
-            >
-              {loading ? "Placing order..." : "Checkout"}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+          <input name="customer_name" value={customer.customer_name} onChange={handleCustomerChange} placeholder="Full Name" />
+          <input name="customer_phone" value={customer.customer_phone} onChange={handleCustomerChange} placeholder="Phone" />
+          <input name="customer_address" value={customer.customer_address} onChange={handleCustomerChange} placeholder="Delivery Address" />
+
+          <button onClick={handleCheckout} disabled={loading}>
+            {loading ? "Placing order..." : "Checkout"}
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+</div>
+
   );
 };
 

@@ -18,7 +18,7 @@ const AddPlace = () => {
       formData.append("name", name);
       formData.append("address", address);
       formData.append("tel", tel);
-      formData.append("image", file); // must be "image"
+      formData.append("image", file);
 
       await api.post("/places", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -32,49 +32,75 @@ const AddPlace = () => {
   };
 
   return (
-    <div style={{ maxWidth: 450, margin: "40px auto" }}>
-      <h2>Add New Place</h2>
+    <div className="admin-page">
+      <div className="admin-container">
+        <div className="panel" style={{ maxWidth: 520, margin: "0 auto" }}>
+          <div className="panel-header">
+            <h2>Add New Place</h2>
+            <Link to="/places/admin" className="btn btn-ghost btn-sm">
+              ← Back
+            </Link>
+          </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Place name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ width: "100%", padding: 10, marginBottom: 10 }}
-        />
+          <div className="panel-body">
+            <form onSubmit={handleSubmit} className="form-grid">
+              {/* Name */}
+              <div className="field f-12">
+                <label>Place Name</label>
+                <input
+                  className="input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="Enter place name"
+                />
+              </div>
 
-        <input
-          placeholder="Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          required
-          style={{ width: "100%", padding: 10, marginBottom: 10 }}
-        />
+              {/* Address */}
+              <div className="field f-12">
+                <label>Address</label>
+                <input
+                  className="input"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                  placeholder="Enter address"
+                />
+              </div>
 
-        <input
-          placeholder="Tel"
-          value={tel}
-          onChange={(e) => setTel(e.target.value)}
-          required
-          style={{ width: "100%", padding: 10, marginBottom: 10 }}
-        />
+              {/* Tel */}
+              <div className="field f-12">
+                <label>Telephone</label>
+                <input
+                  className="input"
+                  value={tel}
+                  onChange={(e) => setTel(e.target.value)}
+                  required
+                  placeholder="Phone number"
+                />
+              </div>
 
-        <input
-          type="file"
-          onChange={(e) => setFile(e.target.files[0])}
-          required
-          style={{ width: "100%", marginBottom: 15 }}
-        />
+              {/* Image */}
+              <div className="field f-12">
+                <label>Image</label>
+                <input
+                  className="input"
+                  type="file"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  required
+                />
+              </div>
 
-        <button type="submit" style={{ padding: 10, width: "100%" }}>
-          Add Place
-        </button>
-
-        <div style={{ marginTop: 10 }}>
-          <Link to="/places/admin">Back</Link>
+              {/* Actions */}
+              <div className="f-12" style={{ display: "flex", gap: 10 }}>
+                <button type="submit" className="btn btn-success btn-block">
+                  Add Place
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

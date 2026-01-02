@@ -11,43 +11,7 @@
   margin: 0;
 }
 
-/* ------------------- Hero Section ------------------- */
-.hero {
-  width: 100%;
-  min-height: 10vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  text-align: center;
-}
-
-.hero-overlay {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-content {
-  max-width: 700px;
-  padding: 20px;
-}
-
-.hero-content h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-.hero-content p {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-}
-
-/* ------------------- PROFESSIONAL SORT BUTTONS ------------------- */
+/* ------------------- Category Filter ------------------- */
 .category-filter {
   display: flex;
   justify-content: center;
@@ -66,33 +30,23 @@
   color: white;
   font-size: 0.9rem;
   transition: all 0.25s ease;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 }
 
 .category-filter button:hover,
 .category-filter button.active {
   background: goldenrod;
-  color: #fff;
   transform: translateY(-2px);
 }
 
-/* ------------------- Products Section ------------------- */
-.product-section {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 40px 20px;
-  box-sizing: border-box;
-}
-
-/* ------------------- CENTERED Product Grid ------------------- */
+/* ------------------- Product Grid ------------------- */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 25px;
   width: 100%;
   max-width: 1400px;
-  justify-items: center; /* <-- This centers the cards */
+  padding: 0 20px 40px;
+  justify-items: stretch; /* IMPORTANT */
 }
 
 /* ------------------- Product Card ------------------- */
@@ -100,57 +54,69 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 15px;
-  text-align: center;
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
+  height: 100%; /* IMPORTANT */
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.18);
 }
 
-/* ------------------- Product Image ------------------- */
+/* ------------------- Image ------------------- */
 .product-card img {
   width: 100%;
-  height: 170px;
+  height: 180px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 10px;
 }
 
-/* ------------------- Product Info ------------------- */
+/* ------------------- Product Name ------------------- */
 .product-card h3 {
   font-size: 1rem;
-  color:goldenrod;
-  margin-bottom: 5px;
+  color: goldenrod;
+  margin-bottom: 6px;
+  min-height: 40px; /* FIX */
 }
 
+/* ------------------- Description (CLAMPED) ------------------- */
 .product-card .description {
   font-size: 0.85rem;
   color: #6b7280;
-  min-height: 30px;
   margin-bottom: 8px;
+  line-height: 1.4;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* FIX */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 38px; /* FIX */
 }
 
+/* ------------------- Price ------------------- */
 .product-card .price {
   font-weight: bold;
   color: #111827;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
 }
 
-/* ------------------- Buy Now Button ------------------- */
+/* ------------------- Push buttons to bottom ------------------- */
+.product-card .buy-now {
+  margin-top: auto; /* 🔥 KEY FIX */
+}
+
+/* ------------------- Buy Button ------------------- */
 .product-card .buy-now {
   background: linear-gradient(135deg, goldenrod, #155bb5);
   color: #fff;
   border: none;
-  padding: 8px 18px;
+  padding: 9px 20px;
   border-radius: 25px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -163,7 +129,7 @@
   transform: translateY(-2px);
 }
 
-/* ------------------- ALWAYS-VISIBLE BEST SELLER LABEL ------------------- */
+/* ------------------- Product Label ------------------- */
 .product-label {
   position: absolute;
   top: 10px;
@@ -184,7 +150,7 @@
   right: 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -196,7 +162,7 @@
 .overlay button {
   background: linear-gradient(135deg, #1a73e8, #155bb5);
   border: none;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 20px;
   color: #fff;
   font-size: 0.7rem;
@@ -204,23 +170,15 @@
   font-weight: 600;
 }
 
-.overlay button:hover {
-  background: linear-gradient(135deg, #155bb5, #0f3a7a);
-}
-
 /* ------------------- Responsive ------------------- */
-@media (max-width: 1024px) {
-  .hero-content h1 { font-size: 2rem; }
-  .hero-content p { font-size: 1rem; }
-}
-
 @media (max-width: 768px) {
-  .product-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-  .hero-content h1 { font-size: 1.7rem; }
-  .hero-content p { font-size: 0.9rem; }
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
 }
 
 @media (max-width: 480px) {
-  .product-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-  .hero-content h1 { font-size: 1.5rem; }
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
 }

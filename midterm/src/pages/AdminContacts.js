@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import "../Styles/admin.css"; // make sure this file contains the CSS you sent
 
 function AdminContacts() {
   const [contacts, setContacts] = useState([]);
@@ -8,7 +9,7 @@ function AdminContacts() {
 
   const fetchContacts = async () => {
     try {
-      const res = await api.get("https://server-2plo.onrender.com/contacts"); //  protected, token auto sent
+      const res = await api.get("https://server-2plo.onrender.com/contacts");
       setContacts(res.data);
       setError("");
     } catch (err) {
@@ -25,7 +26,7 @@ function AdminContacts() {
     if (!window.confirm("Delete this message?")) return;
 
     try {
-      await api.delete(`/contacts/${id}`); //  protected
+      await api.delete(`/contacts/${id}`);
       fetchContacts();
     } catch (err) {
       console.error(err);
@@ -34,56 +35,93 @@ function AdminContacts() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1 style={{ textAlign: "center" }}>Contacts Admin</h1>
+    <div className="admin-page">
+      <div className="admin-container">
+        {/* Header */}
+        <div className="admin-header">
+          <div className="admin-title">
+            <h1>Contacts</h1>
+            <p>Messages sent by users</p>
+          </div>
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
-        <Link to="/products/admin"><button>Products</button></Link>
-        <Link to="/places/admin"><button>Places</button></Link>
-        <Link to="/orders/admin"><button>Orders</button></Link>
-      </div>
-
-      {error && (
-        <div style={{ background: "#ffecec", padding: 10, borderRadius: 8 }}>
-          {error}
+          <div className="admin-actions">
+            <Link to="/products/admin" className="btn btn-ghost btn-sm">
+              Products
+            </Link>
+            <Link to="/places/admin" className="btn btn-ghost btn-sm">
+              Places
+            </Link>
+            <Link to="/orders/admin" className="btn btn-ghost btn-sm">
+              Orders
+            </Link>
+          </div>
         </div>
-      )}
 
-      <table border="1" width="100%" cellPadding="10" style={{ marginTop: 15 }}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Message</th>
-            <th>Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+        {/* Error */}
+        {error && (
+          <div className="panel" style={{ marginBottom: 16 }}>
+            <div className="panel-body" style={{ color: "#ef4444" }}>
+              {error}
+            </div>
+          </div>
+        )}
 
-        <tbody>
-          {contacts.map((c) => (
-            <tr key={c.id}>
-              <td>{c.id}</td>
-              <td>{c.full_name}</td>
-              <td>{c.email}</td>
-              <td style={{ maxWidth: 420, whiteSpace: "pre-wrap" }}>{c.message}</td>
-              <td>{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</td>
-              <td>
-                <button onClick={() => handleDelete(c.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+        {/* Table */}
+        <div className="panel">
+          <div className="panel-header">
+            <h2>Contact Messages</h2>
+          </div>
 
-          {contacts.length === 0 && !error && (
-            <tr>
-              <td colSpan="6" style={{ textAlign: "center", padding: 20 }}>
-                No messages yet
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {contacts.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.id}</td>
+                    <td>{c.full_name}</td>
+                    <td>{c.email}</td>
+                    <td style={{ maxWidth: 420, whiteSpace: "pre-wrap" }}>
+                      {c.message}
+                    </td>
+                    <td>
+                      {c.created_at
+                        ? new Date(c.created_at).toLocaleString()
+                        : ""}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(c.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {contacts.length === 0 && !error && (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: "center", padding: 20 }}>
+                      No messages yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

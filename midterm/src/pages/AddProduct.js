@@ -37,33 +37,90 @@ function AddProduct() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h1>Add Product</h1>
+    <div className="admin-page">
+      <div className="admin-container">
 
-      <form onSubmit={handleSubmit}>
-        <CategoryComboBox value={categoryId} onSelectChange={setCategoryId} />
-        <br /><br />
+        <div className="admin-header">
+          <div className="admin-title">
+            <h1>Add Product</h1>
+            <p>Create a new product</p>
+          </div>
 
-        <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <br /><br />
+          <Link to="/products/admin">
+            <button className="btn btn-ghost btn-sm">Back</button>
+          </Link>
+        </div>
 
-        <input placeholder="Price (number)" value={price} onChange={(e) => setPrice(e.target.value)} />
-        <br /><br />
+        <div className="panel">
+          <div className="panel-body">
 
-        <input placeholder="Label (optional)" value={label} onChange={(e) => setLabel(e.target.value)} />
-        <br /><br />
+            <form onSubmit={handleSubmit} className="form-grid">
 
-        <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <br /><br />
+              <div className="field f-12">
+                <label>Category</label>
+                <CategoryComboBox
+                  value={categoryId}
+                  onSelectChange={setCategoryId}
+                />
+              </div>
 
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        <br /><br />
+              <div className="field f-6">
+                <label>Name</label>
+                <input
+                  className="input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
 
-        <button type="submit">Save</button>
-        <br /><br />
+              <div className="field f-6">
+                <label>Price</label>
+                <input
+                  className="input"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+              </div>
 
-        <Link to="/products/admin">Back</Link>
-      </form>
+              <div className="field f-6">
+                <label>Label</label>
+                <input
+                  className="input"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                />
+              </div>
+
+              <div className="field f-12">
+                <label>Description</label>
+                <textarea
+                  className="textarea"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="field f-12">
+                <label>Image</label>
+                <input
+                  type="file"
+                  className="input"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+              </div>
+
+              <div className="f-12">
+                <button className="btn btn-success btn-block">
+                  Save Product
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }

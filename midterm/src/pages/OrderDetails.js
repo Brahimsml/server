@@ -25,66 +25,114 @@ function OrderDetails() {
 
   if (error) {
     return (
-      <div style={{ padding: 20 }}>
-        <p style={{ color: "red" }}>{error}</p>
-        <Link to="/orders/admin">Back</Link>
+      <div className="admin-page">
+        <div className="admin-container panel panel-body">
+          <p style={{ color: "var(--danger)" }}>{error}</p>
+          <Link to="/orders/admin" className="btn btn-ghost btn-sm">
+            Back
+          </Link>
+        </div>
       </div>
     );
   }
 
-  if (!order) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (!order) {
+    return (
+      <div className="admin-page">
+        <div className="admin-container panel panel-body">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Order Details (#{order.id})</h1>
+    <div className="admin-page">
+      <div className="admin-container">
 
-      <div style={{ background: "#fff", padding: 15, borderRadius: 10, marginBottom: 20 }}>
-        <p><b>Name:</b> {order.customer_name}</p>
-        <p><b>Phone:</b> {order.customer_phone}</p>
-        <p><b>Address:</b> {order.customer_address}</p>
-        <p><b>Status:</b> {order.status}</p>
-        <p><b>Total:</b> ${Number(order.total || 0).toFixed(2)}</p>
-      </div>
+        {/* Header */}
+        <div className="admin-header">
+          <div className="admin-title">
+            <h1>Order #{order.id}</h1>
+            <p>Order details & purchased items</p>
+          </div>
 
-      <h3>Items</h3>
-      <table border="1" width="100%" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Product ID</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>SubTotal</th>
-          </tr>
-        </thead>
+          <Link to="/orders/admin" className="btn btn-ghost btn-sm">
+            ⬅ Back
+          </Link>
+        </div>
 
-        <tbody>
-          {items.map((it, index) => {
-            const price = Number(it.price || 0);
-            const qty = Number(it.quantity || 1);
-            return (
-              <tr key={index}>
-                <td>{it.product_id}</td>
-                <td>{it.product_name}</td>
-                <td>${price.toFixed(2)}</td>
-                <td>{qty}</td>
-                <td>${(price * qty).toFixed(2)}</td>
-              </tr>
-            );
-          })}
+        {/* Order Info */}
+        <div className="panel">
+          <div className="panel-header">
+            <h2>Customer Information</h2>
+          </div>
 
-          {items.length === 0 && (
-            <tr>
-              <td colSpan="5" style={{ textAlign: "center", padding: 20 }}>
-                No items in this order
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          <div className="panel-body admin-grid">
+            <div className="col-6">
+              <p><b>Name:</b> {order.customer_name}</p>
+              <p><b>Phone:</b> {order.customer_phone}</p>
+            </div>
 
-      <div style={{ marginTop: 20 }}>
-        <Link to="/orders/admin">⬅ Back to Orders</Link>
+            <div className="col-6">
+              <p><b>Address:</b> {order.customer_address}</p>
+              <p>
+                <b>Status:</b>{" "}
+                <span className="badge badge-new">{order.status}</span>
+              </p>
+              <p>
+                <b>Total:</b>{" "}
+                ${Number(order.total || 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <div className="panel" style={{ marginTop: 20 }}>
+          <div className="panel-header">
+            <h2>Order Items</h2>
+          </div>
+
+          <div className="panel-body table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Product ID</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {items.map((it, index) => {
+                  const price = Number(it.price || 0);
+                  const qty = Number(it.quantity || 1);
+                  return (
+                    <tr key={index}>
+                      <td>{it.product_id}</td>
+                      <td>{it.product_name}</td>
+                      <td>${price.toFixed(2)}</td>
+                      <td>{qty}</td>
+                      <td>${(price * qty).toFixed(2)}</td>
+                    </tr>
+                  );
+                })}
+
+                {items.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: "center" }}>
+                      No items in this order
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );

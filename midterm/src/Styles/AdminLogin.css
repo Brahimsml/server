@@ -1,0 +1,109 @@
+/* =========================
+   ADMIN LOGIN – GOLD THEME
+========================= */
+
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(255,215,0,0.18), transparent 60%),
+    radial-gradient(900px 500px at 90% 90%, rgba(255,165,0,0.18), transparent 55%),
+    linear-gradient(135deg, #0b0b0b, #141414, #0b0b0b);
+  padding: 20px;
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 215, 0, 0.25);
+  animation: fadeInUp 0.6s ease;
+}
+
+.admin-login-title {
+  text-align: center;
+  margin-bottom: 26px;
+  font-size: 26px;
+  font-weight: 800;
+  color: gold;
+  letter-spacing: 0.5px;
+}
+
+/* Inputs */
+.admin-input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.admin-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.admin-input:focus {
+  border-color: gold;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Button */
+.admin-login-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.45);
+}
+
+.admin-login-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .admin-login-card {
+    padding: 24px;
+  }
+
+  .admin-login-title {
+    font-size: 22px;
+  }
+}

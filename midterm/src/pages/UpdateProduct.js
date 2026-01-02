@@ -15,10 +15,11 @@ function UpdateProduct() {
   const [existingImage, setExistingImage] = useState("");
   const [file, setFile] = useState(null);
 
+  // ✅ Load product
   useEffect(() => {
     api.get(`/products/search/${id}`).then((res) => {
       const p = res.data[0];
-      setCategoryId(String(p.category_id));
+      setCategoryId(String(p.category_id)); // IMPORTANT
       setName(p.name);
       setPrice(p.price);
       setLabel(p.label || "");
@@ -27,6 +28,7 @@ function UpdateProduct() {
     });
   }, [id]);
 
+  // ✅ Submit update (WORKING)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -37,8 +39,11 @@ function UpdateProduct() {
     formData.append("label", label);
     formData.append("description", description);
 
-    if (file) formData.append("image", file);
-    else formData.append("existingImage", existingImage);
+    if (file) {
+      formData.append("image", file);
+    } else {
+      formData.append("existingImage", existingImage);
+    }
 
     await api.post(`/products/modify/${id}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -48,42 +53,107 @@ function UpdateProduct() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h1>Update Product</h1>
+    <div className="admin-page">
+      <div className="admin-container">
 
-      <form onSubmit={handleSubmit}>
-        <CategoryComboBox value={categoryId} onSelectChange={setCategoryId} />
-        <br /><br />
+        {/* HEADER */}
+        <div className="admin-header">
+          <div className="admin-title">
+            <h1>Update Product</h1>
+            <p>Edit product details</p>
+          </div>
 
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" />
-        <br /><br />
+          <div className="admin-actions">
+            <Link to="/products/admin">
+              <button className="btn btn-ghost">⬅ Back</button>
+            </Link>
+          </div>
+        </div>
 
-        <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price" />
-        <br /><br />
+        {/* FORM PANEL */}
+        <div className="panel">
+          <div className="panel-body">
+            <form onSubmit={handleSubmit} className="form-grid">
 
-        <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label" />
-        <br /><br />
+              <div className="field f-12">
+                <label>Category</label>
+                <CategoryComboBox
+                  value={categoryId}
+                  onSelectChange={setCategoryId}
+                />
+              </div>
 
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
-        <br /><br />
+              <div className="field f-6">
+                <label>Name</label>
+                <input
+                  className="input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
 
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        <br /><br />
+              <div className="field f-6">
+                <label>Price</label>
+                <input
+                  className="input"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                />
+              </div>
 
-        {existingImage && (
-          <img
-            src={`http://localhost:5000/images/${existingImage}`}
-            alt="current"
-            width="120"
-            style={{ borderRadius: 10 }}
-          />
-        )}
+              <div className="field f-6">
+                <label>Label</label>
+                <input
+                  className="input"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                />
+              </div>
 
-        <br /><br />
-        <button type="submit">Update</button>
-        <br /><br />
-        <Link to="/products/admin">Back</Link>
-      </form>
+              <div className="field f-12">
+                <label>Description</label>
+                <textarea
+                  className="textarea"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="field f-12">
+                <label>Image</label>
+                <input
+                  type="file"
+                  className="input"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+              </div>
+
+              {/* IMAGE PREVIEW */}
+              {existingImage && (
+                <div className="field f-12">
+                  <div className="preview">
+                    <img
+                      src={`https://server-2plo.onrender.com/images/${existingImage}`}
+                      alt="current"
+                    />
+                    <span>Current Image</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="field f-12">
+                <button type="submit" className="btn btn-primary btn-block">
+                  Update Product
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
