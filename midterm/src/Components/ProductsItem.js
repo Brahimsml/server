@@ -12,7 +12,7 @@ const ProductsItem = () => {
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = "https://server-2plo.onrender.com";
 
   //  Fetch products from DB
   useEffect(() => {
