@@ -39,7 +39,7 @@
     "web-vitals": "^2.1.4"
 
   },
-
+   "proxy":"https://server-2plo.onrender.com/",
   "scripts": {
 
     "start": "react-scripts start",

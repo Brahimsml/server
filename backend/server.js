@@ -9,14 +9,12 @@ const SECRET = "pc_store_secret_key";
 
 const app = express();
 app.use(cors({
-  origin: [ "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
     "https://test8080.netlify.app"
-    ],
-    
-  
-}
+  ]
+}));
 
-));
 app.use(express.json());
 
 /*
