@@ -11,7 +11,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://test8080.netlify.app"
+    "https://testbrhm.netlify.app"
   ]
 }));
 
