@@ -292,3 +292,38 @@
     padding: 28px 22px 26px;
   }
 }
+
+/* Single-column card (forgot / reset password) */
+.auth-card--narrow {
+  grid-template-columns: 1fr;
+  max-width: 460px;
+}
+
+.auth-forgot {
+  display: inline-block;
+  margin: -6px 0 14px;
+  color: var(--a-accent-bright);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-forgot:hover {
+  text-decoration: underline;
+}
+
+.auth-done {
+  text-align: center;
+}
+
+.auth-done__icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(111, 213, 156, 0.12);
+  color: var(--a-success);
+  font-size: 30px;
+}

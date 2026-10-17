@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
-const { buildOrderEmail } = require("./emails");
+const { buildOrderEmail, buildPasswordResetEmail } = require("./emails");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -25,7 +25,21 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-app.use(cors());
+// Only our own website may call the API from a browser (SITE_URL in .env, comma-separated).
+// Requests without an Origin header (same-origin, server-to-server, curl) are allowed.
+const allowedOrigins = String(process.env.SITE_URL || "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+// Main website address, used for links in emails
+const SITE_URL = allowedOrigins[0];
+
+app.use(
+  cors({
+    origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)),
+  })
+);
 app.use(express.json());
 
 /*
@@ -388,6 +402,89 @@ app.post("/users/login", limitLoginAttempts, (req, res) => {
 /*
    CATEGORIES
 */
+/*
+   CUSTOMER PASSWORD RESET
+   The link is signed with the JWT secret + the customer's current password hash,
+   so it stops working once the password changes (single use) or after 30 minutes.
+*/
+const RESET_MINUTES = 30;
+const resetRequests = new Map(); // ip -> { count, resetAt }
+const resetSecretFor = (user) => SECRET + user.password;
+
+app.post("/users/forgot-password", (req, res) => {
+  const email = String(req.body?.email || "").trim();
+  if (!email) return res.status(400).json({ message: "Enter your email" });
+
+  // at most 5 requests per 15 minutes from one address (stops inbox spamming)
+  const now = Date.now();
+  const entry = resetRequests.get(req.ip);
+  if (entry && entry.resetAt > now && entry.count >= 5) {
+    return res.status(429).json({ message: "Too many requests. Please try again in a few minutes." });
+  }
+  if (!entry || entry.resetAt <= now) resetRequests.set(req.ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
+  else entry.count += 1;
+
+  db.query("SELECT id, name, email, password FROM users WHERE email=?", [email], async (err, rows) => {
+    if (err) return serverError(res, err);
+
+    // Same answer whether or not the account exists, so nobody can find out who has one
+    res.json({ message: "If an account exists for that email, we've sent a link to reset the password." });
+    if (!rows.length) return;
+
+    // Sent after replying, so the response time doesn't reveal anything either
+    const user = rows[0];
+    const token = jwt.sign({ id: user.id, purpose: "password-reset" }, resetSecretFor(user), {
+      expiresIn: `${RESET_MINUTES}m`,
+    });
+    const resetUrl = `${SITE_URL}/reset-password?id=${user.id}&token=${encodeURIComponent(token)}`;
+
+    try {
+      await transporter.sendMail({
+        from: `"MegaTech" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        ...buildPasswordResetEmail({ name: user.name, resetUrl, minutes: RESET_MINUTES }),
+      });
+      console.log(`✅ Password reset email sent to ${user.email}`);
+    } catch (emailErr) {
+      console.error("❌ Password reset email failed:", emailErr);
+    }
+  });
+});
+
+app.post("/users/reset-password", (req, res) => {
+  const { id, token, password } = req.body || {};
+  const invalid = () =>
+    res.status(400).json({ message: "This reset link is invalid or has expired. Please request a new one." });
+
+  if (!id || !token) return invalid();
+  if (!password || String(password).length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
+
+  db.query("SELECT id, password FROM users WHERE id=?", [id], async (err, rows) => {
+    if (err) return serverError(res, err);
+    if (!rows.length) return invalid();
+
+    let payload;
+    try {
+      payload = jwt.verify(String(token), resetSecretFor(rows[0]));
+    } catch {
+      return invalid(); // expired, tampered with, or already used (password changed)
+    }
+    if (payload.purpose !== "password-reset" || Number(payload.id) !== Number(rows[0].id)) return invalid();
+
+    try {
+      const hashed = await bcrypt.hash(String(password), 10);
+      db.query("UPDATE users SET password=? WHERE id=?", [hashed, rows[0].id], (err2) => {
+        if (err2) return serverError(res, err2);
+        res.json({ message: "Your password was changed. You can sign in now." });
+      });
+    } catch (e) {
+      serverError(res, e);
+    }
+  });
+});
+
 /*
    ADMIN ACCOUNT: change password + keep the session alive
 */
@@ -800,7 +897,7 @@ app.post("/orders", verifyUser, async (req, res) => {
       kind: "confirmation",
       order: { id: orderId, customer_name, customer_phone, customer_address, total, created_at: new Date() },
       items: orderItems,
-      siteUrl: process.env.SITE_URL,
+      siteUrl: SITE_URL,
       imagesDir,
     });
     await transporter.sendMail({
@@ -923,7 +1020,7 @@ app.put("/orders/:id/status", verifyAdmin, async (req, res) => {
           kind: status,
           order,
           items,
-          siteUrl: process.env.SITE_URL,
+          siteUrl: SITE_URL,
           imagesDir,
         });
         await transporter.sendMail({

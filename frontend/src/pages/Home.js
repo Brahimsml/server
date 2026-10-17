@@ -21,7 +21,6 @@ import {
   onImageError,
   toCartProduct,
 } from "../utils/shop";
-import "../Styles/Home.css"; // loads the site fonts (Space Grotesk / Inter) + base heading styles
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
 

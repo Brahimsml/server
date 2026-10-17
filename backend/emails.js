@@ -73,6 +73,61 @@ const STATUS_STYLE = {
 
 const FONT = "'Segoe UI', Helvetica, Arial, sans-serif";
 
+// Shared frame for every email: logo header, white card, help line, footer.
+// title/preheader are plain text; body/help/footnote are HTML.
+function emailShell({ title, preheader, body, help, footnote }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f1ea;-webkit-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f4f1ea;">${escapeHtml(preheader)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea;">
+    <tr>
+      <td align="center" style="padding:28px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e7e2d8;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#14110b;padding:20px 28px;">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td style="padding-right:12px;">
+                  <img src="cid:logo@megatech" width="40" height="40" alt="${BRAND}" style="display:block;border-radius:10px;border:1px solid #5a4723;">
+                </td>
+                <td style="font-family:${FONT};font-size:20px;font-weight:700;color:#f6f1e7;letter-spacing:-0.2px;">${BRAND}</td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr><td style="height:4px;background:linear-gradient(90deg,#e6c372,#c9a24d);background-color:#c9a24d;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+${body}          <!-- Help -->
+          <tr>
+            <td style="padding:18px 28px 30px;font-family:${FONT};font-size:13px;line-height:1.6;color:#7a7266;text-align:center;">
+              ${help}
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+          <tr>
+            <td style="padding:18px 20px;font-family:${FONT};font-size:12px;line-height:1.6;color:#9a917f;text-align:center;">
+              &copy; ${new Date().getFullYear()} ${BRAND} &middot; Lebanon<br>
+              ${footnote}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 /*
   order:  { id, customer_name, customer_phone, customer_address, total, created_at, status }
   items:  [{ name, price, qty, image }]   image = file name in imagesDir
@@ -140,35 +195,10 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
       ? `Order #${order.id} · ${itemCount} ${itemCount === 1 ? "item" : "items"} · ${money(order.total)}`
       : `Order #${order.id} is now ${status.label.toLowerCase()}`;
 
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>${escapeHtml(copy.subject(order.id))}</title>
-</head>
-<body style="margin:0;padding:0;background:#f4f1ea;-webkit-text-size-adjust:100%;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f4f1ea;">${escapeHtml(preheader)}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea;">
-    <tr>
-      <td align="center" style="padding:28px 12px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e7e2d8;">
-
-          <!-- Header -->
-          <tr>
-            <td style="background:#14110b;padding:20px 28px;">
-              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                <td style="padding-right:12px;">
-                  <img src="cid:logo@megatech" width="40" height="40" alt="${BRAND}" style="display:block;border-radius:10px;border:1px solid #5a4723;">
-                </td>
-                <td style="font-family:${FONT};font-size:20px;font-weight:700;color:#f6f1e7;letter-spacing:-0.2px;">${BRAND}</td>
-              </tr></table>
-            </td>
-          </tr>
-          <tr><td style="height:4px;background:linear-gradient(90deg,#e6c372,#c9a24d);background-color:#c9a24d;font-size:0;line-height:0;">&nbsp;</td></tr>
-
-          <!-- Title -->
+  const html = emailShell({
+    title: copy.subject(order.id),
+    preheader,
+    body: `          <!-- Title -->
           <tr>
             <td style="padding:34px 28px 6px;font-family:${FONT};">
               <div style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#a07a2c;">${escapeHtml(copy.eyebrow)}</div>
@@ -247,28 +277,10 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
             </td>
           </tr>
 
-          <!-- Help -->
-          <tr>
-            <td style="padding:18px 28px 30px;font-family:${FONT};font-size:13px;line-height:1.6;color:#7a7266;text-align:center;">
-              Questions about your order? Just reply to this email or call us at <strong style="color:#3d3830;">${PHONE}</strong>.
-            </td>
-          </tr>
-        </table>
-
-        <!-- Footer -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
-          <tr>
-            <td style="padding:18px 20px;font-family:${FONT};font-size:12px;line-height:1.6;color:#9a917f;text-align:center;">
-              &copy; ${new Date().getFullYear()} ${BRAND} &middot; Lebanon<br>
-              You're receiving this email because you placed an order at ${BRAND}.
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+`,
+    help: `Questions about your order? Just reply to this email or call us at <strong style="color:#3d3830;">${PHONE}</strong>.`,
+    footnote: `You're receiving this email because you placed an order at ${BRAND}.`,
+  });
 
   // Plain-text version for email apps that don't show HTML
   const text = [
@@ -297,4 +309,73 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
   return { subject: copy.subject(order.id), html, text, attachments };
 }
 
-module.exports = { buildOrderEmail };
+/*
+  "Reset your password" email.
+  name: the customer's name, resetUrl: the one-time link (expires after `minutes`).
+*/
+function buildPasswordResetEmail({ name, resetUrl, minutes = 30 }) {
+  const rawFirst = String(name || "").trim().split(/\s+/)[0] || "there";
+  const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1);
+  const attachments = fs.existsSync(LOGO_PATH)
+    ? [{ filename: "megatech-logo.png", path: LOGO_PATH, cid: "logo@megatech" }]
+    : [];
+
+  const body = `
+          <tr>
+            <td style="padding:34px 28px 6px;font-family:${FONT};">
+              <div style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#a07a2c;">Account security</div>
+              <h1 style="margin:10px 0 10px;font-size:26px;line-height:1.25;color:#1c1a16;font-weight:700;">Reset your password</h1>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#5c554a;">Hi ${escapeHtml(firstName)}, we received a request to reset the password for your ${BRAND} account. Click the button below to choose a new one.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 28px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td align="center" style="border-radius:12px;background:#c9a24d;">
+                  <a href="${escapeHtml(resetUrl)}" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:15px;font-weight:700;color:#1c1408;text-decoration:none;border-radius:12px;">Choose a new password</a>
+                </td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 28px 0;font-family:${FONT};">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf8f3;border:1px solid #efe9de;border-radius:14px;">
+                <tr><td style="padding:14px 16px;font-size:13px;line-height:1.6;color:#5c554a;">
+                  This link works for <strong>${minutes} minutes</strong> and can be used once.
+                  If you didn't ask to reset your password, you can ignore this email. Your password won't change.
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 28px 0;font-family:${FONT};font-size:12px;line-height:1.6;color:#8a8275;word-break:break-all;">
+              Button not working? Copy this link into your browser:<br>
+              <a href="${escapeHtml(resetUrl)}" style="color:#a07a2c;">${escapeHtml(resetUrl)}</a>
+            </td>
+          </tr>
+`;
+
+  const html = emailShell({
+    title: `Reset your ${BRAND} password`,
+    preheader: `Use this link within ${minutes} minutes to choose a new password.`,
+    body,
+    help: `Need help? Just reply to this email or call us at <strong style="color:#3d3830;">${PHONE}</strong>.`,
+    footnote: `You're receiving this email because a password reset was requested for your ${BRAND} account.`,
+  });
+
+  const text = [
+    `Hi ${firstName},`,
+    "",
+    `We received a request to reset the password for your ${BRAND} account.`,
+    `Choose a new password here (works for ${minutes} minutes, once):`,
+    resetUrl,
+    "",
+    "If you didn't ask for this, you can ignore this email. Your password won't change.",
+    "",
+    `${BRAND} · ${PHONE}`,
+  ].join("\n");
+
+  return { subject: `Reset your ${BRAND} password`, html, text, attachments };
+}
+
+module.exports = { buildOrderEmail, buildPasswordResetEmail };

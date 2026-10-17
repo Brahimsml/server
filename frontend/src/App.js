@@ -10,6 +10,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 //  Admin auth
 import AdminLogin from "./pages/AdminLogin";
@@ -75,6 +77,8 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/my-orders" element={<MyOrders />} />
 <Route path="/my-orders/:id" element={<MyOrderDetails />} />

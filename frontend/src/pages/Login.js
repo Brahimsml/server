@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
@@ -210,6 +211,12 @@ const Login = () => {
                 </button>
               </div>
             </label>
+
+            {!isRegister && (
+              <Link to="/forgot-password" className="auth-forgot">
+                Forgot password?
+              </Link>
+            )}
 
             <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? "Please wait..." : isRegister ? "Create account" : "Sign in"}
