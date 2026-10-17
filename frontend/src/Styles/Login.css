@@ -387,3 +387,28 @@
 .auth-verify__back {
   margin-top: 8px;
 }
+
+/* "This email already has an account. Sign in or reset your password" */
+.auth-alert__actions {
+  display: block;
+  margin-top: 4px;
+  color: var(--a-muted);
+  font-weight: 500;
+}
+
+.auth-alert__actions button,
+.auth-alert__actions a {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--a-accent-bright);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-alert__actions button:hover,
+.auth-alert__actions a:hover {
+  text-decoration: underline;
+}

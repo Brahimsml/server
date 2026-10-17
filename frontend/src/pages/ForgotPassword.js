@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -9,7 +9,9 @@ import "../Styles/Login.css";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("");
+  // filled in when coming from "This email already has an account" on the sign-up form
+  const { state } = useLocation();
+  const [email, setEmail] = useState(state?.email || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);

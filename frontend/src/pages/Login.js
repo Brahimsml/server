@@ -112,6 +112,8 @@ const Login = () => {
       const data = err.response?.data;
       if (data?.needsVerification) {
         startVerification(data.email, "Please confirm your email first. We sent you a new code.");
+      } else if (isRegister && err.response?.status === 409) {
+        setMessage({ type: "error", kind: "exists", text: "This email already has an account." });
       } else {
         setMessage({ type: "error", text: data?.message || "Something went wrong. Please try again." });
       }
@@ -190,6 +192,17 @@ const Login = () => {
   const alert = message.text && (
     <div className={`auth-alert auth-alert--${message.type}`} role={message.type === "error" ? "alert" : "status"}>
       {message.text}
+      {message.kind === "exists" && (
+        <span className="auth-alert__actions">
+          <button type="button" onClick={() => switchMode(false)}>
+            Sign in
+          </button>
+          {" or "}
+          <Link to="/forgot-password" state={{ email: form.email.trim() }}>
+            reset your password
+          </Link>
+        </span>
+      )}
     </div>
   );
 
