@@ -1,0 +1,124 @@
+/* =========================================================
+   LOCATIONS PAGE (loc-*) — uses tokens from theme.css
+========================================================= */
+.loc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 22px;
+}
+
+.loc-skeleton {
+  height: 560px;
+}
+
+.loc-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--mt-radius);
+  border: 1px solid var(--mt-border);
+  background: var(--mt-surface);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.loc-card:hover {
+  border-color: var(--mt-border-strong);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.loc-card__media {
+  aspect-ratio: 16 / 9;
+  background: var(--mt-surface-2);
+  overflow: hidden;
+}
+
+.loc-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.loc-card__noimg {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--mt-faint);
+  font-size: 48px;
+}
+
+.loc-card__body {
+  padding: 20px 20px 18px;
+}
+
+.loc-card__body h2 {
+  margin: 0 0 14px;
+  font-family: var(--mt-font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--mt-text);
+}
+
+.loc-card__details {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.loc-card__details li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--mt-muted);
+  font-size: 0.93rem;
+  line-height: 1.45;
+}
+
+.loc-card__details svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--mt-accent-bright);
+}
+
+.loc-card__details a {
+  color: var(--mt-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.loc-card__details a:hover {
+  color: var(--mt-accent-bright);
+}
+
+.loc-card__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.loc-card__actions .mt-btn {
+  flex: 1;
+}
+
+.loc-card__map {
+  margin-top: auto;
+  height: 200px;
+  border-top: 1px solid var(--mt-border);
+}
+
+.loc-card__map iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* soften the bright map so it sits better on the dark card */
+  filter: saturate(0.85) brightness(0.92);
+}
+
+@media (max-width: 400px) {
+  .loc-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,131 @@
+/* =========================================================
+   ABOUT PAGE (ab-*) — uses tokens from theme.css
+========================================================= */
+.ab-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  padding: 12px 0 8px;
+}
+
+.ab-hero__title {
+  font-size: clamp(2.1rem, 4.2vw, 3.2rem);
+  line-height: 1.08;
+}
+
+.ab-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.ab-hero__media {
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--mt-border);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  aspect-ratio: 5 / 4;
+}
+
+.ab-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ab-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(201, 162, 77, 0.12);
+  color: var(--mt-accent-bright);
+}
+
+.ab-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 56px;
+}
+
+.ab-highlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px;
+}
+
+.ab-highlight + .ab-highlight {
+  border-left: 1px solid var(--mt-border);
+}
+
+.ab-highlight h3 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ab-highlight p {
+  margin: 2px 0 0;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.ab-values {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.ab-value {
+  padding: 24px;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.ab-value:hover {
+  border-color: var(--mt-border-strong);
+  transform: translateY(-3px);
+}
+
+.ab-value h3 {
+  margin: 16px 0 8px;
+  font-family: var(--mt-font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.ab-value p {
+  margin: 0;
+  color: var(--mt-muted);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 960px) {
+  .ab-hero {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .ab-hero__media {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (max-width: 720px) {
+  .ab-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-highlight + .ab-highlight {
+    border-left: none;
+    border-top: 1px solid var(--mt-border);
+  }
+}

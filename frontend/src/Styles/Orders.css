@@ -1,0 +1,465 @@
+/* =========================================================
+   MY ORDERS (mo-*) + ORDER DETAILS (mod-*) — tokens from theme.css
+========================================================= */
+
+/* ===== Stats ===== */
+.mo-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mo-stat {
+  padding: 18px 22px;
+}
+
+.mo-stat span {
+  display: block;
+  color: var(--mt-muted);
+  font-size: 0.85rem;
+}
+
+.mo-stat strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mt-font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--mt-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Panel + toolbar ===== */
+.mo-panel {
+  overflow: hidden;
+}
+
+.mo-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 18px 18px 0;
+}
+
+.mo-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(246, 241, 231, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--mt-faint);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mo-search:focus-within {
+  border-color: var(--mt-accent);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+}
+
+.mo-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 0;
+  border: none;
+  background: none;
+  color: var(--mt-text);
+  font: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.mo-search input::placeholder {
+  color: var(--mt-faint);
+}
+
+.mo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.mo-loading {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.mo-skeleton-row {
+  height: 54px;
+  border-radius: 10px;
+}
+
+/* ===== Table ===== */
+.mo-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mo-table th {
+  padding: 12px 18px;
+  text-align: left;
+  color: var(--mt-faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--mt-border);
+  border-bottom: 1px solid var(--mt-border);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.mo-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--mt-border);
+  color: var(--mt-text);
+  font-size: 0.93rem;
+  vertical-align: middle;
+}
+
+.mo-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mo-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mo-table tbody tr:hover {
+  background: rgba(201, 162, 77, 0.06);
+}
+
+.mo-table td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mt-faint);
+  font-size: 0.8rem;
+}
+
+.mo-table strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mo-more {
+  display: flex;
+  justify-content: center;
+  padding: 18px;
+  border-top: 1px solid var(--mt-border);
+}
+
+.mo-num {
+  text-align: right !important;
+}
+
+.mo-action {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ===== Order details ===== */
+.mod-head {
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.mod-badge {
+  font-size: 0.9rem;
+  padding: 6px 14px;
+}
+
+.mod-steps {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 22px 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  counter-reset: none;
+}
+
+.mod-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--mt-faint);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* connector line between steps */
+.mod-steps li + li::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(246, 241, 231, 0.12);
+  z-index: 0;
+}
+
+.mod-steps li.is-done + li::before,
+.mod-steps li.is-done + li.is-current::before {
+  background: var(--mt-accent);
+}
+
+.mod-steps__dot {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid rgba(246, 241, 231, 0.18);
+  background: var(--mt-surface);
+  font-size: 0.85rem;
+}
+
+.mod-steps__dot svg {
+  font-size: 18px;
+}
+
+.mod-steps li.is-done,
+.mod-steps li.is-current {
+  color: var(--mt-text);
+}
+
+.mod-steps li.is-done .mod-steps__dot,
+.mod-steps li.is-current .mod-steps__dot {
+  border-color: var(--mt-accent);
+  background: var(--mt-accent);
+  color: #1c1408;
+}
+
+.mod-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.mod-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.mod-panel-head h2 {
+  margin: 0;
+  font-family: var(--mt-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.mod-panel-head span {
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.mod-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0 22px;
+}
+
+.mod-lines li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.mod-thumb {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  padding: 5px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #f3f0ea;
+}
+
+.mod-lines__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mod-lines strong {
+  display: block;
+  font-weight: 600;
+  color: var(--mt-text);
+}
+
+.mod-lines small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mt-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mod-lines li > span {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mod-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 18px 22px 20px;
+  font-size: 1.05rem;
+}
+
+.mod-total strong {
+  font-family: var(--mt-font-display);
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mod-contact {
+  list-style: none;
+  margin: 0;
+  padding: 18px 22px 6px;
+  display: grid;
+  gap: 14px;
+}
+
+.mod-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--mt-text);
+  font-size: 0.93rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.mod-contact svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--mt-accent-bright);
+}
+
+.mod-help {
+  margin: 0;
+  padding: 14px 22px 20px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.mo-skeleton-head {
+  height: 90px;
+  margin-bottom: 20px;
+}
+
+.mo-skeleton-block {
+  height: 320px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .mo-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mo-search {
+    grid-column: 1 / -1;
+  }
+
+  .mod-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .mo-stats {
+    gap: 10px;
+  }
+
+  .mo-stat {
+    padding: 14px;
+  }
+
+  .mo-stat strong {
+    font-size: 1.35rem;
+  }
+
+  .mo-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  /* Table rows become cards */
+  .mo-table thead {
+    display: none;
+  }
+
+  .mo-table,
+  .mo-table tbody,
+  .mo-table tr,
+  .mo-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mo-table tr {
+    padding: 14px 18px;
+    border-top: 1px solid var(--mt-border);
+  }
+
+  .mo-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 0;
+    border: none;
+    text-align: right;
+  }
+
+  .mo-table td::before {
+    content: attr(data-label);
+    color: var(--mt-faint);
+    font-size: 0.82rem;
+    text-align: left;
+  }
+
+  .mo-table td small {
+    display: inline;
+    margin-left: 6px;
+  }
+
+  .mo-action {
+    width: 100%;
+    justify-content: flex-end !important;
+  }
+
+  .mo-action::before {
+    content: none !important;
+  }
+
+  .mod-steps {
+    padding: 18px 12px;
+  }
+
+  .mod-steps li {
+    font-size: 0.78rem;
+  }
+}

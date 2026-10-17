@@ -1,0 +1,139 @@
+/* =========================================================
+   CONTACT PAGE (ct-*) — uses tokens from theme.css
+========================================================= */
+.ct-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  gap: 56px;
+  align-items: start;
+  padding-top: 12px;
+}
+
+.ct-methods {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.ct-method {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ct-method:hover {
+  border-color: var(--mt-border-strong);
+  transform: translateX(3px);
+}
+
+.ct-method small {
+  display: block;
+  color: var(--mt-muted);
+  font-size: 0.8rem;
+}
+
+.ct-method strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--mt-text);
+  font-size: 1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ct-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(201, 162, 77, 0.12);
+  color: var(--mt-accent-bright);
+}
+
+.ct-topics {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 24px 0 0;
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--mt-border);
+}
+
+.ct-topics li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ct-topics svg {
+  margin-top: 2px;
+  color: var(--mt-accent-bright);
+}
+
+.ct-topics strong {
+  display: block;
+  color: var(--mt-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.ct-topics span {
+  display: block;
+  margin-top: 2px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.ct-card {
+  padding: 32px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+}
+
+.ct-card h2 {
+  margin: 0;
+  font-family: var(--mt-font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.ct-card__sub {
+  margin: 6px 0 24px;
+  color: var(--mt-muted);
+  font-size: 0.93rem;
+}
+
+.ct-sent {
+  padding: 32px 8px;
+  text-align: center;
+}
+
+.ct-sent__icon {
+  color: var(--mt-success);
+  background: rgba(111, 213, 156, 0.12);
+}
+
+.ct-sent p {
+  max-width: 340px;
+  margin: 10px auto 24px;
+  color: var(--mt-muted);
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .ct-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ct-card {
+    padding: 22px 18px;
+  }
+}
