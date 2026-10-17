@@ -25,7 +25,7 @@ frontend/   React app (Create React App)
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 22 or newer
 - MySQL (or MariaDB)
 - A Gmail account with an [app password](https://support.google.com/accounts/answer/185833) to send emails
 
@@ -55,6 +55,7 @@ Fill in `backend/.env`:
 | `JWT_SECRET` | A long random secret. Generate one with `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` | MySQL connection |
 | `SITE_URL` | Address of the website (used for links in emails and allowed to call the API), e.g. `https://megatech.com`. Several addresses can be separated by commas. |
+| `GOOGLE_CLIENT_ID` | Optional, for "Continue with Google" (see below) |
 
 Never commit `backend/.env`; it holds your secrets (it's already in `.gitignore`).
 
@@ -66,8 +67,11 @@ INSERT INTO pc_store.admins (email, password) VALUES ('admin@example.com', 'choo
 
 ```bash
 npm run hash-admin-passwords
+npm run migrate
 npm start
 ```
+
+`npm run migrate` adds the email-confirmation and Google columns to an existing database. It is safe to run more than once.
 
 The API runs on http://localhost:5001.
 
@@ -80,6 +84,18 @@ npm start
 ```
 
 The site opens on http://localhost:3000. The backend address is set in `frontend/.env` (`REACT_APP_API_URL`); restart `npm start` after changing it.
+
+### 4. Customer accounts
+
+New customers confirm their email with a 6-digit code before they can sign in or order. Codes expire after 15 minutes and allow 5 tries.
+
+**Continue with Google (optional):**
+
+1. Open https://console.cloud.google.com, create a project, then go to **APIs & Services → OAuth consent screen** and fill in the app name and your email.
+2. Go to **APIs & Services → Credentials → Create credentials → OAuth client ID**, type **Web application**.
+3. Under **Authorized JavaScript origins** add `http://localhost:3000` (and later your real address, e.g. `https://megatech.com`). No redirect URI is needed.
+4. Copy the Client ID into `backend/.env` as `GOOGLE_CLIENT_ID` and into `frontend/.env` as `REACT_APP_GOOGLE_CLIENT_ID`.
+5. Restart both servers. The Google button appears on the sign-in page; while the ID is empty it stays hidden.
 
 ## Everyday use
 
@@ -99,4 +115,5 @@ npm test
 
 - Set `SITE_URL` in `backend/.env` to the real website address.
 - Set `REACT_APP_API_URL` in `frontend/.env` to the real API address, then build with `npm run build`.
+- If you use Google sign-in, add the real address to the Client ID's **Authorized JavaScript origins**.
 - Use a strong admin password and a new `JWT_SECRET`.

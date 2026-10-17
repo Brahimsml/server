@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
+import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
 import "../Styles/Login.css";
+
+const RESEND_SECONDS = 60;
 
 const Login = () => {
   const params = new URLSearchParams(window.location.search);
@@ -22,6 +26,17 @@ const Login = () => {
     email: "",
     password: "",
   });
+
+  // Email confirmation step: set to the email we sent the code to
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return undefined;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   const handleChange = (e) => {
     setForm((p) => ({
@@ -47,6 +62,13 @@ const Login = () => {
     window.location.href = safeRedirect;
   };
 
+  const startVerification = (email, text) => {
+    setVerifyEmail(email);
+    setCode("");
+    setResendIn(RESEND_SECONDS);
+    setMessage({ type: "success", text });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage({ type: "", text: "" });
@@ -70,14 +92,16 @@ const Login = () => {
       setLoading(true);
 
       if (isRegister) {
-        await axios.post(`${API_URL}/users/register`, {
+        const res = await axios.post(`${API_URL}/users/register`, {
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
         });
+        startVerification(res.data.email, "Code sent. It can take a minute to arrive.");
+        setLoading(false);
+        return;
       }
 
-      // After registering, sign in straight away instead of asking again
       const res = await axios.post(`${API_URL}/users/login`, {
         email: form.email.trim(),
         password: form.password,
@@ -85,9 +109,65 @@ const Login = () => {
 
       finishLogin(res.data);
     } catch (err) {
+      const data = err.response?.data;
+      if (data?.needsVerification) {
+        startVerification(data.email, "Please confirm your email first. We sent you a new code.");
+      } else {
+        setMessage({ type: "error", text: data?.message || "Something went wrong. Please try again." });
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setMessage({ type: "", text: "" });
+
+    if (code.length !== 6) {
+      setMessage({ type: "error", text: "Enter the 6-digit code from the email." });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.post(`${API_URL}/users/verify-email`, { email: verifyEmail, code });
+      finishLogin(res.data);
+    } catch (err) {
+      const data = err.response?.data;
+      if (data?.alreadyVerified) {
+        setVerifyEmail("");
+        switchMode(false);
+      }
+      setMessage({ type: "error", text: data?.message || "Something went wrong. Please try again." });
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setMessage({ type: "", text: "" });
+    try {
+      await axios.post(`${API_URL}/users/resend-code`, { email: verifyEmail });
+      setCode("");
+      setResendIn(RESEND_SECONDS);
+      setMessage({ type: "success", text: "New code sent. Use the latest one." });
+    } catch (err) {
       setMessage({
         type: "error",
-        text: err.response?.data?.message || "Something went wrong. Please try again.",
+        text: err.response?.data?.message || "Couldn't send a new code. Please try again.",
+      });
+    }
+  };
+
+  const handleGoogle = async (credential) => {
+    setMessage({ type: "", text: "" });
+    try {
+      setLoading(true);
+      const res = await axios.post(`${API_URL}/users/google`, { credential });
+      finishLogin(res.data);
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Google sign-in failed. Please try again.",
       });
       setLoading(false);
     }
@@ -106,6 +186,179 @@ const Login = () => {
     : fromCheckout
     ? "Your cart is saved. Sign in and you'll go straight back to checkout."
     : "Sign in to your MegaTech account.";
+
+  const alert = message.text && (
+    <div className={`auth-alert auth-alert--${message.type}`} role={message.type === "error" ? "alert" : "status"}>
+      {message.text}
+    </div>
+  );
+
+  const verifyStep = (
+    <>
+      <div className="auth-done__icon auth-verify__icon">
+        <MarkEmailReadOutlinedIcon fontSize="inherit" />
+      </div>
+      <h1 className="auth-title auth-verify__title">Check your email</h1>
+      <p className="auth-subtitle auth-verify__title">
+        Enter the 6-digit code we sent to <strong className="auth-verify__email">{verifyEmail}</strong>. It
+        expires in 15 minutes.
+      </p>
+
+      {alert}
+
+      <form onSubmit={handleVerify} noValidate>
+        <label className="auth-field">
+          <span>Confirmation code</span>
+          <input
+            className="auth-code"
+            name="code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="••••••"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            autoFocus
+          />
+        </label>
+
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? "Checking..." : "Confirm email"}
+        </button>
+      </form>
+
+      <p className="auth-switch">
+        Didn't get it? Check your spam folder or{" "}
+        <button type="button" onClick={handleResend} disabled={resendIn > 0}>
+          {resendIn > 0 ? `resend in ${resendIn}s` : "send a new code"}
+        </button>
+      </p>
+      <p className="auth-switch auth-verify__back">
+        <button
+          type="button"
+          onClick={() => {
+            setVerifyEmail("");
+            setMessage({ type: "", text: "" });
+          }}
+        >
+          Use a different email
+        </button>
+      </p>
+    </>
+  );
+
+  const formStep = (
+    <>
+      <div className="auth-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={!isRegister}
+          className={!isRegister ? "is-active" : ""}
+          onClick={() => switchMode(false)}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={isRegister}
+          className={isRegister ? "is-active" : ""}
+          onClick={() => switchMode(true)}
+        >
+          Create account
+        </button>
+      </div>
+
+      <h1 className="auth-title">{title}</h1>
+      <p className="auth-subtitle">{subtitle}</p>
+
+      {alert}
+
+      {googleEnabled && (
+        <>
+          <GoogleButton
+            onCredential={handleGoogle}
+            onError={(text) => setMessage({ type: "error", text })}
+            text={isRegister ? "signup_with" : "continue_with"}
+          />
+          <div className="auth-divider">
+            <span>or with email</span>
+          </div>
+        </>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate>
+        {isRegister && (
+          <label className="auth-field">
+            <span>Full name</span>
+            <input
+              name="name"
+              autoComplete="name"
+              placeholder="Your full name"
+              value={form.name}
+              onChange={handleChange}
+            />
+          </label>
+        )}
+
+        <label className="auth-field">
+          <span>Email</span>
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label className="auth-field">
+          <span>Password</span>
+          <div className="auth-password">
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={isRegister ? "new-password" : "current-password"}
+              placeholder={isRegister ? "At least 8 characters" : "Your password"}
+              value={form.password}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="auth-password__toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <VisibilityOffOutlinedIcon fontSize="small" />
+              ) : (
+                <VisibilityOutlinedIcon fontSize="small" />
+              )}
+            </button>
+          </div>
+        </label>
+
+        {!isRegister && (
+          <Link to="/forgot-password" className="auth-forgot">
+            Forgot password?
+          </Link>
+        )}
+
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? "Please wait..." : isRegister ? "Create account" : "Sign in"}
+        </button>
+      </form>
+
+      <p className="auth-switch">
+        {isRegister ? "Already have an account?" : "New to MegaTech?"}{" "}
+        <button type="button" onClick={() => switchMode(!isRegister)}>
+          {isRegister ? "Sign in" : "Create an account"}
+        </button>
+      </p>
+    </>
+  );
 
   return (
     <section className="auth-page">
@@ -129,107 +382,7 @@ const Login = () => {
           </ul>
         </aside>
 
-        <div className="auth-main">
-          <div className="auth-tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isRegister}
-              className={!isRegister ? "is-active" : ""}
-              onClick={() => switchMode(false)}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isRegister}
-              className={isRegister ? "is-active" : ""}
-              onClick={() => switchMode(true)}
-            >
-              Create account
-            </button>
-          </div>
-
-          <h1 className="auth-title">{title}</h1>
-          <p className="auth-subtitle">{subtitle}</p>
-
-          {message.text && (
-            <div className={`auth-alert auth-alert--${message.type}`} role="alert">
-              {message.text}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate>
-            {isRegister && (
-              <label className="auth-field">
-                <span>Full name</span>
-                <input
-                  name="name"
-                  autoComplete="name"
-                  placeholder="Your full name"
-                  value={form.name}
-                  onChange={handleChange}
-                />
-              </label>
-            )}
-
-            <label className="auth-field">
-              <span>Email</span>
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-              />
-            </label>
-
-            <label className="auth-field">
-              <span>Password</span>
-              <div className="auth-password">
-                <input
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={isRegister ? "new-password" : "current-password"}
-                  placeholder={isRegister ? "At least 8 characters" : "Your password"}
-                  value={form.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="auth-password__toggle"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <VisibilityOffOutlinedIcon fontSize="small" />
-                  ) : (
-                    <VisibilityOutlinedIcon fontSize="small" />
-                  )}
-                </button>
-              </div>
-            </label>
-
-            {!isRegister && (
-              <Link to="/forgot-password" className="auth-forgot">
-                Forgot password?
-              </Link>
-            )}
-
-            <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? "Please wait..." : isRegister ? "Create account" : "Sign in"}
-            </button>
-          </form>
-
-          <p className="auth-switch">
-            {isRegister ? "Already have an account?" : "New to MegaTech?"}{" "}
-            <button type="button" onClick={() => switchMode(!isRegister)}>
-              {isRegister ? "Sign in" : "Create an account"}
-            </button>
-          </p>
-        </div>
+        <div className="auth-main">{verifyEmail ? verifyStep : formStep}</div>
       </div>
     </section>
   );

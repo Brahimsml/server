@@ -378,4 +378,58 @@ function buildPasswordResetEmail({ name, resetUrl, minutes = 30 }) {
   return { subject: `Reset your ${BRAND} password`, html, text, attachments };
 }
 
-module.exports = { buildOrderEmail, buildPasswordResetEmail };
+/*
+  "Confirm your email" email with a 6-digit code.
+*/
+function buildVerificationEmail({ name, code, minutes = 15 }) {
+  const rawFirst = String(name || "").trim().split(/\s+/)[0] || "there";
+  const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1);
+  const attachments = fs.existsSync(LOGO_PATH)
+    ? [{ filename: "megatech-logo.png", path: LOGO_PATH, cid: "logo@megatech" }]
+    : [];
+  const spaced = String(code).split("").join(" ");
+
+  const body = `
+          <tr>
+            <td style="padding:34px 28px 6px;font-family:${FONT};">
+              <div style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#a07a2c;">Confirm your email</div>
+              <h1 style="margin:10px 0 10px;font-size:26px;line-height:1.25;color:#1c1a16;font-weight:700;">Welcome to ${BRAND}, ${escapeHtml(firstName)}!</h1>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#5c554a;">Enter this code on the ${BRAND} website to confirm your email and finish creating your account.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:26px 28px 6px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="background:#faf8f3;border:1px solid #e6d6ae;border-radius:14px;">
+                <tr><td align="center" style="padding:18px 30px;font-family:'Courier New',Courier,monospace;font-size:34px;font-weight:700;letter-spacing:6px;color:#1c1a16;">${escapeHtml(spaced)}</td></tr>
+              </table>
+              <div style="margin-top:12px;font-family:${FONT};font-size:13px;color:#8a8275;">This code works for ${minutes} minutes.</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 28px 0;font-family:${FONT};font-size:13px;line-height:1.6;color:#5c554a;text-align:center;">
+              If you didn't create a ${BRAND} account, you can ignore this email.
+            </td>
+          </tr>
+`;
+
+  const html = emailShell({
+    title: `Your ${BRAND} code: ${code}`,
+    preheader: `Your code is ${code}. It works for ${minutes} minutes.`,
+    body,
+    help: `Need help? Just reply to this email or call us at <strong style="color:#3d3830;">${PHONE}</strong>.`,
+    footnote: `You're receiving this email because this address was used to sign up at ${BRAND}.`,
+  });
+
+  const text = [
+    `Welcome to ${BRAND}, ${firstName}!`,
+    "",
+    `Your code is: ${code}`,
+    `Enter it on the ${BRAND} website to confirm your email. It works for ${minutes} minutes.`,
+    "",
+    `If you didn't create a ${BRAND} account, you can ignore this email.`,
+  ].join("\n");
+
+  return { subject: `${code} is your ${BRAND} code`, html, text, attachments };
+}
+
+module.exports = { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail };

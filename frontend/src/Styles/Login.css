@@ -327,3 +327,63 @@
   color: var(--a-success);
   font-size: 30px;
 }
+
+/* ===== Continue with Google ===== */
+.auth-google {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--a-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Email confirmation step ===== */
+.auth-verify__icon {
+  background: rgba(230, 195, 114, 0.12);
+  color: var(--a-accent-bright);
+}
+
+.auth-verify__title {
+  text-align: center;
+}
+
+.auth-verify__email {
+  color: var(--a-text);
+  word-break: break-all;
+}
+
+.auth-field input.auth-code {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  padding-left: calc(14px + 0.5em);
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-switch button:disabled {
+  color: var(--a-muted);
+  cursor: default;
+  text-decoration: none;
+}
+
+.auth-verify__back {
+  margin-top: 8px;
+}

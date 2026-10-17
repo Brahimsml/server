@@ -17,8 +17,14 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `email_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `verify_code_hash` varchar(255) DEFAULT NULL,
+  `verify_code_expires` datetime DEFAULT NULL,
+  `verify_attempts` int(11) NOT NULL DEFAULT 0,
+  `google_id` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `uniq_google_id` (`google_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `admins` (

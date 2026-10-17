@@ -7,9 +7,11 @@ const fs = require("fs");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
-const { buildOrderEmail, buildPasswordResetEmail } = require("./emails");
+const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail } = require("./emails");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -330,6 +332,67 @@ app.post("/admin/login", limitLoginAttempts, (req, res) => {
 });
 
 /*
+   CUSTOMER ACCOUNTS
+   - Sign-up sends a 6-digit code; the account can't sign in until the email is confirmed.
+   - "Continue with Google" (when GOOGLE_CLIENT_ID is set) signs in with a Google-verified email.
+*/
+const VERIFY_MINUTES = 15;
+const VERIFY_MAX_ATTEMPTS = 5;
+const RESEND_COOLDOWN_SECONDS = 60;
+
+const signUserToken = (user) =>
+  jwt.sign({ id: user.id, email: user.email, role: "user" }, SECRET, { expiresIn: "2h" });
+
+const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email });
+
+// Simple per-key request limit, e.g. 5 per 15 minutes from one IP. Returns true when blocked.
+const tooManyRequests = (store, key, max, windowMs) => {
+  const now = Date.now();
+  const entry = store.get(key);
+  if (!entry || entry.resetAt <= now) {
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (entry.count >= max) return true;
+  entry.count += 1;
+  return false;
+};
+
+// Create a new code, store its hash, and email it.
+// Skips sending if a code was sent less than a minute ago (unless force is set).
+async function sendVerificationCode(user, { force = false } = {}) {
+  const [row] = await runQuery(
+    db,
+    "SELECT verify_code_expires FROM users WHERE id=?",
+    [user.id]
+  );
+  if (!force && row?.verify_code_expires) {
+    const sentAt = new Date(row.verify_code_expires).getTime() - VERIFY_MINUTES * 60 * 1000;
+    if (Date.now() - sentAt < RESEND_COOLDOWN_SECONDS * 1000) return false;
+  }
+
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+  const hash = await bcrypt.hash(code, 10);
+  await runQuery(
+    db,
+    "UPDATE users SET verify_code_hash=?, verify_code_expires=DATE_ADD(NOW(), INTERVAL ? MINUTE), verify_attempts=0 WHERE id=?",
+    [hash, VERIFY_MINUTES, user.id]
+  );
+
+  try {
+    await transporter.sendMail({
+      from: `"MegaTech" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      ...buildVerificationEmail({ name: user.name, code, minutes: VERIFY_MINUTES }),
+    });
+    console.log(`✅ Verification code sent to ${user.email}`);
+  } catch (emailErr) {
+    console.error("❌ Verification email failed:", emailErr);
+  }
+  return true;
+}
+
+/*
    USER REGISTER
 */
 app.post("/users/register", async (req, res) => {
@@ -340,27 +403,43 @@ app.post("/users/register", async (req, res) => {
   }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if (!emailRegex.test(email)) {
-  return res.status(400).json({ message: "Enter a valid email" });
-}
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: "Enter a valid email" });
+  }
 
   if (String(password).length < 8) {
     return res.status(400).json({ message: "Password must be at least 8 characters" });
   }
 
   try {
+    const cleanName = String(name).trim();
+    const cleanEmail = String(email).trim();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const [existing] = await runQuery(db, "SELECT id, email_verified FROM users WHERE email=?", [cleanEmail]);
 
-    const q = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
-    db.query(q, [name, email, hashedPassword], (err) => {
-      if (err && err.code === "ER_DUP_ENTRY") {
+    let userId;
+    if (existing) {
+      if (existing.email_verified) {
         return res.status(409).json({ message: "Email already registered" });
       }
-      if (err) return serverError(res, err);
-      res.json({ message: "User registered ✅" });
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+      // Never confirmed: whoever proves they own the inbox gets the account,
+      // with the details from this latest sign-up.
+      await runQuery(db, "UPDATE users SET name=?, password=? WHERE id=?", [cleanName, hashedPassword, existing.id]);
+      userId = existing.id;
+    } else {
+      const result = await runQuery(
+        db,
+        "INSERT INTO users (name, email, password, email_verified) VALUES (?, ?, ?, 0)",
+        [cleanName, cleanEmail, hashedPassword]
+      );
+      userId = result.insertId;
+    }
+
+    await sendVerificationCode({ id: userId, name: cleanName, email: cleanEmail }, { force: true });
+    res.json({ message: "We sent a 6-digit code to your email.", needsVerification: true, email: cleanEmail });
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") return res.status(409).json({ message: "Email already registered" });
+    serverError(res, err);
   }
 });
 
@@ -385,23 +464,163 @@ app.post("/users/login", limitLoginAttempts, (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
-      { id: data[0].id, email: data[0].email, role: "user" },
-      SECRET,
-      { expiresIn: "2h" }
-    );
+    // Right password but the email was never confirmed: send a fresh code
+    if (!data[0].email_verified) {
+      try {
+        await sendVerificationCode(data[0]);
+      } catch (e) {
+        console.error("❌ Could not create a verification code:", e);
+      }
+      return res.status(403).json({
+        message: "Please confirm your email first. We sent you a code.",
+        needsVerification: true,
+        email: data[0].email,
+      });
+    }
 
     res.json({
       message: "Login success",
-      token,
-      user: { id: data[0].id, name: data[0].name, email: data[0].email },
+      token: signUserToken(data[0]),
+      user: publicUser(data[0]),
     });
   });
 });
 
 /*
-   CATEGORIES
+   CONFIRM EMAIL WITH THE 6-DIGIT CODE
 */
+app.post("/users/verify-email", limitLoginAttempts, async (req, res) => {
+  const email = String(req.body?.email || "").trim();
+  const code = String(req.body?.code || "").replace(/\D/g, "");
+
+  if (!email || code.length !== 6) {
+    return res.status(400).json({ message: "Enter the 6-digit code from the email." });
+  }
+
+  try {
+    const [user] = await runQuery(db, "SELECT * FROM users WHERE email=?", [email]);
+    if (!user) return res.status(400).json({ message: "That code isn't right." });
+    if (user.email_verified) {
+      return res.status(400).json({ message: "This email is already confirmed. Please sign in.", alreadyVerified: true });
+    }
+
+    const expired = !user.verify_code_hash || new Date(user.verify_code_expires).getTime() < Date.now();
+    if (expired || user.verify_attempts >= VERIFY_MAX_ATTEMPTS) {
+      return res.status(400).json({
+        message: expired ? "This code has expired. Request a new one." : "Too many wrong tries. Request a new code.",
+        needsNewCode: true,
+      });
+    }
+
+    if (!(await bcrypt.compare(code, user.verify_code_hash))) {
+      await runQuery(db, "UPDATE users SET verify_attempts = verify_attempts + 1 WHERE id=?", [user.id]);
+      const left = VERIFY_MAX_ATTEMPTS - user.verify_attempts - 1;
+      return res.status(400).json({
+        message: left > 0 ? `That code isn't right. ${left} ${left === 1 ? "try" : "tries"} left.` : "Too many wrong tries. Request a new code.",
+        needsNewCode: left <= 0,
+      });
+    }
+
+    await runQuery(
+      db,
+      "UPDATE users SET email_verified=1, verify_code_hash=NULL, verify_code_expires=NULL, verify_attempts=0 WHERE id=?",
+      [user.id]
+    );
+
+    // Confirmed: sign them straight in
+    res.json({ message: "Email confirmed", token: signUserToken(user), user: publicUser(user) });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   SEND A NEW CODE
+*/
+const resendRequests = new Map(); // ip -> { count, resetAt }
+
+app.post("/users/resend-code", async (req, res) => {
+  const email = String(req.body?.email || "").trim();
+  if (!email) return res.status(400).json({ message: "Enter your email" });
+
+  if (tooManyRequests(resendRequests, req.ip, 5, 15 * 60 * 1000)) {
+    return res.status(429).json({ message: "Too many requests. Please try again in a few minutes." });
+  }
+
+  try {
+    const [user] = await runQuery(db, "SELECT id, name, email, email_verified FROM users WHERE email=?", [email]);
+    let sent = true;
+    if (user && !user.email_verified) sent = await sendVerificationCode(user);
+
+    if (!sent) {
+      return res.status(429).json({ message: `Please wait a minute before asking for another code.` });
+    }
+    // Same answer either way, so this can't be used to check which emails exist
+    res.json({ message: "If that email is waiting for confirmation, we've sent a new code." });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   CONTINUE WITH GOOGLE
+   The browser gets a signed ID token from Google; we check it with Google's library.
+*/
+const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
+
+app.post("/users/google", limitLoginAttempts, async (req, res) => {
+  if (!googleClient) return res.status(503).json({ message: "Google sign-in isn't set up yet." });
+
+  let profile;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: String(req.body?.credential || ""),
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    profile = ticket.getPayload();
+  } catch {
+    return res.status(401).json({ message: "Google sign-in failed. Please try again." });
+  }
+
+  if (!profile?.sub || !profile.email || !profile.email_verified) {
+    return res.status(401).json({ message: "Your Google account email isn't verified." });
+  }
+
+  try {
+    let [user] = await runQuery(db, "SELECT * FROM users WHERE google_id=?", [profile.sub]);
+
+    if (!user) {
+      [user] = await runQuery(db, "SELECT * FROM users WHERE email=?", [profile.email]);
+      // An account nobody can sign into with a password (Google-only)
+      const unusablePassword = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
+
+      if (user) {
+        // Same email: link Google to it. If the email was never confirmed, drop that
+        // password, since we can't know who set it. Google proves who owns the inbox.
+        await runQuery(
+          db,
+          // password goes first: MySQL applies these left to right, so it must read the old email_verified
+          `UPDATE users SET password = IF(email_verified = 1, password, ?), google_id=?, email_verified=1,
+           verify_code_hash=NULL, verify_code_expires=NULL WHERE id=?`,
+          [unusablePassword, profile.sub, user.id]
+        );
+      } else {
+        const name = String(profile.name || profile.email.split("@")[0]).slice(0, 100);
+        const result = await runQuery(
+          db,
+          "INSERT INTO users (name, email, password, email_verified, google_id) VALUES (?, ?, ?, 1, ?)",
+          [name, profile.email, unusablePassword, profile.sub]
+        );
+        user = { id: result.insertId, name, email: profile.email };
+      }
+    }
+
+    res.json({ message: "Login success", token: signUserToken(user), user: publicUser(user) });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
 /*
    CUSTOMER PASSWORD RESET
    The link is signed with the JWT secret + the customer's current password hash,
@@ -416,13 +635,9 @@ app.post("/users/forgot-password", (req, res) => {
   if (!email) return res.status(400).json({ message: "Enter your email" });
 
   // at most 5 requests per 15 minutes from one address (stops inbox spamming)
-  const now = Date.now();
-  const entry = resetRequests.get(req.ip);
-  if (entry && entry.resetAt > now && entry.count >= 5) {
+  if (tooManyRequests(resetRequests, req.ip, 5, 15 * 60 * 1000)) {
     return res.status(429).json({ message: "Too many requests. Please try again in a few minutes." });
   }
-  if (!entry || entry.resetAt <= now) resetRequests.set(req.ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
-  else entry.count += 1;
 
   db.query("SELECT id, name, email, password FROM users WHERE email=?", [email], async (err, rows) => {
     if (err) return serverError(res, err);
