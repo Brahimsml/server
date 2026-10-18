@@ -206,7 +206,7 @@ const Home = () => {
               <>
                 <div className="hp-feature__media">
                   {normalizeLabel(current.label) && (
-                    <span className={`pc-label ${isBestSeller(current) ? "pc-label--best" : ""}`}>
+                    <span className={`pc-label ${isBestSeller(current) ? "pc-label--best" : isNew(current) ? "pc-label--new" : ""}`}>
                       {isBestSeller(current) ? "Best Seller" : normalizeLabel(current.label)}
                     </span>
                   )}

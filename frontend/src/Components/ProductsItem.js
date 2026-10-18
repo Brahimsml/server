@@ -41,19 +41,29 @@ const ProductsItem = ({
 }) => {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("newest");
+  const [inStockOnly, setInStockOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
+  const sideList = useRef(null);
 
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
   useEffect(() => () => clearTimeout(addedTimer.current), []);
 
+  // On phones the categories scroll sideways: keep the chosen one in view
+  useEffect(() => {
+    const list = sideList.current;
+    const active = list?.querySelector(".is-active");
+    if (!list || !active || list.scrollWidth <= list.clientWidth) return;
+    list.scrollLeft = active.offsetLeft - list.offsetLeft - (list.clientWidth - active.offsetWidth) / 2;
+  }, [category, products.length]);
+
   // Back to page 1 whenever what's shown changes
   useEffect(() => {
     setPage(1);
-  }, [category, query, sort]);
+  }, [category, query, sort, inStockOnly]);
 
   const categories = useMemo(() => {
     const map = new Map();
@@ -72,6 +82,7 @@ const ProductsItem = ({
     return products
       .filter((p) => {
         if (filter && !filter(p)) return false;
+        if (inStockOnly && isSoldOut(p)) return false;
 
         const catName = p.category_name || "Other";
         if (category !== "All" && catName !== category) return false;
@@ -88,7 +99,7 @@ const ProductsItem = ({
         if (sort === "name") return String(a.name || "").localeCompare(String(b.name || ""));
         return Number(b.id || 0) - Number(a.id || 0);
       });
-  }, [products, filter, category, query, sort]);
+  }, [products, filter, category, query, sort, inStockOnly]);
 
   const totalPages = showPagination ? Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)) : 1;
 
@@ -132,6 +143,7 @@ const ProductsItem = ({
   const resetFilters = () => {
     setQuery("");
     setSort("newest");
+    setInStockOnly(false);
     setCategory("All");
   };
 
@@ -139,8 +151,11 @@ const ProductsItem = ({
     setPage(p);
   };
 
-  return (
-    <div className="pc">
+  const firstShown = filtered.length ? (showPagination ? (page - 1) * PAGE_SIZE + 1 : 1) : 0;
+  const lastShown = firstShown ? firstShown + visibleProducts.length - 1 : 0;
+
+  const content = (
+    <>
       {showToolbar && (
         <div className="pc-toolbar">
           <label className="pc-search">
@@ -168,31 +183,12 @@ const ProductsItem = ({
         </div>
       )}
 
-      {showCategories && (
-        <div className="pc-chips" role="tablist" aria-label="Categories">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={category === "All"}
-            className={`pc-chip ${category === "All" ? "is-active" : ""}`}
-            onClick={() => setCategory("All")}
-          >
-            All <span>{products.filter((p) => !filter || filter(p)).length}</span>
-          </button>
-
-          {categories.map((cat) => (
-            <button
-              key={cat.name}
-              type="button"
-              role="tab"
-              aria-selected={category === cat.name}
-              className={`pc-chip ${category === cat.name ? "is-active" : ""}`}
-              onClick={() => setCategory(cat.name)}
-            >
-              {cat.name} <span>{cat.count}</span>
-            </button>
-          ))}
-        </div>
+      {showToolbar && !loading && (
+        <p className="pc-results" aria-live="polite">
+          {filtered.length === 0
+            ? "No products match"
+            : `Showing ${firstShown}–${lastShown} of ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
+        </p>
       )}
 
       {loading ? (
@@ -227,7 +223,7 @@ const ProductsItem = ({
                 <article className="pc-card" key={product.id}>
                   <div className="pc-media">
                     {label && (
-                      <span className={`pc-label ${/best/i.test(label) ? "pc-label--best" : ""}`}>
+                      <span className={`pc-label ${/best/i.test(label) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""}`}>
                         {/best/i.test(label) ? "Best Seller" : label}
                       </span>
                     )}
@@ -336,6 +332,46 @@ const ProductsItem = ({
           )}
         </>
       )}
+    </>
+  );
+
+  if (!showCategories) return <div className="pc">{content}</div>;
+
+  // Shop layout: filters in a sidebar (a tab strip on phones) next to the products
+  const totalCount = products.filter((p) => !filter || filter(p)).length;
+  const sideItems = [{ name: "All", label: "All products", count: totalCount }, ...categories];
+
+  return (
+    <div className="pc pc--shop">
+      <aside className="pc-side" aria-label="Filters">
+        <h2 className="pc-side__title">Categories</h2>
+        <nav className="pc-side__list" aria-label="Categories" ref={sideList}>
+          {sideItems.map((cat) => (
+            <button
+              key={cat.name}
+              type="button"
+              aria-current={category === cat.name ? "true" : undefined}
+              className={`pc-side__item ${category === cat.name ? "is-active" : ""}`}
+              onClick={() => setCategory(cat.name)}
+            >
+              <span>{cat.label || cat.name}</span>
+              <span className="pc-side__count">{cat.count}</span>
+            </button>
+          ))}
+        </nav>
+
+        <h2 className="pc-side__title pc-side__title--gap">Availability</h2>
+        <label className="pc-check">
+          <input
+            type="checkbox"
+            checked={inStockOnly}
+            onChange={(e) => setInStockOnly(e.target.checked)}
+          />
+          <span>In stock only</span>
+        </label>
+      </aside>
+
+      <div className="pc-main">{content}</div>
     </div>
   );
 };
