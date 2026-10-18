@@ -10,8 +10,9 @@ import { API_URL } from "../api";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
 
-// Opens the home page catalog filtered to one category
-const categoryLink = (name) => `/home?category=${encodeURIComponent(name)}`;
+// Opens the shop filtered to one category
+const categoryLink = (name) =>
+  name === "All" ? "/shop" : `/shop?category=${encodeURIComponent(name)}`;
 
 const Footer = () => {
   const [categories, setCategories] = useState([]);

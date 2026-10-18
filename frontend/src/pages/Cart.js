@@ -197,7 +197,7 @@ const Cart = () => {
           </div>
           <h1>Your cart is empty</h1>
           <p>Browse our products and add the items you like. They'll show up here.</p>
-          <button type="button" className="cart-btn cart-btn--primary" onClick={() => navigate("/home")}>
+          <button type="button" className="cart-btn cart-btn--primary" onClick={() => navigate("/shop")}>
             Start shopping
           </button>
         </div>
@@ -209,7 +209,7 @@ const Cart = () => {
     <section className="cart-page">
       <div className="cart-layout">
         <header className="cart-head">
-          <button type="button" className="cart-back" onClick={() => navigate("/home")}>
+          <button type="button" className="cart-back" onClick={() => navigate("/shop")}>
             <ArrowBackIcon fontSize="small" /> Continue shopping
           </button>
           <h1>Shopping Cart</h1>

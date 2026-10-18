@@ -199,7 +199,7 @@ function AdminCategories() {
                         </td>
                         <td data-label="Products">
                           {n > 0 ? (
-                            <Link to={`/home?category=${encodeURIComponent(c.name)}`} className="mt-link" title="See in the shop">
+                            <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="mt-link" title="See in the shop">
                               {n} {n === 1 ? "product" : "products"}
                             </Link>
                           ) : (

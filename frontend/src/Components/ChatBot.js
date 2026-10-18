@@ -244,7 +244,7 @@ const ChatBot = () => {
                                   <button
                                     type="button"
                                     className="cb-btn"
-                                    onClick={() => go(`/home?category=${encodeURIComponent(p.category_name)}`)}
+                                    onClick={() => go(`/shop?category=${encodeURIComponent(p.category_name)}`)}
                                     aria-label={`See more ${p.category_name}`}
                                   >
                                     More

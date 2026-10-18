@@ -80,7 +80,7 @@ const Menu = () => {
             <p>Order online and track it from your account, or send us a question.</p>
           </div>
           <div className="mt-cta__actions">
-            <Link to="/home" className="mt-btn mt-btn--primary">
+            <Link to="/shop" className="mt-btn mt-btn--primary">
               Shop online
             </Link>
             <Link to="/contact" className="mt-btn mt-btn--secondary">

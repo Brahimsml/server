@@ -57,7 +57,7 @@ const About = () => {
             </p>
 
             <div className="ab-hero__actions">
-              <Link to="/home" className="mt-btn mt-btn--primary">
+              <Link to="/shop" className="mt-btn mt-btn--primary">
                 Explore products <ArrowForwardIcon />
               </Link>
               <Link to="/contact" className="mt-btn mt-btn--secondary">
@@ -118,7 +118,7 @@ const About = () => {
             <p>Browse the full catalog, or visit one of our stores.</p>
           </div>
           <div className="mt-cta__actions">
-            <Link to="/home" className="mt-btn mt-btn--primary">
+            <Link to="/shop" className="mt-btn mt-btn--primary">
               Shop now
             </Link>
             <Link to="/menu" className="mt-btn mt-btn--secondary">

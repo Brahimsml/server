@@ -21,7 +21,8 @@ import "../Styles/theme.css";
 import "../Styles/Shell.css";
 
 const MAIN_LINKS = [
-  { to: "/home", label: "Shop" },
+  { to: "/home", label: "Home" },
+  { to: "/shop", label: "Shop" },
   { to: "/menu", label: "Locations" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
@@ -133,9 +134,9 @@ const NavBar = () => {
     navigate("/admin/login");
   };
 
-  const isShop = location.pathname === "/" || location.pathname === "/home";
+  const isHome = location.pathname === "/" || location.pathname === "/home";
   const linkClass = ({ isActive }, to) =>
-    `nb-link ${isActive || (to === "/home" && isShop) ? "is-active" : ""}`;
+    `nb-link ${isActive || (to === "/home" && isHome) ? "is-active" : ""}`;
 
   return (
     <header className="nb mt-scope">

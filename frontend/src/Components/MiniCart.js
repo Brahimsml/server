@@ -66,7 +66,7 @@ const MiniCart = () => {
               className="mt-btn mt-btn--secondary mt-btn--sm"
               onClick={() => {
                 closeMiniCart();
-                navigate("/home");
+                navigate("/shop");
               }}
             >
               Start shopping

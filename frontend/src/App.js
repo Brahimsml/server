@@ -9,6 +9,7 @@ import Menu from "./pages/Menu";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
+import Shop from "./pages/Shop";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -73,6 +74,7 @@ const App = () => (
           {/* PUBLIC */}
           <Route index element={<Home />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

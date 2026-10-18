@@ -1,0 +1,31 @@
+/* Shop page (sh-): breadcrumb + title above the catalog */
+.sh-head {
+  margin-bottom: 28px;
+}
+
+.sh-head .mt-title {
+  margin-top: 10px;
+}
+
+.sh-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--mt-muted);
+  font-size: 0.86rem;
+}
+
+.sh-crumbs a {
+  color: var(--mt-muted);
+  text-decoration: none;
+}
+
+.sh-crumbs a:hover {
+  color: var(--mt-text);
+}
+
+.sh-crumbs [aria-current] {
+  color: var(--mt-accent-bright);
+  font-weight: 600;
+}

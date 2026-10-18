@@ -129,7 +129,7 @@ function MyOrders() {
             <h1 className="mt-title">My orders</h1>
             <p className="mt-lead">Track your orders and see what you've bought.</p>
           </div>
-          <Link to="/home" className="mt-btn mt-btn--secondary">
+          <Link to="/shop" className="mt-btn mt-btn--secondary">
             Continue shopping
           </Link>
         </header>
@@ -181,7 +181,7 @@ function MyOrders() {
               </div>
               <h3>No orders yet</h3>
               <p>When you place an order, it will show up here so you can track it.</p>
-              <Link to="/home" className="mt-btn mt-btn--primary">
+              <Link to="/shop" className="mt-btn mt-btn--primary">
                 Start shopping
               </Link>
             </div>

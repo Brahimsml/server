@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
@@ -9,6 +9,9 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import CheckIcon from "@mui/icons-material/Check";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ProductsItem from "../Components/ProductsItem";
 import { CartContext } from "../Context/CartContext";
 import api from "../api";
@@ -43,14 +46,19 @@ const TRUST_ITEMS = [
   { icon: SupportAgentOutlinedIcon, title: "Support", text: "Real help, fast replies" },
 ];
 
+const shopLink = (category) =>
+  category && category !== "All" ? `/shop?category=${encodeURIComponent(category)}` : "/shop";
+
+const isNew = (p) => /^new/i.test(normalizeLabel(p.label));
+
 const Home = () => {
   const { addToCart } = useContext(CartContext);
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [storeCount, setStoreCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [category, setCategory] = useState("All");
 
   const [featureIndex, setFeatureIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -106,29 +114,31 @@ const Home = () => {
       if (!map.has(name)) map.set(name, { name, count: 0, image: "" });
       const entry = map.get(name);
       entry.count += 1;
-      if (!entry.image && p.image) entry.image = p.image;
+      if (p.image && (!entry.image || (entry.featured && !isBestSeller(p)))) {
+        entry.image = p.image;
+        entry.featured = isBestSeller(p);
+      }
     });
-    return Array.from(map.values());
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [products]);
 
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // New arrivals: products labelled "New", topped up with the newest products
+  // that aren't already in Best sellers, so the two rows don't repeat each other
+  const newArrivalIds = useMemo(() => {
+    const newest = [...products].sort((a, b) => Number(b.id) - Number(a.id));
+    const picks = newest.filter(isNew);
+    newest.forEach((p) => {
+      if (picks.length < 4 && !picks.includes(p) && !isBestSeller(p)) picks.push(p);
+    });
+    return new Set(picks.slice(0, 4).map((p) => p.id));
+  }, [products]);
 
-  // Footer links like /home?category=Monitors open the catalog on that category
+  // Old links (/home?category=Monitors) now open the shop page
   const { search } = useLocation();
   useEffect(() => {
     const requested = new URLSearchParams(search).get("category");
-    if (!requested) return;
-    setCategory(requested);
-    const t = setTimeout(() => scrollTo("catalog"), 60);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  const chooseCategory = (name) => {
-    setCategory(name);
-    scrollTo("catalog");
-  };
+    if (requested) navigate(shopLink(requested), { replace: true });
+  }, [search, navigate]);
 
   const addFeatured = () => {
     if (!current) return;
@@ -161,32 +171,28 @@ const Home = () => {
             </p>
 
             <div className="hp-hero__actions">
-              <button type="button" className="mt-btn mt-btn--primary" onClick={() => scrollTo("catalog")}>
+              <Link to="/shop" className="mt-btn mt-btn--primary">
                 Shop all products <ArrowForwardIcon />
-              </button>
-              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => scrollTo("categories")}>
+              </Link>
+              <a href="#categories" className="mt-btn mt-btn--secondary">
                 Browse categories
-              </button>
+              </a>
             </div>
 
-            {!loading && products.length > 0 && (
-              <dl className="hp-stats">
-                <div>
-                  <dt>{products.length}</dt>
-                  <dd>Products</dd>
-                </div>
-                <div>
-                  <dt>{categories.length}</dt>
-                  <dd>Categories</dd>
-                </div>
-                {storeCount ? (
-                  <div>
-                    <dt>{storeCount}</dt>
-                    <dd>{storeCount === 1 ? "Store" : "Stores"}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            )}
+            <ul className="hp-promises">
+              <li>
+                <StorefrontOutlinedIcon />
+                {storeCount
+                  ? `${storeCount} ${storeCount === 1 ? "store" : "stores"} in Lebanon`
+                  : "Stores across Lebanon"}
+              </li>
+              <li>
+                <LocalMallOutlinedIcon /> Track every order online
+              </li>
+              <li>
+                <ChatBubbleOutlineIcon /> Real people ready to help
+              </li>
+            </ul>
           </div>
 
           <div
@@ -317,12 +323,7 @@ const Home = () => {
 
             <div className="hp-cats">
               {categories.map((cat) => (
-                <button
-                  key={cat.name}
-                  type="button"
-                  className="hp-cat"
-                  onClick={() => chooseCategory(cat.name)}
-                >
+                <Link key={cat.name} to={shopLink(cat.name)} className="hp-cat">
                   <div className="hp-cat__media">
                     {cat.image && (
                       <img src={imageUrl(cat.image)} alt="" loading="lazy" onError={onImageError} />
@@ -336,7 +337,7 @@ const Home = () => {
                       <ArrowForwardIcon fontSize="inherit" />
                     </span>
                   </div>
-                </button>
+                </Link>
               ))}
             </div>
           </section>
@@ -350,13 +351,9 @@ const Home = () => {
                 <h2>Best sellers</h2>
                 <p>The gear our customers keep coming back for.</p>
               </div>
-              <button
-                type="button"
-                className="mt-link"
-                onClick={() => chooseCategory("All")}
-              >
+              <Link to="/shop" className="mt-link">
                 View all products <ArrowForwardIcon fontSize="inherit" />
-              </button>
+              </Link>
             </div>
 
             <ProductsItem
@@ -371,22 +368,30 @@ const Home = () => {
           </section>
         )}
 
-        {/* ===== FULL CATALOG ===== */}
-        <section className="mt-section" id="catalog">
-          <div className="mt-section-head">
-            <div>
-              <h2>{category === "All" ? "All products" : category}</h2>
-              <p>Search, filter and sort the full MegaTech catalog.</p>
+        {/* ===== NEW ARRIVALS ===== */}
+        {(loading || newArrivalIds.size > 0) && (
+          <section className="mt-section" id="new-arrivals">
+            <div className="mt-section-head">
+              <div>
+                <h2>New arrivals</h2>
+                <p>The latest gear to land in the shop.</p>
+              </div>
+              <Link to="/shop" className="mt-link">
+                Shop everything <ArrowForwardIcon fontSize="inherit" />
+              </Link>
             </div>
-          </div>
 
-          <ProductsItem
-            products={products}
-            loading={loading}
-            category={category}
-            onCategoryChange={setCategory}
-          />
-        </section>
+            <ProductsItem
+              products={products}
+              loading={loading}
+              filter={(p) => newArrivalIds.has(p.id)}
+              limit={4}
+              showToolbar={false}
+              showCategories={false}
+              showPagination={false}
+            />
+          </section>
+        )}
 
         {/* ===== CLOSING CTA ===== */}
         <section className="mt-cta">
