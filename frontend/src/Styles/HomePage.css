@@ -84,7 +84,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px 64px;
+  padding: 18px 60px;
   background: var(--pc-well);
 }
 
@@ -93,6 +93,7 @@
   height: 100%;
   min-height: 0;
   object-fit: contain;
+  mix-blend-mode: multiply; /* the photo's white background melts into the card */
   animation: hp-fade 0.45s ease;
 }
 
@@ -292,6 +293,7 @@
   height: 100%;
   min-height: 0;
   object-fit: contain;
+  mix-blend-mode: multiply; /* the photo's white background melts into the card */
   transition: transform 0.35s ease;
 }
 
@@ -545,6 +547,7 @@
   height: 100%;
   min-height: 0;
   object-fit: contain;
+  mix-blend-mode: multiply; /* the photo's white background melts into the card */
   transition: transform 0.35s ease;
 }
 

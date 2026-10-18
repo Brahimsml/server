@@ -12,6 +12,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail } = require("./emails");
+const { processProductUpload } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -907,7 +908,8 @@ app.get("/products/search/:id", (req, res) => {
   });
 });
 
-app.post("/products", verifyAdmin, upload.single("image"), (req, res) => {
+// processProductUpload: every product photo gets the same size and margin
+app.post("/products", verifyAdmin, upload.single("image"), processProductUpload, (req, res) => {
   // ✅ ADDED stock_quantity
   const { category_id, name, price, label, description, stock_quantity } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -949,7 +951,7 @@ app.delete("/products/:id", verifyAdmin, (req, res) => {
   });
 });
 
-app.post("/products/modify/:id", verifyAdmin, upload.single("image"), (req, res) => {
+app.post("/products/modify/:id", verifyAdmin, upload.single("image"), processProductUpload, (req, res) => {
   // ✅ ADDED stock_quantity
   const { category_id, name, price, label, description, existingImage, stock_quantity } = req.body;
   const image = req.file ? req.file.filename : existingImage;
