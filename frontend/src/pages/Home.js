@@ -9,9 +9,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import CheckIcon from "@mui/icons-material/Check";
-import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ProductsItem from "../Components/ProductsItem";
 import { CartContext } from "../Context/CartContext";
 import api from "../api";
@@ -56,7 +53,6 @@ const Home = () => {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
-  const [storeCount, setStoreCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -78,11 +74,6 @@ const Home = () => {
       })
       .finally(() => alive && setLoading(false));
 
-    api
-      .get("/places")
-      .then((res) => alive && setStoreCount(Array.isArray(res.data) ? res.data.length : null))
-      .catch(() => {});
-
     return () => {
       alive = false;
       clearTimeout(addedTimer.current);
@@ -96,14 +87,16 @@ const Home = () => {
     return (labelled.length >= 3 ? labelled : withImage).slice(0, 6);
   }, [products]);
 
+  // Next slide after a few seconds. Restarts on every change, so a click or a
+  // pause always gives the new slide its full time (matching the progress bar).
   useEffect(() => {
     if (featured.length < 2 || paused) return;
-    const timer = setInterval(
+    const timer = setTimeout(
       () => setFeatureIndex((i) => (i + 1) % featured.length),
       FEATURE_INTERVAL_MS
     );
-    return () => clearInterval(timer);
-  }, [featured.length, paused]);
+    return () => clearTimeout(timer);
+  }, [featured.length, paused, featureIndex]);
 
   const current = featured[featureIndex % (featured.length || 1)];
 
@@ -158,111 +151,68 @@ const Home = () => {
   return (
     <div className="mt-page hp">
       <div className="mt-container">
-        {/* ===== HERO ===== */}
-        <section className="hp-hero">
-          <div className="hp-hero__copy">
-            <span className="mt-eyebrow">PC components &amp; gaming gear</span>
-            <h1 className="hp-hero__title">
-              Upgrade your setup with <span>premium PC gear</span>
-            </h1>
-            <p className="mt-lead">
-              Graphics cards, monitors, laptops and peripherals, with secure checkout and
-              order tracking from your account.
-            </p>
+        {/* ===== HERO: full-width product banner ===== */}
+        <h1 className="hp-sr-only">MegaTech: PC components and gaming gear</h1>
 
-            <div className="hp-hero__actions">
-              <Link to="/shop" className="mt-btn mt-btn--primary">
-                Shop all products <ArrowForwardIcon />
-              </Link>
-              <a href="#categories" className="mt-btn mt-btn--secondary">
-                Browse categories
-              </a>
-            </div>
-
-            <ul className="hp-promises">
-              <li>
-                <StorefrontOutlinedIcon />
-                {storeCount
-                  ? `${storeCount} ${storeCount === 1 ? "store" : "stores"} in Lebanon`
-                  : "Stores across Lebanon"}
-              </li>
-              <li>
-                <LocalMallOutlinedIcon /> Track every order online
-              </li>
-              <li>
-                <ChatBubbleOutlineIcon /> Real people ready to help
-              </li>
-            </ul>
-          </div>
-
-          <div
-            className="hp-feature mt-panel"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-          >
-            {loading ? (
-              <div className="mt-skeleton hp-feature__skeleton" />
-            ) : current ? (
-              <>
-                <div className="hp-feature__media">
+        <section
+          className={`hp-slider ${paused ? "is-paused" : ""}`}
+          aria-roledescription="carousel"
+          aria-label="Featured products"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+        >
+          {loading ? (
+            <div className="mt-skeleton hp-slider__skeleton" />
+          ) : current ? (
+            <div className="hp-slide" key={current.id}>
+              <div className="hp-slide__copy">
+                <div className="hp-slide__tags">
                   {normalizeLabel(current.label) && (
-                    <span className={`pc-label ${isBestSeller(current) ? "pc-label--best" : isNew(current) ? "pc-label--new" : ""}`}>
+                    <span
+                      className={`pc-label ${
+                        isBestSeller(current) ? "pc-label--best" : isNew(current) ? "pc-label--new" : ""
+                      }`}
+                    >
                       {isBestSeller(current) ? "Best Seller" : normalizeLabel(current.label)}
                     </span>
                   )}
-                  <img
-                    key={current.id}
-                    src={imageUrl(current.image)}
-                    alt={current.name}
-                    onError={onImageError}
-                  />
-
-                  {featured.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        className="hp-feature__arrow hp-feature__arrow--prev"
-                        onClick={() => step(-1)}
-                        aria-label="Previous featured product"
-                      >
-                        <ChevronLeftIcon />
-                      </button>
-                      <button
-                        type="button"
-                        className="hp-feature__arrow hp-feature__arrow--next"
-                        onClick={() => step(1)}
-                        aria-label="Next featured product"
-                      >
-                        <ChevronRightIcon />
-                      </button>
-                    </>
-                  )}
+                  <span className="hp-slide__cat">{current.category_name}</span>
                 </div>
 
-                <div className="hp-feature__body">
-                  <div className="hp-feature__info">
-                    <span className="pc-cat">{current.category_name}</span>
-                    <h2>{current.name}</h2>
-                    <p>{current.description}</p>
-                  </div>
+                <h2 className="hp-slide__title">{current.name}</h2>
+                {current.description && <p className="hp-slide__desc">{current.description}</p>}
+                <span className="hp-slide__price">{formatMoney(current.price)}</span>
 
-                  <div className="hp-feature__buy">
-                    <span className="hp-feature__price">{formatMoney(current.price)}</span>
-                    <button type="button" className="mt-btn mt-btn--primary" onClick={addFeatured}>
-                      {featureAdded ? (
-                        <>
-                          <CheckIcon /> Added
-                        </>
-                      ) : (
-                        <>
-                          <AddShoppingCartIcon /> Add to cart
-                        </>
-                      )}
+                <div className="hp-slide__actions">
+                  <button type="button" className="mt-btn mt-btn--primary" onClick={addFeatured}>
+                    {featureAdded ? (
+                      <>
+                        <CheckIcon /> Added
+                      </>
+                    ) : (
+                      <>
+                        <AddShoppingCartIcon /> Add to cart
+                      </>
+                    )}
+                  </button>
+                  <Link to={shopLink(current.category_name)} className="mt-btn mt-btn--secondary">
+                    Shop {current.category_name || "all"} <ArrowForwardIcon />
+                  </Link>
+                </div>
+
+                {featured.length > 1 && (
+                  <div className="hp-slider__controls">
+                    <button
+                      type="button"
+                      className="hp-slider__arrow"
+                      onClick={() => step(-1)}
+                      aria-label="Previous featured product"
+                    >
+                      <ChevronLeftIcon />
                     </button>
-                  </div>
-
-                  {featured.length > 1 && (
-                    <div className="hp-feature__dots" role="tablist" aria-label="Featured products">
+                    <div className="hp-slider__dots" role="tablist" aria-label="Featured products">
                       {featured.map((p, i) => (
                         <button
                           key={p.id}
@@ -275,19 +225,33 @@ const Home = () => {
                             setFeatureIndex(i);
                             setFeatureAdded(false);
                           }}
-                        />
+                        >
+                          <span />
+                        </button>
                       ))}
                     </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="mt-empty">
-                <h3>New products coming soon</h3>
-                <p>Check back shortly for the latest gear.</p>
+                    <button
+                      type="button"
+                      className="hp-slider__arrow"
+                      onClick={() => step(1)}
+                      aria-label="Next featured product"
+                    >
+                      <ChevronRightIcon />
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              <Link to={shopLink(current.category_name)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
+                <img src={imageUrl(current.image)} alt="" onError={onImageError} />
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-empty hp-slider__empty">
+              <h3>New products coming soon</h3>
+              <p>Check back shortly for the latest gear.</p>
+            </div>
+          )}
         </section>
 
         {/* ===== TRUST BAR ===== */}
