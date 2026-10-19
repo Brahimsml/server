@@ -249,7 +249,7 @@
 
 .nb-menu a:hover,
 .nb-menu button:hover {
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(200, 168, 101, 0.12);
 }
 
 .nb-menu svg {
@@ -314,7 +314,7 @@
 }
 
 .nb-mobile .nb-link.is-active {
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(200, 168, 101, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -466,7 +466,7 @@
 }
 
 @keyframes mc-flash {
-  0%, 30% { background: rgba(201, 162, 77, 0.14); }
+  0%, 30% { background: rgba(200, 168, 101, 0.14); }
   100% { background: transparent; }
 }
 

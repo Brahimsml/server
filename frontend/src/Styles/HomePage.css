@@ -24,7 +24,7 @@
   border-radius: 26px;
   border: 1px solid var(--mt-border);
   background:
-    radial-gradient(ellipse at 18% 20%, rgba(230, 195, 114, 0.16), transparent 55%),
+    radial-gradient(ellipse at 18% 20%, rgba(226, 203, 143, 0.16), transparent 55%),
     linear-gradient(135deg, #211b12, #120f0a 70%);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
 }
@@ -175,7 +175,7 @@
 
 .hp-slider__arrow:hover {
   border-color: var(--mt-accent);
-  background: rgba(201, 162, 77, 0.14);
+  background: rgba(200, 168, 101, 0.14);
 }
 
 .hp-slider__dots {
@@ -248,7 +248,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(200, 168, 101, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -372,7 +372,7 @@
 
 .pc-search:focus-within {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 0 0 3px rgba(200, 168, 101, 0.18);
 }
 
 .pc-search input {
@@ -596,7 +596,7 @@
 }
 
 .pc-label--best {
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
+  background: linear-gradient(180deg, #e2cb8f, #c8a865);
   color: #1c1408;
 }
 
@@ -729,7 +729,7 @@
 
 .pc-pagination button.is-active {
   border-color: var(--mt-accent);
-  background: rgba(201, 162, 77, 0.16);
+  background: rgba(200, 168, 101, 0.16);
   color: var(--mt-text);
 }
 

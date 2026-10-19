@@ -56,7 +56,7 @@
 
 .mo-search:focus-within {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 0 0 3px rgba(200, 168, 101, 0.18);
 }
 
 .mo-search input {
@@ -133,7 +133,7 @@
 }
 
 .mo-table tbody tr:hover {
-  background: rgba(201, 162, 77, 0.06);
+  background: rgba(200, 168, 101, 0.06);
 }
 
 .mo-table td small {

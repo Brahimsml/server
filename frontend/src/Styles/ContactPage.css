@@ -52,7 +52,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(200, 168, 101, 0.12);
   color: var(--mt-accent-bright);
 }
 
