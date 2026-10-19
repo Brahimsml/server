@@ -48,7 +48,7 @@
   gap: 8px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid rgba(245, 246, 248, 0.14);
+  border: 1px solid rgba(246, 241, 231, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--mt-faint);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -205,7 +205,7 @@
   right: 50%;
   width: 100%;
   height: 2px;
-  background: rgba(245, 246, 248, 0.12);
+  background: rgba(246, 241, 231, 0.12);
   z-index: 0;
 }
 
@@ -222,7 +222,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 2px solid rgba(245, 246, 248, 0.18);
+  border: 2px solid rgba(246, 241, 231, 0.18);
   background: var(--mt-surface);
   font-size: 0.85rem;
 }
@@ -292,7 +292,7 @@
   padding: 5px;
   border-radius: 12px;
   object-fit: contain;
-  background: #eef0f3;
+  background: #f3f0ea;
 }
 
 .mod-lines__info {

@@ -4,11 +4,11 @@
    them under the phone menu and the phone cart panel.
 ========================================================= */
 .cb-launch {
-  --cb-surface: #141519;
-  --cb-surface-2: #1c1d22;
+  --cb-surface: #17130d;
+  --cb-surface-2: #211b12;
   --cb-border: rgba(201, 162, 77, 0.2);
-  --cb-text: #f5f6f8;
-  --cb-muted: rgba(245, 246, 248, 0.62);
+  --cb-text: #f6f1e7;
+  --cb-muted: rgba(246, 241, 231, 0.62);
   --cb-accent: #c9a24d;
   --cb-accent-bright: #e6c372;
 
@@ -78,11 +78,11 @@
 
 /* ===== Panel ===== */
 .chatbot-box {
-  --cb-surface: #141519;
-  --cb-surface-2: #1c1d22;
+  --cb-surface: #17130d;
+  --cb-surface-2: #211b12;
   --cb-border: rgba(201, 162, 77, 0.2);
-  --cb-text: #f5f6f8;
-  --cb-muted: rgba(245, 246, 248, 0.62);
+  --cb-text: #f6f1e7;
+  --cb-muted: rgba(246, 241, 231, 0.62);
   --cb-accent: #c9a24d;
   --cb-accent-bright: #e6c372;
 
@@ -187,7 +187,7 @@
 
 .cb-icon:hover {
   color: var(--cb-text);
-  background: rgba(245, 246, 248, 0.07);
+  background: rgba(246, 241, 231, 0.07);
 }
 
 /* Messages */
@@ -299,7 +299,7 @@
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background: #eef0f3;
+  background: #f3f0ea;
 }
 
 .cb-product__img img {
@@ -554,7 +554,7 @@
   min-width: 0;
   padding: 11px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(245, 246, 248, 0.14);
+  border: 1px solid rgba(246, 241, 231, 0.14);
   background: rgba(0, 0, 0, 0.3);
   color: var(--cb-text);
   font: inherit;
@@ -568,7 +568,7 @@
 }
 
 .cb-input input::placeholder {
-  color: rgba(245, 246, 248, 0.38);
+  color: rgba(246, 241, 231, 0.38);
 }
 
 .cb-input button {

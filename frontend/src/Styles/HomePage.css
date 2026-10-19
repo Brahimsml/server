@@ -5,7 +5,7 @@
 
 /* Product photos are mostly shot on white, so they sit on a light "studio" well */
 .mt-page {
-  --pc-well: #eef0f3;
+  --pc-well: #f3f0ea;
 }
 
 /* ===== HERO: full-width product banner ===== */
@@ -24,8 +24,8 @@
   border-radius: 26px;
   border: 1px solid var(--mt-border);
   background:
-    radial-gradient(ellipse at 18% 20%, rgba(230, 195, 114, 0.08), transparent 55%),
-    linear-gradient(135deg, #1c1d22, #101115 70%);
+    radial-gradient(ellipse at 18% 20%, rgba(230, 195, 114, 0.16), transparent 55%),
+    linear-gradient(135deg, #211b12, #120f0a 70%);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
 }
 
@@ -191,7 +191,7 @@
   overflow: hidden;
   border: none;
   border-radius: 4px;
-  background: rgba(245, 246, 248, 0.18);
+  background: rgba(246, 241, 231, 0.18);
   cursor: pointer;
   transition: width 0.25s ease;
 }
@@ -364,7 +364,7 @@
   gap: 8px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid rgba(245, 246, 248, 0.14);
+  border: 1px solid rgba(246, 241, 231, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--mt-faint);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -582,8 +582,8 @@
   z-index: 1;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #17181c;
-  color: #f5f6f8;
+  background: #1a1610;
+  color: #f6f1e7;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -713,7 +713,7 @@
   place-items: center;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid rgba(245, 246, 248, 0.14);
+  border: 1px solid rgba(246, 241, 231, 0.14);
   background: transparent;
   color: var(--mt-muted);
   font: inherit;
