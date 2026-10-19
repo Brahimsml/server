@@ -8,13 +8,13 @@
 /* Colors: on every page (.mt-page) and on shared parts like the navbar/footer (.mt-scope) */
 .mt-page,
 .mt-scope {
-  --mt-surface: #1a1610;
-  --mt-surface-2: #231e15;
-  --mt-border: rgba(201, 162, 77, 0.16);
-  --mt-border-strong: rgba(201, 162, 77, 0.38);
-  --mt-text: #f6f1e7;
-  --mt-muted: rgba(246, 241, 231, 0.62);
-  --mt-faint: rgba(246, 241, 231, 0.38);
+  --mt-surface: #17181c;
+  --mt-surface-2: #202227;
+  --mt-border: rgba(255, 255, 255, 0.08);
+  --mt-border-strong: rgba(255, 255, 255, 0.18);
+  --mt-text: #f5f6f8;
+  --mt-muted: rgba(245, 246, 248, 0.62);
+  --mt-faint: rgba(245, 246, 248, 0.38);
   --mt-accent: #c9a24d;
   --mt-accent-bright: #e6c372;
   --mt-danger: #f08a8a;
@@ -31,8 +31,8 @@
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(1100px 480px at 50% -12%, rgba(201, 162, 77, 0.16), transparent 62%),
-    linear-gradient(180deg, #17130c 0%, #0e0c08 100%);
+    radial-gradient(1100px 480px at 50% -12%, rgba(201, 162, 77, 0.09), transparent 62%),
+    linear-gradient(180deg, #141519 0%, #0b0c0f 100%);
 }
 
 .mt-page *,
@@ -196,7 +196,7 @@
 
 .mt-btn--ghost:hover:not(:disabled) {
   color: var(--mt-text);
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 246, 248, 0.06);
 }
 
 .mt-btn--sm {
@@ -277,7 +277,7 @@
   width: 100%;
   padding: 11px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(246, 241, 231, 0.14);
+  border: 1px solid rgba(245, 246, 248, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--mt-text);
   caret-color: var(--mt-accent-bright);
@@ -303,8 +303,8 @@ select.mt-input,
 }
 
 select.mt-input option {
-  background: #1a1610;
-  color: #f6f1e7;
+  background: #17181c;
+  color: #f5f6f8;
 }
 
 .mt-input::placeholder,
@@ -404,8 +404,8 @@ select.mt-input option {
 
 .mt-badge--neutral {
   color: var(--mt-muted);
-  background: rgba(246, 241, 231, 0.05);
-  border-color: rgba(246, 241, 231, 0.18);
+  background: rgba(245, 246, 248, 0.05);
+  border-color: rgba(245, 246, 248, 0.18);
 }
 
 /* ===== Empty / loading states ===== */
@@ -442,9 +442,9 @@ select.mt-input option {
   border-radius: var(--mt-radius);
   background: linear-gradient(
     90deg,
-    rgba(246, 241, 231, 0.04) 0%,
-    rgba(246, 241, 231, 0.09) 50%,
-    rgba(246, 241, 231, 0.04) 100%
+    rgba(245, 246, 248, 0.04) 0%,
+    rgba(245, 246, 248, 0.09) 50%,
+    rgba(245, 246, 248, 0.04) 100%
   );
   background-size: 200% 100%;
   animation: mt-shimmer 1.4s ease-in-out infinite;
