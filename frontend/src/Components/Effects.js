@@ -21,6 +21,9 @@ const REVEAL = [
 
 const TILT = ".is-shop .pc-card, .is-shop .hp-cat";
 const SPOTLIGHT = ".is-shop .hp-slider";
+const MAGNET = ".is-shop .mt-btn--primary, .is-shop .auth-submit, .is-shop .cart-btn--primary";
+const MAGNET_PULL = 0.18; // how far a gold button leans towards the pointer
+const MAGNET_MAX = 6; // px
 const MAX_TILT = 5; // degrees
 
 const Effects = () => {
@@ -79,12 +82,29 @@ const Effects = () => {
 
     // Tilt + pointer light (mouse / pen only)
     let active = null;
+    let magnet = null;
+    const release = (el) => {
+      el.style.removeProperty("--bx");
+      el.style.removeProperty("--by");
+    };
     const reset = (el) => {
       el.style.removeProperty("--rx");
       el.style.removeProperty("--ry");
     };
     const onMove = (e) => {
       if (e.pointerType === "touch") return;
+
+      // gold buttons lean gently towards the pointer
+      const btn = e.target.closest?.(MAGNET);
+      if (magnet && magnet !== btn) release(magnet);
+      magnet = btn;
+      if (btn && !btn.disabled) {
+        const b = btn.getBoundingClientRect();
+        const clamp = (v) => Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, v));
+        btn.style.setProperty("--bx", `${clamp((e.clientX - b.left - b.width / 2) * MAGNET_PULL).toFixed(1)}px`);
+        btn.style.setProperty("--by", `${clamp((e.clientY - b.top - b.height / 2) * MAGNET_PULL).toFixed(1)}px`);
+      }
+
       const card = e.target.closest?.(TILT);
       if (active && active !== card) reset(active);
       active = card;
@@ -103,7 +123,9 @@ const Effects = () => {
     };
     const onLeave = () => {
       if (active) reset(active);
+      if (magnet) release(magnet);
       active = null;
+      magnet = null;
     };
     document.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerleave", onLeave);
