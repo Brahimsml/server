@@ -57,13 +57,13 @@ h3 {
 
 /* Selected text in the brand gold */
 ::selection {
-  background: rgba(226, 203, 143, 0.85);
+  background: rgba(230, 195, 114, 0.85);
   color: #1c1408;
 }
 
 /* Dark scrollbars that match the site instead of the default light ones */
 html {
-  scrollbar-color: rgba(200, 168, 101, 0.35) #0e0c08;
+  scrollbar-color: rgba(201, 162, 77, 0.35) #0e0c08;
 }
 
 ::-webkit-scrollbar {
@@ -78,16 +78,16 @@ html {
 ::-webkit-scrollbar-thumb {
   border: 2px solid #0e0c08;
   border-radius: 10px;
-  background: rgba(200, 168, 101, 0.35);
+  background: rgba(201, 162, 77, 0.35);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(200, 168, 101, 0.55);
+  background: rgba(201, 162, 77, 0.55);
 }
 
 /* Clear gold outline for keyboard users (mouse clicks don't show it) */
 :focus-visible {
-  outline: 2px solid #e2cb8f;
+  outline: 2px solid #e6c372;
   outline-offset: 3px;
 }
 

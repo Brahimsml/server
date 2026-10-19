@@ -99,7 +99,7 @@
 
 .ad-nav a.is-active {
   color: var(--mt-text);
-  background: rgba(200, 168, 101, 0.14);
+  background: rgba(201, 162, 77, 0.14);
 }
 
 .ad-nav a.is-active::before {
@@ -291,7 +291,7 @@ a.ad-kpi:hover {
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: rgba(200, 168, 101, 0.12);
+  background: rgba(201, 162, 77, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -312,7 +312,7 @@ a.ad-kpi:hover {
 .ad-kpi--accent {
   border-color: var(--mt-border-strong);
   background:
-    radial-gradient(400px 160px at 100% 0%, rgba(226, 203, 143, 0.14), transparent 70%),
+    radial-gradient(400px 160px at 100% 0%, rgba(230, 195, 114, 0.14), transparent 70%),
     var(--mt-surface);
 }
 
@@ -439,7 +439,7 @@ a.ad-kpi:hover {
 
 .ad-search:focus-within {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(200, 168, 101, 0.18);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
 }
 
 .ad-search input {
@@ -512,7 +512,7 @@ a.ad-kpi:hover {
 }
 
 .ad-tabs button.is-active span {
-  background: rgba(200, 168, 101, 0.2);
+  background: rgba(201, 162, 77, 0.2);
   color: var(--mt-accent-bright);
 }
 
@@ -562,7 +562,7 @@ a.ad-kpi:hover {
 }
 
 .ad-table tbody tr:hover {
-  background: rgba(200, 168, 101, 0.05);
+  background: rgba(201, 162, 77, 0.05);
 }
 
 .ad-table tr.is-link {
@@ -776,7 +776,7 @@ a.ad-kpi:hover {
 .ad-upload:hover,
 .ad-upload:focus-within {
   border-color: var(--mt-accent);
-  background: rgba(200, 168, 101, 0.06);
+  background: rgba(201, 162, 77, 0.06);
 }
 
 .ad-upload input {
@@ -1049,11 +1049,11 @@ a.ad-kpi:hover {
 }
 
 .ad-msg__row:hover {
-  background: rgba(200, 168, 101, 0.05);
+  background: rgba(201, 162, 77, 0.05);
 }
 
 .ad-msg.is-open .ad-msg__row {
-  background: rgba(200, 168, 101, 0.07);
+  background: rgba(201, 162, 77, 0.07);
 }
 
 .ad-msg__dot {
@@ -1252,7 +1252,7 @@ a.ad-kpi:hover {
   place-items: center;
   padding: 32px 18px;
   background:
-    radial-gradient(900px 420px at 50% -10%, rgba(200, 168, 101, 0.14), transparent 62%),
+    radial-gradient(900px 420px at 50% -10%, rgba(201, 162, 77, 0.14), transparent 62%),
     #0f0d0a;
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
