@@ -42,8 +42,11 @@ import AdminSettings from "./pages/AdminSettings";
 
 import { CartProvider } from "./Context/CartContext";
 import ChatBot from "./Components/ChatBot";
+import Effects from "./Components/Effects";
 import MyOrders from "./pages/MyOrders";
-import MyOrderDetails from "./pages/MyOrderDetails"
+import MyOrderDetails from "./pages/MyOrderDetails";
+// Premium look for the shop pages; loaded last so it sits on top of the page styles
+import "./Styles/fx.css";
 
 // Admin pages have their own layout (sidebar), so the shop navbar/footer/chat are hidden there
 const isAdminPath = (path) =>
@@ -54,7 +57,7 @@ const SiteChrome = ({ children }) => {
   const admin = isAdminPath(pathname);
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${admin ? "" : "is-shop"}`}>
       {!admin && <NavBar />}
       <div className="main-content">
         <div className="page-content">{children}</div>
@@ -69,6 +72,7 @@ const App = () => (
   <CartProvider>
     <Router>
       <ScrollToTop />
+      <Effects />
       <SiteChrome>
         <Routes>
           {/* PUBLIC */}

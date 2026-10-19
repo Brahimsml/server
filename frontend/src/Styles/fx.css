@@ -1,0 +1,640 @@
+/* =========================================================
+   MEGATECH PREMIUM LAYER  (fx-)
+   Atmosphere, glass, light and motion on top of the shop styles.
+   Scoped to the customer pages (.is-shop), so the admin is untouched.
+   Motion is switched off for people who ask for reduced motion.
+========================================================= */
+@property --fx-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.is-shop {
+  --fx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --fx-gold: linear-gradient(135deg, #f3d892 0%, #e2bd69 42%, #b98f3e 100%);
+  --fx-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  --fx-edge: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --fx-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.8);
+}
+
+/* ---------- Atmosphere: soft drifting light + a faint grid ---------- */
+.is-shop .mt-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.is-shop .mt-page::before,
+.is-shop .mt-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.is-shop .mt-page::before {
+  background:
+    radial-gradient(38% 42% at 18% 8%, rgba(230, 195, 114, 0.11), transparent 70%),
+    radial-gradient(32% 38% at 88% 18%, rgba(120, 146, 200, 0.07), transparent 70%),
+    radial-gradient(40% 40% at 60% 100%, rgba(230, 195, 114, 0.05), transparent 70%);
+  animation: fx-aurora 26s ease-in-out infinite alternate;
+}
+
+.is-shop .mt-page::after {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  -webkit-mask-image: radial-gradient(70% 55% at 50% 0%, #000, transparent 75%);
+  mask-image: radial-gradient(70% 55% at 50% 0%, #000, transparent 75%);
+}
+
+@keyframes fx-aurora {
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.06);
+  }
+}
+
+/* ---------- Navigation: glass bar, gliding underline, scroll progress ---------- */
+.is-shop .nb {
+  background: rgba(11, 12, 15, 0.62);
+  -webkit-backdrop-filter: saturate(170%) blur(18px);
+  backdrop-filter: saturate(170%) blur(18px);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+html[data-scrolled] .is-shop .nb {
+  background: rgba(11, 12, 15, 0.78);
+  box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.9);
+}
+
+.is-shop .nb-brand img {
+  transition: transform 0.6s var(--fx-ease), box-shadow 0.6s var(--fx-ease);
+}
+
+.is-shop .nb-brand:hover img {
+  transform: rotate(-6deg) scale(1.06);
+  box-shadow: 0 0 22px rgba(230, 195, 114, 0.35);
+}
+
+.is-shop .nb-links .nb-link::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -15px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--fx-gold);
+  box-shadow: 0 0 12px rgba(230, 195, 114, 0.6);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.45s var(--fx-ease);
+}
+
+.is-shop .nb-links .nb-link:hover::after,
+.is-shop .nb-links .nb-link.is-active::after {
+  transform: scaleX(1);
+}
+
+.is-shop .nb-links .nb-link:hover:not(.is-active)::after {
+  opacity: 0.45;
+}
+
+@supports (animation-timeline: scroll()) {
+  .is-shop .nb::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--fx-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: fx-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes fx-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---------- Buttons: liquid gold with a light sweep, glass secondaries ---------- */
+.is-shop .mt-btn,
+.is-shop .auth-submit,
+.is-shop .cart-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 0.4s var(--fx-ease), box-shadow 0.4s var(--fx-ease),
+    background 0.3s ease, border-color 0.3s ease, color 0.3s ease, filter 0.3s ease;
+}
+
+.is-shop .mt-btn--primary,
+.is-shop .auth-submit,
+.is-shop .cart-btn--primary {
+  background: var(--fx-gold);
+  color: #17120a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 26px -12px rgba(230, 195, 114, 0.7);
+}
+
+.is-shop .mt-btn--primary::after,
+.is-shop .auth-submit::after,
+.is-shop .cart-btn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 28%, rgba(255, 255, 255, 0.6) 50%, transparent 72%);
+  transform: translateX(-120%);
+  transition: transform 0.9s var(--fx-ease);
+}
+
+.is-shop .mt-btn--primary:hover:not(:disabled),
+.is-shop .auth-submit:hover:not(:disabled),
+.is-shop .cart-btn--primary:hover:not(:disabled) {
+  filter: none;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 16px 34px -12px rgba(230, 195, 114, 0.85);
+}
+
+.is-shop .mt-btn--primary:hover:not(:disabled)::after,
+.is-shop .auth-submit:hover:not(:disabled)::after,
+.is-shop .cart-btn--primary:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+
+.is-shop .mt-btn--secondary {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--fx-edge);
+}
+
+.is-shop .mt-btn--secondary:hover:not(:disabled) {
+  border-color: rgba(230, 195, 114, 0.55);
+  background: rgba(230, 195, 114, 0.08);
+  box-shadow: var(--fx-edge), 0 0 0 4px rgba(230, 195, 114, 0.06), 0 12px 30px -16px rgba(230, 195, 114, 0.6);
+  transform: translateY(-2px);
+}
+
+.is-shop .mt-btn:active:not(:disabled),
+.is-shop .auth-submit:active:not(:disabled),
+.is-shop .cart-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.is-shop .mt-link svg {
+  transition: transform 0.35s var(--fx-ease);
+}
+
+.is-shop .mt-link:hover {
+  text-decoration: none;
+}
+
+.is-shop .mt-link:hover svg {
+  transform: translateX(4px);
+}
+
+/* ---------- Keyboard focus: a clear gold ring ---------- */
+.is-shop :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #e6c372;
+  outline-offset: 3px;
+}
+
+/* ---------- Glass surfaces ---------- */
+.is-shop .mt-panel,
+.is-shop .hp-trust,
+.is-shop .mt-cta,
+.is-shop .auth-card {
+  background: var(--fx-glass), var(--mt-surface, #17181c);
+  box-shadow: var(--fx-edge), var(--fx-shadow);
+}
+
+/* ---------- Section headings: hairline of light under the title ---------- */
+.is-shop .mt-section-head {
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.is-shop .mt-section-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(230, 195, 114, 0.55), rgba(255, 255, 255, 0.06) 35%, transparent);
+}
+
+.is-shop .mt-section-head h2 {
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Hero banner: orbiting light border, spotlight, floating product ---------- */
+.is-shop .hp-slider {
+  box-shadow: var(--fx-edge), 0 40px 90px -40px rgba(0, 0, 0, 0.95), 0 0 80px -40px rgba(230, 195, 114, 0.25);
+}
+
+.is-shop .hp-slider::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--fx-angle),
+    transparent 0 62%,
+    rgba(230, 195, 114, 0.9) 75%,
+    rgba(255, 255, 255, 0.8) 78%,
+    transparent 90%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fx-orbit 9s linear infinite;
+  pointer-events: none;
+}
+
+.is-shop .hp-slider::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(420px circle at var(--mx, 30%) var(--my, 40%), rgba(230, 195, 114, 0.1), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.is-shop .hp-slider:hover::after {
+  opacity: 1;
+}
+
+.is-shop .hp-slide {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes fx-orbit {
+  to {
+    --fx-angle: 360deg;
+  }
+}
+
+.is-shop .hp-slide__title {
+  background: linear-gradient(180deg, #ffffff 30%, #b9bec8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.is-shop .hp-slide__price {
+  background: var(--fx-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.is-shop .hp-slide__media {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 60% at 50% 45%, #ffffff, transparent 75%),
+    linear-gradient(180deg, #f4f5f8, #e3e6ec);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 -30px 60px -40px rgba(0, 0, 0, 0.25);
+}
+
+/* soft floor shadow under the product */
+.is-shop .hp-slide__media::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 9%;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.22), transparent);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.is-shop .hp-slide__media img {
+  position: relative;
+  z-index: 1;
+  animation: hp-fade 0.6s ease, fx-float 6s ease-in-out 0.6s infinite alternate;
+}
+
+@keyframes fx-float {
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+.is-shop .hp-slider__arrow {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: transform 0.35s var(--fx-ease), background 0.3s ease, border-color 0.3s ease;
+}
+
+.is-shop .hp-slider__arrow:hover {
+  transform: scale(1.08);
+}
+
+.is-shop .hp-slider__dots button span {
+  box-shadow: 0 0 10px rgba(230, 195, 114, 0.7);
+}
+
+/* ---------- Trust bar: glowing icons ---------- */
+.is-shop .hp-trust__item {
+  transition: background 0.4s ease;
+}
+
+.is-shop .hp-trust__item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.is-shop .hp-trust__icon {
+  background: radial-gradient(circle at 30% 25%, rgba(230, 195, 114, 0.28), rgba(230, 195, 114, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(230, 195, 114, 0.25);
+  transition: transform 0.5s var(--fx-ease), box-shadow 0.5s var(--fx-ease);
+}
+
+.is-shop .hp-trust__item:hover .hp-trust__icon {
+  transform: translateY(-3px) rotate(-6deg);
+  box-shadow: inset 0 0 0 1px rgba(230, 195, 114, 0.45), 0 10px 24px -8px rgba(230, 195, 114, 0.6);
+}
+
+/* ---------- Cards: 3D tilt, light-following sheen, glowing edge ---------- */
+.is-shop .pc-card,
+.is-shop .hp-cat {
+  position: relative;
+  background: var(--fx-glass), var(--mt-surface);
+  box-shadow: var(--fx-edge), var(--fx-shadow);
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform 0.5s var(--fx-ease), box-shadow 0.5s var(--fx-ease), border-color 0.4s ease;
+  will-change: transform;
+}
+
+.is-shop .pc-card:hover,
+.is-shop .hp-cat:hover {
+  --lift: -6px;
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift));
+  border-color: transparent;
+  box-shadow: var(--fx-edge), 0 30px 60px -30px rgba(0, 0, 0, 0.95), 0 0 50px -24px rgba(230, 195, 114, 0.45);
+}
+
+/* the glowing edge */
+.is-shop .pc-card::before,
+.is-shop .hp-cat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    150deg,
+    rgba(243, 216, 146, 0.9),
+    rgba(255, 255, 255, 0.12) 35%,
+    rgba(255, 255, 255, 0.04) 60%,
+    rgba(230, 195, 114, 0.6)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+/* the sheen that follows the pointer */
+.is-shop .pc-card::after,
+.is-shop .hp-cat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.09), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+.is-shop .pc-card:hover::before,
+.is-shop .hp-cat:hover::before,
+.is-shop .pc-card:hover::after,
+.is-shop .hp-cat:hover::after {
+  opacity: 1;
+}
+
+.is-shop .pc-media,
+.is-shop .hp-cat__media {
+  background:
+    radial-gradient(75% 70% at 50% 40%, #ffffff, transparent 80%),
+    linear-gradient(180deg, #f2f3f6, #e2e5eb);
+}
+
+.is-shop .pc-media img,
+.is-shop .hp-cat__media img {
+  transition: transform 0.8s var(--fx-ease);
+}
+
+.is-shop .pc-card:hover .pc-media img,
+.is-shop .hp-cat:hover .hp-cat__media img {
+  transform: scale(1.07) translateY(-2px);
+}
+
+.is-shop .pc-label {
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.is-shop .pc-label--best {
+  background: var(--fx-gold);
+}
+
+.is-shop .hp-cat__meta svg {
+  transition: transform 0.4s var(--fx-ease);
+}
+
+.is-shop .hp-cat:hover .hp-cat__meta svg {
+  transform: translateX(5px);
+}
+
+/* ---------- Shop sidebar + search ---------- */
+.is-shop .pc-side__item {
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease, padding 0.4s var(--fx-ease);
+}
+
+.is-shop .pc-side__item:hover {
+  padding-left: 20px;
+}
+
+.is-shop .pc-side__item.is-active {
+  background: linear-gradient(90deg, rgba(230, 195, 114, 0.12), transparent 80%);
+  border-left-color: #e6c372;
+  box-shadow: -6px 0 18px -10px rgba(230, 195, 114, 0.9);
+}
+
+@media (max-width: 900px) {
+  .is-shop .pc-side__item:hover {
+    padding-left: 14px;
+  }
+
+  .is-shop .pc-side__item.is-active {
+    background: none;
+    box-shadow: none;
+  }
+}
+
+/* ---------- Form fields: glass with a warm focus glow ---------- */
+.is-shop .pc-search,
+.is-shop .mt-input,
+.is-shop .mt-field input,
+.is-shop .mt-field textarea,
+.is-shop .mt-field select,
+.is-shop .auth-field input {
+  background-color: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--fx-edge);
+  transition: border-color 0.3s ease, box-shadow 0.4s var(--fx-ease), background-color 0.3s ease;
+}
+
+.is-shop .pc-search:focus-within,
+.is-shop .mt-input:focus,
+.is-shop .mt-field input:focus,
+.is-shop .mt-field textarea:focus,
+.is-shop .mt-field select:focus,
+.is-shop .auth-field input:focus {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(230, 195, 114, 0.7);
+  box-shadow: 0 0 0 4px rgba(230, 195, 114, 0.12), 0 10px 30px -14px rgba(230, 195, 114, 0.55);
+}
+
+/* ---------- Sign-in card: orbiting light border like the banner ---------- */
+.is-shop .auth-card {
+  position: relative;
+}
+
+.is-shop .auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--fx-angle), transparent 0 65%, rgba(230, 195, 114, 0.85) 78%, transparent 90%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fx-orbit 10s linear infinite;
+  pointer-events: none;
+}
+
+/* ---------- Closing banner + footer ---------- */
+.is-shop .mt-cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.is-shop .mt-cta::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  right: -10%;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(230, 195, 114, 0.18), transparent);
+  pointer-events: none;
+}
+
+.is-shop .mt-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.is-shop .ft {
+  position: relative;
+  background:
+    radial-gradient(60% 120% at 50% 0%, rgba(230, 195, 114, 0.06), transparent 70%),
+    #0a0b0d;
+  border-top-color: transparent;
+}
+
+.is-shop .ft::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(230, 195, 114, 0.6), transparent);
+}
+
+.is-shop .ft a {
+  transition: color 0.3s ease, transform 0.35s var(--fx-ease);
+}
+
+.is-shop .ft-col a:hover {
+  transform: translateX(4px);
+}
+
+/* ---------- Scroll reveal (only once the effects script is running) ---------- */
+html.fx-ready .is-shop .fx-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s var(--fx-ease), transform 0.9s var(--fx-ease);
+  transition-delay: calc(var(--fx-i, 0) * 70ms);
+}
+
+html.fx-ready .is-shop .fx-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* cards keep their own transform (tilt), so they only fade and rise via translate */
+html.fx-ready .is-shop .fx-reveal.pc-card,
+html.fx-ready .is-shop .fx-reveal.hp-cat {
+  transform: perspective(1000px) translateY(28px);
+  transition: opacity 0.9s var(--fx-ease), transform 0.5s var(--fx-ease), box-shadow 0.5s var(--fx-ease);
+  transition-delay: calc(var(--fx-i, 0) * 70ms), 0s, 0s;
+}
+
+html.fx-ready .is-shop .fx-reveal.pc-card.is-in,
+html.fx-ready .is-shop .fx-reveal.hp-cat.is-in {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+}
+
+/* ---------- Touch screens: no tilt; reduced motion: no movement at all ---------- */
+@media (hover: none) {
+  .is-shop .pc-card,
+  .is-shop .hp-cat {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-shop .mt-page::before,
+  .is-shop .hp-slider::before,
+  .is-shop .auth-card::before,
+  .is-shop .hp-slide__media img {
+    animation: none !important;
+  }
+
+  .is-shop .pc-card,
+  .is-shop .hp-cat,
+  .is-shop .pc-card:hover,
+  .is-shop .hp-cat:hover {
+    transform: none !important;
+  }
+}
