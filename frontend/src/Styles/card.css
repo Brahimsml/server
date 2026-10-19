@@ -28,14 +28,14 @@
    Colors are scoped to .cart-page so they don't affect other pages.
 =============================== */
 .cart-page {
-  --c-surface: #1e2530;
-  --c-surface-2: #293241;
-  --c-border: rgba(169, 180, 194, 0.13);
-  --c-border-strong: rgba(169, 180, 194, 0.26);
-  --c-text: #f4f0e8;
-  --c-muted: #a9b4c2;
-  --c-accent: #c9a86c;
-  --c-accent-bright: #dcc08a;
+  --c-surface: #17181c;
+  --c-surface-2: #202227;
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border-strong: rgba(255, 255, 255, 0.18);
+  --c-text: #f5f6f8;
+  --c-muted: rgba(245, 246, 248, 0.6);
+  --c-accent: #c9a24d;
+  --c-accent-bright: #e6c372;
   --c-danger: #f08a8a;
   --c-success: #6fd59c;
   --c-warn: #e8b04f;
@@ -45,8 +45,8 @@
   color: var(--c-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(1100px 480px at 50% -12%, rgba(201, 168, 108, 0.09), transparent 62%),
-    linear-gradient(180deg, #1c222c 0%, #171c24 55%, #151a21 100%);
+    radial-gradient(1100px 480px at 50% -12%, rgba(201, 162, 77, 0.09), transparent 62%),
+    linear-gradient(180deg, #141519 0%, #0b0c0f 100%);
 }
 
 .cart-page *,
@@ -208,11 +208,11 @@
 }
 
 .cart-qty button:hover:not(:disabled) {
-  background: rgba(201, 168, 108, 0.16);
+  background: rgba(201, 162, 77, 0.16);
 }
 
 .cart-qty button:disabled {
-  color: rgba(244, 240, 232, 0.25);
+  color: rgba(245, 246, 248, 0.25);
   cursor: not-allowed;
 }
 
@@ -337,7 +337,7 @@
   width: 100%;
   padding: 11px 13px;
   border-radius: 10px;
-  border: 1px solid rgba(244, 240, 232, 0.14);
+  border: 1px solid rgba(245, 246, 248, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--c-text);
   font: inherit;
@@ -349,13 +349,13 @@
 
 .cart-field input::placeholder,
 .cart-field textarea::placeholder {
-  color: rgba(244, 240, 232, 0.32);
+  color: rgba(245, 246, 248, 0.32);
 }
 
 .cart-field input:focus,
 .cart-field textarea:focus {
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.18);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
 }
 
 .cart-form__note {
@@ -386,7 +386,7 @@
 
 .cart-btn--primary {
   background: linear-gradient(180deg, var(--c-accent-bright), var(--c-accent));
-  color: #1d1a14;
+  color: #1c1408;
 }
 
 .cart-btn--primary:hover:not(:disabled) {
@@ -435,7 +435,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(201, 168, 108, 0.12);
+  background: rgba(201, 162, 77, 0.12);
   color: var(--c-accent-bright);
   font-size: 32px;
 }

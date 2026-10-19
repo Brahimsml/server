@@ -3,12 +3,12 @@
    Colors are scoped to .auth-page so they don't affect other pages.
 =============================== */
 .auth-page {
-  --a-surface: #1e2530;
-  --a-border: rgba(169, 180, 194, 0.13);
-  --a-text: #f4f0e8;
-  --a-muted: #a9b4c2;
-  --a-accent: #c9a86c;
-  --a-accent-bright: #dcc08a;
+  --a-surface: #17181c;
+  --a-border: rgba(255, 255, 255, 0.08);
+  --a-text: #f5f6f8;
+  --a-muted: rgba(245, 246, 248, 0.6);
+  --a-accent: #c9a24d;
+  --a-accent-bright: #e6c372;
   --a-danger: #f08a8a;
   --a-success: #6fd59c;
 
@@ -20,8 +20,8 @@
   color: var(--a-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(1100px 480px at 50% -12%, rgba(201, 168, 108, 0.09), transparent 62%),
-    linear-gradient(180deg, #1c222c 0%, #171c24 55%, #151a21 100%);
+    radial-gradient(1100px 480px at 50% -12%, rgba(201, 162, 77, 0.09), transparent 62%),
+    linear-gradient(180deg, #141519 0%, #0b0c0f 100%);
 }
 
 .auth-page *,
@@ -50,8 +50,8 @@
   gap: 40px;
   padding: 44px 40px;
   background:
-    radial-gradient(500px 300px at 0% 0%, rgba(220, 192, 138, 0.28), transparent 70%),
-    linear-gradient(160deg, #2b3340 0%, #1c222c 100%);
+    radial-gradient(500px 300px at 0% 0%, rgba(230, 195, 114, 0.28), transparent 70%),
+    linear-gradient(160deg, #2a2418 0%, #16171b 100%);
   border-right: 1px solid var(--a-border);
 }
 
@@ -119,7 +119,7 @@
 }
 
 .auth-tabs button.is-active {
-  background: rgba(201, 168, 108, 0.18);
+  background: rgba(201, 162, 77, 0.18);
   color: var(--a-text);
 }
 
@@ -175,7 +175,7 @@
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(244, 240, 232, 0.14);
+  border: 1px solid rgba(245, 246, 248, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--a-text);
   caret-color: var(--a-accent-bright);
@@ -186,12 +186,12 @@
 }
 
 .auth-field input::placeholder {
-  color: rgba(244, 240, 232, 0.32);
+  color: rgba(245, 246, 248, 0.32);
 }
 
 .auth-field input:focus {
   border-color: var(--a-accent);
-  box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.18);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
 }
 
 /* Password with show/hide button */
@@ -221,7 +221,7 @@
 
 .auth-password__toggle:hover {
   color: var(--a-text);
-  background: rgba(244, 240, 232, 0.06);
+  background: rgba(245, 246, 248, 0.06);
 }
 
 .auth-submit {
@@ -231,7 +231,7 @@
   border: none;
   border-radius: 12px;
   background: linear-gradient(180deg, var(--a-accent-bright), var(--a-accent));
-  color: #1d1a14;
+  color: #1c1408;
   font: inherit;
   font-size: 0.98rem;
   font-weight: 700;
@@ -356,7 +356,7 @@
 
 /* ===== Email confirmation step ===== */
 .auth-verify__icon {
-  background: rgba(220, 192, 138, 0.12);
+  background: rgba(230, 195, 114, 0.12);
   color: var(--a-accent-bright);
 }
 

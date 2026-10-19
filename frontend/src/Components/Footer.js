@@ -82,10 +82,6 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="ft-wordmark" aria-hidden="true">
-          MegaTech
-        </div>
-
         <div className="ft-bottom">
           <p>© {new Date().getFullYear()} MegaTech. All rights reserved.</p>
           <Link to="/admin/login" className="ft-staff">
