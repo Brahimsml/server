@@ -52,3 +52,59 @@ h3 {
 .page-content > * {
   width: 100%;
 }
+
+/* ===== Small finishing touches (same colors, no layout changes) ===== */
+
+/* Selected text in the brand gold */
+::selection {
+  background: rgba(230, 195, 114, 0.85);
+  color: #1c1408;
+}
+
+/* Dark scrollbars that match the site instead of the default light ones */
+html {
+  scrollbar-color: rgba(201, 162, 77, 0.35) #0e0c08;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0e0c08;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #0e0c08;
+  border-radius: 10px;
+  background: rgba(201, 162, 77, 0.35);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 162, 77, 0.55);
+}
+
+/* Clear gold outline for keyboard users (mouse clicks don't show it) */
+:focus-visible {
+  outline: 2px solid #e6c372;
+  outline-offset: 3px;
+}
+
+/* Headings break into even lines; paragraphs avoid a lonely last word */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Buttons press in slightly when clicked */
+.mt-btn:active:not(:disabled),
+.cart-btn:active:not(:disabled),
+.auth-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
