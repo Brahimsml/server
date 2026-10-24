@@ -112,3 +112,29 @@ export const onImageError = (e) => {
   e.currentTarget.onerror = null;
   e.currentTarget.src = FALLBACK_IMG;
 };
+
+/*
+  Phone numbers typed by customers -> international form for WhatsApp / calls.
+  Lebanon (961) is assumed when no country code is given:
+  "70 123 456" -> 96170123456, "03 123 456" -> 9613123456, "+961 71 234 567" -> 96171234567
+*/
+export const internationalPhone = (phone) => {
+  let digits = String(phone || "").replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits.slice(1).replace(/\D/g, "") || null;
+  digits = digits.replace(/\D/g, "");
+  if (digits.startsWith("00")) return digits.slice(2) || null;
+  if (digits.startsWith("961")) return digits;
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  return digits.length >= 7 && digits.length <= 8 ? `961${digits}` : digits.length > 8 ? digits : null;
+};
+
+export const whatsappLink = (phone, message = "") => {
+  const number = internationalPhone(phone);
+  if (!number) return null;
+  return `https://wa.me/${number}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
+};
+
+export const telLink = (phone) => {
+  const number = internationalPhone(phone);
+  return number ? `tel:+${number}` : null;
+};

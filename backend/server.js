@@ -13,7 +13,7 @@ const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
-const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail } = require("./emails");
+const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
 const { processProductUploads } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
@@ -1395,6 +1395,8 @@ app.post("/orders", verifyUser, async (req, res) => {
     // order still succeeds even if email fails
   }
 
+  notifyAdminOfOrder(orderId, "new");
+
   res.json({
     message: "Order placed ✅",
     order_id: orderId,
@@ -1429,6 +1431,37 @@ app.get("/orders", verifyAdmin, (req, res) => {
     res.json(data);
   });
 });
+// Email the shop owner about a new or cancelled order (ADMIN_NOTIFY_EMAIL in .env, else the shop's own address).
+// Never fails the order: a failed email is only logged.
+async function notifyAdminOfOrder(orderId, kind) {
+  const to = process.env.ADMIN_NOTIFY_EMAIL || process.env.EMAIL_USER;
+  if (!to) return;
+  try {
+    const [order] = await runQuery(
+      db,
+      `SELECT orders.*, users.email AS user_email FROM orders LEFT JOIN users ON users.id = orders.user_id WHERE orders.id=?`,
+      [orderId]
+    );
+    if (!order) return;
+    const items = await runQuery(
+      db,
+      "SELECT product_name AS name, price, quantity AS qty FROM order_items WHERE order_id=?",
+      [orderId]
+    );
+    const email = buildAdminOrderEmail({
+      kind,
+      order,
+      items,
+      customerEmail: order.user_email,
+      adminUrl: `${SITE_URL}/orders/${orderId}`,
+    });
+    await transporter.sendMail({ from: `"MegaTech" <${process.env.EMAIL_USER}>`, to, ...email });
+    console.log(`✅ Admin notified about order #${orderId} (${kind})`);
+  } catch (err) {
+    console.error("❌ Admin order email failed:", err);
+  }
+}
+
 // Email the customer about a status change (same design as the confirmation, with the items).
 // Returns true when the email went out; a failed email never fails the status change.
 async function sendStatusEmail(orderId, status) {
@@ -1605,6 +1638,7 @@ app.post("/my-orders/:id/cancel", verifyUser, async (req, res) => {
   }
 
   await sendStatusEmail(orderId, "cancelled");
+  notifyAdminOfOrder(orderId, "cancelled");
   res.json({ message: "Your order was cancelled." });
 });
 
@@ -1711,6 +1745,37 @@ app.delete("/contacts/:id", verifyAdmin, (req, res) => {
 /*
    ADMIN DASHBOARD STATS
 */
+/*
+   ADMIN SIDEBAR COUNTERS (checked every minute by the admin panel)
+*/
+app.get("/admin/counts", verifyAdmin, async (req, res) => {
+  try {
+    const [o] = await runQuery(db, "SELECT COUNT(*) AS n FROM orders WHERE status='pending'");
+    const [m] = await runQuery(db, "SELECT COUNT(*) AS n FROM contacts WHERE status='new'");
+    const [latest] = await runQuery(db, "SELECT COALESCE(MAX(id), 0) AS id FROM orders");
+    res.json({ pendingOrders: Number(o.n), newMessages: Number(m.n), latestOrderId: Number(latest.id) });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   QUICK STOCK CHANGE (products list)
+*/
+app.patch("/products/:id/stock", verifyAdmin, async (req, res) => {
+  const stock = Number(req.body?.stock_quantity);
+  if (!Number.isInteger(stock) || stock < 0 || stock > 100000) {
+    return res.status(400).json({ message: "Stock must be a whole number, 0 or more." });
+  }
+  try {
+    const result = await runQuery(db, "UPDATE products SET stock_quantity=? WHERE id=?", [stock, req.params.id]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Product not found" });
+    res.json({ message: "Stock updated", stock_quantity: stock });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
 /*
    ADMIN SALES OVERVIEW
    Sales = orders that weren't cancelled (pending, processing and completed), delivery included.

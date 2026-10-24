@@ -37,6 +37,7 @@ import UpdatePlace from "./pages/UpdatePlace";
 // Admin Orders
 import AdminOrders from "./pages/AdminOrders";
 import OrderDetails from "./pages/OrderDetails";
+import OrderInvoice from "./pages/OrderInvoice";
 
 // Admin Contacts + Dashboard
 import AdminContacts from "./pages/AdminContacts";
@@ -174,6 +175,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminOrders />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/orders/:id/invoice"
+              element={
+                <AdminRoute bare>
+                  <OrderInvoice />
                 </AdminRoute>
               }
             />

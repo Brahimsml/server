@@ -24,13 +24,14 @@ const NAV = [
   { to: "/products/admin", label: "Products", icon: Inventory2OutlinedIcon, match: "/products" },
   { to: "/categories/admin", label: "Categories", icon: CategoryOutlinedIcon, match: "/categories" },
   { to: "/places/admin", label: "Stores", icon: StorefrontOutlinedIcon, match: "/places" },
-  { to: "/orders/admin", label: "Orders", icon: ReceiptLongOutlinedIcon, match: "/orders" },
-  { to: "/contacts/admin", label: "Messages", icon: MailOutlineIcon, match: "/contacts" },
+  { to: "/orders/admin", label: "Orders", icon: ReceiptLongOutlinedIcon, match: "/orders", count: "pendingOrders" },
+  { to: "/contacts/admin", label: "Messages", icon: MailOutlineIcon, match: "/contacts", count: "newMessages" },
 ];
 
 // Session: tokens last 1 hour. While the admin is active we renew it before it runs out;
 // if they're away, we warn 5 minutes before signing them out.
 const MIN = 60 * 1000;
+const COUNTS_EVERY = MIN; // how often the sidebar counters refresh
 const RENEW_WHEN_LEFT = 15 * MIN;
 const WARN_WHEN_LEFT = 5 * MIN;
 const ACTIVE_WITHIN = 5 * MIN;
@@ -158,6 +159,32 @@ const AdminLayout = ({ children }) => {
     return () => document.removeEventListener("keydown", onKey);
   });
 
+  // Sidebar counters (pending orders, unread messages) + a note when a new order arrives
+  const [counts, setCounts] = useState({});
+  const latestOrder = useRef(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      api
+        .get("/admin/counts")
+        .then((res) => {
+          if (!alive) return;
+          const next = res.data || {};
+          if (latestOrder.current !== null && next.latestOrderId > latestOrder.current) {
+            notify(`New order #${next.latestOrderId} just came in`);
+          }
+          latestOrder.current = next.latestOrderId ?? latestOrder.current;
+          setCounts(next);
+        })
+        .catch(() => {});
+    load();
+    const timer = setInterval(load, COUNTS_EVERY);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [pathname, notify]);
+
   const isActive = (match) => pathname === match || pathname.startsWith(match + "/");
 
   const brand = (
@@ -188,11 +215,19 @@ const AdminLayout = ({ children }) => {
 
           <nav className="ad-nav">
             <span className="ad-nav__label">Manage</span>
-            {NAV.map(({ to, label, icon: Icon, match }) => (
-              <NavLink key={to} to={to} className={() => (isActive(match) ? "is-active" : "")}>
-                <Icon /> {label}
-              </NavLink>
-            ))}
+            {NAV.map(({ to, label, icon: Icon, match, count }) => {
+              const n = count ? Number(counts[count] || 0) : 0;
+              return (
+                <NavLink key={to} to={to} className={() => (isActive(match) ? "is-active" : "")}>
+                  <Icon /> {label}
+                  {n > 0 && (
+                    <span className="ad-nav__count" aria-label={`${n} ${count === "pendingOrders" ? "pending" : "unread"}`}>
+                      {n > 99 ? "99+" : n}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
 
             <span className="ad-nav__label">Account</span>
             <NavLink to="/admin/settings" className={() => (isActive("/admin/settings") ? "is-active" : "")}>

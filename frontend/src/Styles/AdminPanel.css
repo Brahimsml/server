@@ -97,6 +97,21 @@
   background: rgba(246, 241, 231, 0.05);
 }
 
+.ad-nav__count {
+  margin-left: auto;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #c95454;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .ad-nav a.is-active {
   color: var(--mt-text);
   background: rgba(201, 162, 77, 0.14);
@@ -1848,4 +1863,98 @@ a.ad-kpi:hover {
   .ad-chart__week {
     font-size: 0.64rem;
   }
+}
+
+/* Order page: contact the customer */
+.ad-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 20px 4px;
+}
+
+.ad-btn-whatsapp {
+  border-color: transparent;
+  background: #1f8f4e;
+  color: #fff;
+}
+
+.ad-btn-whatsapp:hover {
+  background: #23a359;
+}
+
+/* Products list: quick stock change */
+.ad-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ad-stock__stepper {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--mt-border-strong);
+  overflow: hidden;
+}
+
+.ad-stock__stepper button {
+  width: 30px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--mt-text);
+  cursor: pointer;
+}
+
+.ad-stock__stepper button:hover:not(:disabled) {
+  background: rgba(201, 162, 77, 0.14);
+}
+
+.ad-stock__stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ad-stock__stepper input {
+  width: 46px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--mt-border);
+  border-right: 1px solid var(--mt-border);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--mt-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+
+.ad-stock__stepper input::-webkit-outer-spin-button,
+.ad-stock__stepper input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ad-stock__note {
+  min-width: 58px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ad-stock--ok .ad-stock__note {
+  color: var(--mt-success);
+}
+
+.ad-stock--low .ad-stock__note {
+  color: var(--mt-warn);
+}
+
+.ad-stock--out .ad-stock__note {
+  color: var(--mt-danger);
 }

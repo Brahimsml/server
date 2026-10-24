@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
@@ -17,6 +20,8 @@ import {
   onImageError,
   orderStatus,
   paymentLabel,
+  telLink,
+  whatsappLink,
   FALLBACK_IMG,
 } from "../utils/shop";
 
@@ -98,6 +103,14 @@ function OrderDetails() {
         actions={
           <>
             <OrderStatusSelect order={order} onChange={handleStatus} />
+            <Link
+              to={`/orders/${order.id}/invoice`}
+              target="_blank"
+              rel="noopener"
+              className="mt-btn mt-btn--secondary mt-btn--sm"
+            >
+              <PrintOutlinedIcon /> Invoice
+            </Link>
             <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={handleDelete}>
               <DeleteOutlineIcon /> Delete
             </button>
@@ -183,6 +196,28 @@ function OrderDetails() {
               </li>
             )}
           </ul>
+          {(whatsappLink(order.customer_phone) || telLink(order.customer_phone)) && (
+            <div className="ad-contact-actions">
+              {whatsappLink(order.customer_phone) && (
+                <a
+                  className="mt-btn mt-btn--sm ad-btn-whatsapp"
+                  href={whatsappLink(
+                    order.customer_phone,
+                    `Hi ${String(order.customer_name || "").trim().split(/\s+/)[0]}, this is MegaTech about your order #${order.id} (${formatMoney(order.total)}).`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <WhatsAppIcon /> WhatsApp
+                </a>
+              )}
+              {telLink(order.customer_phone) && (
+                <a className="mt-btn mt-btn--secondary mt-btn--sm" href={telLink(order.customer_phone)}>
+                  <CallOutlinedIcon /> Call
+                </a>
+              )}
+            </div>
+          )}
           <p className="ad-note">The customer gets an email every time you change the order status.</p>
         </section>
       </div>

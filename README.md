@@ -57,6 +57,7 @@ Fill in `backend/.env`:
 | `SITE_URL` | Address of the website (used for links in emails and allowed to call the API), e.g. `https://megatech.com`. Several addresses can be separated by commas. |
 | `GOOGLE_CLIENT_ID` | Optional, for "Continue with Google" (see below) |
 | `DELIVERY_FEE` | Delivery fee added to every order, in dollars (default 5) |
+| `ADMIN_NOTIFY_EMAIL` | Where new-order alerts go (default: `EMAIL_USER`) |
 
 Never commit `backend/.env`; it holds your secrets (it's already in `.gitignore`).
 

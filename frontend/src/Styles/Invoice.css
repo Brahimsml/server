@@ -1,0 +1,232 @@
+/* Printable invoice (inv-): white A4 sheet on screen, clean page when printed */
+.inv-page {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background: #e9e5dd;
+  color: #1c1a16;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.inv-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 210mm;
+  margin: 0 auto 16px;
+}
+
+.inv-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #cfc7b8;
+  border-radius: 10px;
+  background: #fff;
+  color: #1c1a16;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.inv-tool--primary {
+  border-color: transparent;
+  background: linear-gradient(180deg, #e6c372, #c9a24d);
+  color: #1c1408;
+}
+
+.inv {
+  max-width: 210mm;
+  min-height: 270mm;
+  margin: 0 auto;
+  padding: 18mm 16mm;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  font-size: 10.5pt;
+}
+
+.inv-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 8mm;
+  border-bottom: 2px solid #c9a24d;
+}
+
+.inv-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inv-brand img {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.inv-brand strong {
+  display: block;
+  font-size: 18pt;
+  letter-spacing: -0.01em;
+}
+
+.inv-brand span {
+  color: #7a7266;
+}
+
+.inv-title {
+  text-align: right;
+}
+
+.inv-title h1 {
+  margin: 0 0 4px;
+  font-size: 22pt;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a07c2c;
+}
+
+.inv-title p {
+  margin: 2px 0;
+  color: #3d3830;
+}
+
+.inv-parties {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8mm;
+  margin: 8mm 0;
+}
+
+.inv-parties h2 {
+  margin: 0 0 6px;
+  color: #7a7266;
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.inv-parties p {
+  margin: 2px 0;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.inv-items {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inv-items th {
+  padding: 8px 6px;
+  border-bottom: 1.5px solid #1c1a16;
+  color: #3d3830;
+  font-size: 8.5pt;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.inv-items td {
+  padding: 9px 6px;
+  border-bottom: 1px solid #e6e0d4;
+}
+
+.inv-items .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.inv-totals {
+  width: 46%;
+  margin: 6mm 0 0 auto;
+}
+
+.inv-totals div {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.inv-totals__grand {
+  margin-top: 4px;
+  padding-top: 8px !important;
+  border-top: 1.5px solid #1c1a16;
+  font-size: 13pt;
+  font-weight: 700;
+}
+
+.inv-foot {
+  margin-top: 14mm;
+  color: #5c554a;
+  text-align: center;
+}
+
+.inv-foot p {
+  margin: 3px 0;
+}
+
+.inv-sign {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16mm;
+}
+
+.inv-sign span {
+  width: 70mm;
+  padding-top: 6px;
+  border-top: 1px solid #1c1a16;
+  font-size: 8.5pt;
+  text-align: center;
+}
+
+.inv-msg {
+  padding: 40px;
+  font-family: "Inter", sans-serif;
+}
+
+@media (max-width: 640px) {
+  .inv {
+    padding: 20px 16px;
+  }
+
+  .inv-parties {
+    grid-template-columns: 1fr;
+  }
+
+  .inv-totals {
+    width: 100%;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  .inv-page {
+    padding: 0;
+    background: #fff;
+  }
+
+  .inv-toolbar {
+    display: none;
+  }
+
+  .inv {
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}

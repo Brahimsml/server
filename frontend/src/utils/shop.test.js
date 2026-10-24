@@ -12,6 +12,9 @@ import {
   slugify,
   productPath,
   productIdFromParam,
+  internationalPhone,
+  whatsappLink,
+  telLink,
 } from "./shop";
 import { API_URL } from "../api";
 
@@ -125,5 +128,28 @@ describe("product addresses", () => {
     expect(productIdFromParam("12")).toBe(12);
     expect(productIdFromParam("abc")).toBeNull();
     expect(productIdFromParam("-3")).toBeNull();
+  });
+});
+
+describe("phone links", () => {
+  test("Lebanese numbers get the 961 country code", () => {
+    expect(internationalPhone("70 123 456")).toBe("96170123456");
+    expect(internationalPhone("03 123 456")).toBe("9613123456");
+    expect(internationalPhone("03123456")).toBe("9613123456");
+    expect(internationalPhone("+961 71 234 567")).toBe("96171234567");
+    expect(internationalPhone("00961 76 543 210")).toBe("96176543210");
+    expect(internationalPhone("961 81 222 333")).toBe("96181222333");
+  });
+
+  test("foreign numbers with + stay as they are; junk gives no link", () => {
+    expect(internationalPhone("+33 6 12 34 56 78")).toBe("33612345678");
+    expect(internationalPhone("abc")).toBeNull();
+    expect(internationalPhone("123")).toBeNull();
+  });
+
+  test("WhatsApp and call links", () => {
+    expect(whatsappLink("70 123 456", "Hi Ali")).toBe("https://wa.me/96170123456?text=Hi%20Ali");
+    expect(telLink("70 123 456")).toBe("tel:+96170123456");
+    expect(whatsappLink("")).toBeNull();
   });
 });

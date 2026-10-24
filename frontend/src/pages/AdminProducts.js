@@ -7,6 +7,7 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, SearchBox, apiError } from "../Components/admin/AdminUI";
+import StockStepper from "../Components/admin/StockStepper";
 import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, FALLBACK_IMG, LOW_STOCK } from "../utils/shop";
 
 function AdminProducts() {
@@ -169,7 +170,6 @@ function AdminProducts() {
                 </thead>
                 <tbody>
                   {filtered.map((p) => {
-                    const stock = Number(p.stock_quantity) || 0;
                     const label = normalizeLabel(p.label);
                     return (
                       <tr key={p.id}>
@@ -197,13 +197,13 @@ function AdminProducts() {
                           {formatMoney(p.price)}
                         </td>
                         <td data-label="Stock">
-                          {stock <= 0 ? (
-                            <span className="mt-badge mt-badge--cancelled">Sold out</span>
-                          ) : stock <= LOW_STOCK ? (
-                            <span className="mt-badge mt-badge--pending">{stock} left</span>
-                          ) : (
-                            <span className="mt-badge mt-badge--done">{stock} in stock</span>
-                          )}
+                          <StockStepper
+                            product={p}
+                            onSaved={(next) =>
+                              setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, stock_quantity: next } : x)))
+                            }
+                            onError={(err) => notify(apiError(err, `We couldn't save the stock for "${p.name}".`), "error")}
+                          />
                         </td>
                         <td className="ad-actions-cell">
                           <div className="ad-row-actions">

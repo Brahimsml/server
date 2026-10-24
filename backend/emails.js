@@ -446,4 +446,101 @@ function buildVerificationEmail({ name, code, minutes = 15 }) {
   return { subject: `${code} is your ${BRAND} code`, html, text, attachments };
 }
 
-module.exports = { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail };
+/*
+  Email to the shop owner: a new order came in, or a customer cancelled one.
+    kind:  "new" | "cancelled"
+    order: { id, customer_name, customer_phone, customer_address, total, delivery_fee, payment_method, created_at }
+    items: [{ name, price, qty }]
+    adminUrl: link to the order in the admin panel
+*/
+function buildAdminOrderEmail({ kind = "new", order, items, adminUrl, customerEmail }) {
+  const isNew = kind === "new";
+  const itemCount = items.reduce((n, it) => n + Number(it.qty), 0);
+  const payment = PAYMENT_LABELS[order.payment_method] || "";
+  const subject = isNew
+    ? `🛒 New order #${order.id} · ${money(order.total)} · ${order.customer_name}`
+    : `Order #${order.id} was cancelled by the customer`;
+
+  const attachments = fs.existsSync(LOGO_PATH)
+    ? [{ filename: "megatech-logo.png", path: LOGO_PATH, cid: "logo@megatech" }]
+    : [];
+
+  const rows = items
+    .map(
+      (it) => `<tr>
+        <td style="padding:8px 0;font-size:14px;color:#3d3830;border-bottom:1px solid #efe9de;">${escapeHtml(String(it.name).trim())}</td>
+        <td align="center" style="padding:8px 0;font-size:14px;color:#7a7266;border-bottom:1px solid #efe9de;">× ${Number(it.qty)}</td>
+        <td align="right" style="padding:8px 0;font-size:14px;color:#3d3830;border-bottom:1px solid #efe9de;">${money(Number(it.price) * Number(it.qty))}</td>
+      </tr>`
+    )
+    .join("");
+
+  const html = emailShell({
+    title: subject,
+    preheader: isNew
+      ? `${itemCount} ${itemCount === 1 ? "item" : "items"} · ${order.customer_phone}`
+      : "The items went back into stock automatically.",
+    body: `
+          <tr>
+            <td style="padding:28px 28px 0;font-family:${FONT};">
+              <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${isNew ? "#a07c2c" : "#b94a4a"};">${isNew ? "New order" : "Order cancelled"}</div>
+              <h1 style="margin:8px 0 6px;font-size:24px;line-height:1.25;color:#1c1a16;">Order #${order.id} · ${money(order.total)}</h1>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#5c554a;">
+                ${isNew ? "A customer just placed an order. It's waiting for you as <strong>Pending</strong>." : "The customer cancelled this order from their account. Its items went back into stock automatically."}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 28px 0;font-family:${FONT};">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}
+                <tr>
+                  <td colspan="2" style="padding:10px 0 0;font-size:14px;color:#7a7266;">Delivery</td>
+                  <td align="right" style="padding:10px 0 0;font-size:14px;color:#3d3830;">${Number(order.delivery_fee) ? money(order.delivery_fee) : "Free"}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding:6px 0 0;font-size:16px;font-weight:700;color:#1c1a16;">Total</td>
+                  <td align="right" style="padding:6px 0 0;font-size:18px;font-weight:700;color:#1c1a16;">${money(order.total)}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 28px 0;font-family:${FONT};font-size:14px;line-height:1.7;color:#3d3830;">
+              <strong>${escapeHtml(order.customer_name)}</strong><br>
+              ${escapeHtml(order.customer_phone)}${customerEmail ? ` · ${escapeHtml(customerEmail)}` : ""}<br>
+              ${escapeHtml(order.customer_address)}${payment ? `<br>Payment: ${escapeHtml(payment)}` : ""}
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 28px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td align="center" style="border-radius:12px;background:#c9a24d;">
+                  <a href="${escapeHtml(adminUrl)}" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:15px;font-weight:700;color:#1c1408;text-decoration:none;border-radius:12px;">Open the order</a>
+                </td>
+              </tr></table>
+            </td>
+          </tr>
+`,
+    help: "You get this email for every new or cancelled order.",
+    footnote: `${BRAND} admin notification`,
+  });
+
+  const text = [
+    isNew ? `New order #${order.id}` : `Order #${order.id} was cancelled by the customer`,
+    "",
+    ...items.map((it) => `- ${String(it.name).trim()}  x${it.qty}  ${money(Number(it.price) * Number(it.qty))}`),
+    `Delivery: ${Number(order.delivery_fee) ? money(order.delivery_fee) : "Free"}`,
+    `Total: ${money(order.total)}`,
+    "",
+    order.customer_name,
+    order.customer_phone,
+    order.customer_address,
+    ...(payment ? [`Payment: ${payment}`] : []),
+    "",
+    `Open the order: ${adminUrl}`,
+  ].join("\n");
+
+  return { subject, html, text, attachments };
+}
+
+module.exports = { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail };
