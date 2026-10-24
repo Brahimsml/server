@@ -1629,6 +1629,87 @@ app.delete("/contacts/:id", verifyAdmin, (req, res) => {
 /*
    ADMIN DASHBOARD STATS
 */
+/*
+   ADMIN SALES OVERVIEW
+   Sales = orders that weren't cancelled (pending, processing and completed), delivery included.
+*/
+const SALES_WEEKS = 8;
+
+app.get("/admin/sales", verifyAdmin, async (req, res) => {
+  const lowStock = Math.max(0, Math.min(50, parseInt(req.query.low, 10) || 2));
+  try {
+    // Week = Monday to Sunday
+    const weekly = await runQuery(
+      db,
+      `SELECT DATE_FORMAT(DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY), '%Y-%m-%d') AS week,
+              COUNT(*) AS orders, COALESCE(SUM(total), 0) AS sales
+       FROM orders
+       WHERE status <> 'cancelled'
+         AND created_at >= DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL ? WEEK)
+       GROUP BY week
+       ORDER BY week`,
+      [SALES_WEEKS - 1]
+    );
+
+    const [months] = await runQuery(
+      db,
+      `SELECT
+         COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN total END), 0) AS thisMonthSales,
+         COUNT(CASE WHEN created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN 1 END) AS thisMonthOrders,
+         COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
+                            AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN total END), 0) AS lastMonthSales,
+         COUNT(CASE WHEN created_at >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
+                     AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN 1 END) AS lastMonthOrders
+       FROM orders
+       WHERE status <> 'cancelled'`
+    );
+
+    const topProducts = await runQuery(
+      db,
+      `SELECT oi.product_id AS id, COALESCE(p.name, MAX(oi.product_name)) AS name, p.image,
+              SUM(oi.quantity) AS sold, SUM(oi.quantity * oi.price) AS sales
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       LEFT JOIN products p ON p.id = oi.product_id
+       WHERE o.status <> 'cancelled' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+       GROUP BY oi.product_id, p.name, p.image
+       ORDER BY sold DESC, sales DESC
+       LIMIT 5`
+    );
+
+    const lowStockProducts = await runQuery(
+      db,
+      "SELECT id, name, image, stock_quantity FROM products WHERE stock_quantity <= ? ORDER BY stock_quantity, name LIMIT 10",
+      [lowStock]
+    );
+
+    // Fill in weeks without sales so the chart always shows every week
+    const byWeek = new Map(weekly.map((w) => [w.week, w]));
+    const monday = new Date();
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const weeks = [];
+    for (let i = SALES_WEEKS - 1; i >= 0; i--) {
+      const d = new Date(monday);
+      d.setDate(d.getDate() - i * 7);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const w = byWeek.get(key);
+      weeks.push({ week: key, orders: Number(w?.orders || 0), sales: Number(w?.sales || 0) });
+    }
+
+    res.json({
+      weeks,
+      thisMonth: { sales: Number(months.thisMonthSales), orders: Number(months.thisMonthOrders) },
+      lastMonth: { sales: Number(months.lastMonthSales), orders: Number(months.lastMonthOrders) },
+      topProducts: topProducts.map((p) => ({ ...p, sold: Number(p.sold), sales: Number(p.sales) })),
+      lowStock: lowStockProducts,
+      lowStockLimit: lowStock,
+    });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
 app.get("/admin/stats", verifyAdmin, (req, res) => {
   const stats = {};
 

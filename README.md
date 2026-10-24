@@ -100,6 +100,26 @@ New customers confirm their email with a 6-digit code before they can sign in or
 4. Copy the Client ID into `backend/.env` as `GOOGLE_CLIENT_ID` and into `frontend/.env` as `REACT_APP_GOOGLE_CLIENT_ID`.
 5. Restart both servers. The Google button appears on the sign-in page; while the ID is empty it stays hidden.
 
+### 5. Visitor statistics (optional)
+
+1. Go to https://analytics.google.com and create an account and a **property** for MegaTech, then a **Web** data stream for your website address.
+2. Copy the **Measurement ID** (looks like `G-ABC123XYZ`) into `frontend/.env` as `REACT_APP_GA_ID`, and restart the frontend.
+
+Admin pages are never counted, and the Privacy page then mentions Google Analytics automatically.
+
+## Backups
+
+The database and uploaded photos are not on GitHub. To back them up:
+
+```bash
+cd backend
+npm run backup
+```
+
+This creates `backend/backups/<date-time>/` with `database.sql`, all photos and `HOW-TO-RESTORE.txt`. Copy that folder somewhere safe (Google Drive, a USB stick…).
+
+To restore (replaces everything in the database): `npm run restore -- backups/<folder> --yes`
+
 ## Everyday use
 
 - **Shop:** http://localhost:3000
@@ -117,6 +137,6 @@ npm test
 ## Before publishing
 
 - Set `SITE_URL` in `backend/.env` to the real website address.
-- Set `REACT_APP_API_URL` in `frontend/.env` to the real API address, then build with `npm run build`.
+- Set `REACT_APP_API_URL` in `frontend/.env` to the real API address, and `REACT_APP_SITE_URL` to the real website address (used by link previews), then build with `npm run build`.
 - If you use Google sign-in, add the real address to the Client ID's **Authorized JavaScript origins**.
 - Use a strong admin password and a new `JWT_SECRET`.

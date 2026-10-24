@@ -11,6 +11,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import apo from "../Assets/apo.jpeg";
 import "../Styles/theme.css";
 import "../Styles/AboutPage.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const HIGHLIGHTS = [
   { icon: WorkspacePremiumOutlinedIcon, title: "Premium", text: "Carefully selected accessories and components" },
@@ -42,6 +43,7 @@ const VALUES = [
 ];
 
 const About = () => {
+  usePageTitle("About us");
   return (
     <section className="mt-page">
       <div className="mt-container">

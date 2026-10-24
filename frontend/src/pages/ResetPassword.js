@@ -6,8 +6,10 @@ import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { API_URL } from "../api";
 import "../Styles/Login.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const ResetPassword = () => {
+  usePageTitle("Choose a new password");
   const [params] = useSearchParams();
   const id = params.get("id");
   const token = params.get("token");

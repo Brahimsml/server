@@ -1647,3 +1647,205 @@ a.ad-kpi:hover {
   opacity: 0;
   cursor: pointer;
 }
+
+/* ===== Sales overview (dashboard) ===== */
+.ad-sales {
+  margin-bottom: 20px;
+}
+
+.ad-sales__note {
+  margin: 4px 0 0;
+  color: var(--mt-faint);
+  font-size: 0.82rem;
+}
+
+.ad-sales__body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 28px;
+  align-items: end;
+  padding: 22px 20px 18px;
+}
+
+.ad-sales__month {
+  display: grid;
+  gap: 6px;
+  align-self: center;
+}
+
+.ad-sales__label {
+  color: var(--mt-muted);
+  font-size: 0.86rem;
+}
+
+.ad-sales__value {
+  font-family: var(--mt-font-display);
+  font-size: 2rem;
+  color: var(--mt-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-sales__sub {
+  color: var(--mt-faint);
+  font-size: 0.86rem;
+}
+
+.ad-sales__change {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.ad-sales__change.is-up {
+  color: var(--mt-success);
+}
+
+.ad-sales__change.is-down {
+  color: var(--mt-danger);
+}
+
+.ad-chart {
+  margin: 0;
+}
+
+.ad-chart__bars {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 10px;
+  height: 190px;
+  align-items: end;
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.ad-chart__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  position: relative;
+}
+
+.ad-chart__bar {
+  width: 100%;
+  max-width: 46px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  transition: filter 0.2s ease;
+}
+
+.ad-chart__col:hover .ad-chart__bar {
+  filter: brightness(1.12);
+}
+
+.ad-chart__amount {
+  margin-bottom: 6px;
+  color: var(--mt-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ad-chart__week {
+  position: absolute;
+  bottom: -22px;
+  color: var(--mt-faint);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.ad-chart figcaption {
+  margin-top: 30px;
+  color: var(--mt-faint);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.ad-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Best sellers / low stock lists */
+.ad-rank {
+  margin: 0;
+  padding: 6px 20px 14px;
+  list-style: none;
+}
+
+.ad-rank li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.ad-rank li + li {
+  border-top: 1px solid var(--mt-border);
+}
+
+.ad-rank li > div {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.ad-rank strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.92rem;
+}
+
+.ad-rank small {
+  color: var(--mt-muted);
+  font-size: 0.82rem;
+}
+
+.ad-rank__n {
+  width: 22px;
+  color: var(--mt-accent-bright);
+  font-family: var(--mt-font-display);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ad-rank small.ad-stock-low {
+  color: var(--mt-warn);
+}
+
+.ad-rank small.ad-stock-out {
+  color: var(--mt-danger);
+}
+
+.ad-empty-line {
+  margin: 0;
+  padding: 22px 20px;
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .ad-sales__body {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-chart__bars {
+    gap: 6px;
+    height: 160px;
+  }
+
+  .ad-chart__amount {
+    font-size: 0.66rem;
+  }
+
+  .ad-chart__week {
+    font-size: 0.64rem;
+  }
+}

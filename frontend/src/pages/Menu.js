@@ -7,8 +7,10 @@ import { API_URL } from "../api";
 import { imageUrl } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/Locations.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const Menu = () => {
+  usePageTitle("Our stores");
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

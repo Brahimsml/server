@@ -14,6 +14,7 @@ import "../Styles/card.css";
 import { API_URL } from "../api";
 import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isLowStock } from "../utils/shop";
 import { clearUserSession, getUser, getUserToken } from "../utils/auth";
+import usePageTitle from "../utils/usePageTitle";
 
 const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon };
 
@@ -30,6 +31,7 @@ const formatMoney = (n) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 const Cart = () => {
+  usePageTitle("Shopping cart");
   const ctx = useContext(CartContext);
   const { cart, removeFromCart, updateQuantity } = ctx;
   const clearCart = ctx.clearCart || (() => {});

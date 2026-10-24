@@ -6,6 +6,7 @@ import api from "../api";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
 import "../Styles/Shop.css";
+import usePageTitle from "../utils/usePageTitle";
 
 // Full catalog. The chosen category lives in the address (/shop?category=Monitors),
 // so links from the footer, home page and assistant open it directly and Back works.
@@ -13,6 +14,7 @@ const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get("category") || "All";
   const query = searchParams.get("q") || "";
+  usePageTitle(query ? `Search: ${query}` : category === "All" ? "Shop" : category);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -10,6 +10,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import api from "../api";
 import "../Styles/theme.css";
 import "../Styles/ContactPage.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,6 +31,7 @@ const TOPICS = [
 ];
 
 function Contact() {
+  usePageTitle("Contact us");
   const [form, setForm] = useState(EMPTY_FORM);
   // Only show a field's error after the user has left it or tried to send
   const [touched, setTouched] = useState({});

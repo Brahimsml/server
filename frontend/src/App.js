@@ -48,6 +48,7 @@ import AdminSettings from "./pages/AdminSettings";
 
 import { CartProvider } from "./Context/CartContext";
 import ChatBot from "./Components/ChatBot";
+import Analytics from "./Components/Analytics";
 import MyOrders from "./pages/MyOrders";
 import MyOrderDetails from "./pages/MyOrderDetails"
 
@@ -76,6 +77,7 @@ const App = () => (
     <WishlistProvider>
       <Router>
         <ScrollToTop />
+        <Analytics />
         <SiteChrome>
           <Routes>
             {/* PUBLIC */}

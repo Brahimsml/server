@@ -8,6 +8,7 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import api from "../api";
 import { PageHeader, StatusBreakdown, messageStatus, messageBadge } from "../Components/admin/AdminUI";
+import SalesOverview from "../Components/admin/SalesOverview";
 import { formatMoney, formatOrderDate, orderStatus } from "../utils/shop";
 
 const greeting = () => {
@@ -134,6 +135,9 @@ function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* ===== Sales ===== */}
+      <SalesOverview />
 
       {/* ===== Status breakdowns ===== */}
       <div className="ad-grid-2">

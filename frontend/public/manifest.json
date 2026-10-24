@@ -10,16 +10,23 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/home",
   "display": "standalone",
   "theme_color": "#120f0a",
-  "background_color": "#0e0c08"
+  "background_color": "#0e0c08",
+  "description": "PC components and gaming gear: graphics cards, monitors, laptops and peripherals.",
+  "scope": "/",
+  "categories": [
+    "shopping"
+  ]
 }

@@ -15,6 +15,7 @@ yarn-error.log*
 /images/*
 !/images/.gitkeep
 /image-backups/
+/backups/
 
 # Runtime data
 pids

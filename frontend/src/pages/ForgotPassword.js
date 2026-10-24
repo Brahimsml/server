@@ -5,10 +5,12 @@ import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { API_URL } from "../api";
 import "../Styles/Login.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ForgotPassword = () => {
+  usePageTitle("Forgot password");
   // filled in when coming from "This email already has an account" on the sign-up form
   const { state } = useLocation();
   const [email, setEmail] = useState(state?.email || "");

@@ -8,11 +8,13 @@ import { formatMoney, formatOrderDate, orderStatus, ORDER_STATUS_OPTIONS } from 
 import "../Styles/theme.css";
 import "../Styles/Orders.css";
 import { clearUserSession, getUserToken } from "../utils/auth";
+import usePageTitle from "../utils/usePageTitle";
 
 const DEFAULT_FILTERS = { search: "", status: "all", date: "all", sort: "newest" };
 const PAGE_SIZE = 10;
 
 function MyOrders() {
+  usePageTitle("My orders");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import "../Styles/theme.css";
 import "../Styles/Policy.css";
+import { analyticsEnabled } from "../Components/Analytics";
 
 /*
   Shop policies. The rules come from the shop owner:
@@ -96,6 +97,16 @@ const POLICIES = {
           "Your shopping cart is saved in your browser so it's still there when you come back. If you tick “Keep me signed in”, your sign-in is also saved for up to 30 days; otherwise it ends when you close the tab.",
         ],
       },
+      ...(analyticsEnabled
+        ? [
+            {
+              heading: "Visitor statistics",
+              body: [
+                "We use Google Analytics to count visits and see which pages are viewed, so we can improve the shop. It doesn't receive your name, email, address or orders.",
+              ],
+            },
+          ]
+        : []),
       {
         heading: "Your choices",
         body: [`To see, change or delete your information, contact us on ${PHONE} or ${EMAIL}.`],

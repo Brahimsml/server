@@ -9,6 +9,7 @@ import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
 import { saveUserSession } from "../utils/auth";
 import "../Styles/Login.css";
+import usePageTitle from "../utils/usePageTitle";
 
 const RESEND_SECONDS = 60;
 
@@ -18,6 +19,7 @@ const Login = () => {
   const fromCheckout = redirect === "/cart";
 
   const [isRegister, setIsRegister] = useState(params.get("mode") === "register");
+  usePageTitle(isRegister ? "Create account" : "Sign in");
   const [showPassword, setShowPassword] = useState(false);
   // "Keep me signed in": stay signed in for 30 days, even after closing the browser
   const [remember, setRemember] = useState(true);

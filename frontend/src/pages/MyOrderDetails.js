@@ -19,6 +19,7 @@ import {
 import "../Styles/theme.css";
 import "../Styles/Orders.css";
 import { clearUserSession, getUserToken } from "../utils/auth";
+import usePageTitle from "../utils/usePageTitle";
 
 // Steps shown in the progress tracker
 const STEPS = [
@@ -29,6 +30,7 @@ const STEPS = [
 
 function MyOrderDetails() {
   const { id } = useParams();
+  usePageTitle(`Order #${id}`);
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);

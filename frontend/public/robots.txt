@@ -1,3 +1,18 @@
 # https://www.robotstxt.org/robotstxt.html
+# Search engines may show the shop, but not private or admin pages.
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /products/admin
+Disallow: /products/add
+Disallow: /products/update
+Disallow: /places/admin
+Disallow: /places/add
+Disallow: /places/update
+Disallow: /orders/
+Disallow: /categories/admin
+Disallow: /contacts/admin
+Disallow: /account
+Disallow: /cart
+Disallow: /my-orders
+Disallow: /wishlist
+Disallow: /reset-password
