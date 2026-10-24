@@ -67,4 +67,19 @@ const processProductUpload = async (req, res, next) => {
   }
 };
 
-module.exports = { standardizeProductImage, processProductUpload };
+// Same, for the product form: the main photo ("image") plus extra photos ("gallery").
+// Afterwards req.file is the main photo, like with a single upload.
+const processProductUploads = async (req, res, next) => {
+  const files = [...(req.files?.image || []), ...(req.files?.gallery || [])];
+  req.file = req.files?.image?.[0];
+  try {
+    for (const file of files) await standardizeProductImage(file.path);
+    next();
+  } catch (err) {
+    console.error("❌ Could not process product image:", err.message);
+    files.forEach((file) => fs.unlink(file.path, () => {}));
+    res.status(400).json({ message: "One of the images couldn't be read. Please try another file." });
+  }
+};
+
+module.exports = { standardizeProductImage, processProductUpload, processProductUploads };

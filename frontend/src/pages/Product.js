@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
@@ -27,6 +28,19 @@ import "../Styles/HomePage.css";
 import "../Styles/Shop.css";
 import "../Styles/Product.css";
 
+// "Memory: 24 GB" -> { name: "Memory", value: "24 GB" }; lines without ":" become notes
+const parseSpecs = (text) =>
+  String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const at = line.indexOf(":");
+      return at > 0
+        ? { name: line.slice(0, at).trim(), value: line.slice(at + 1).trim() }
+        : { name: "", value: line };
+    });
+
 const Product = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,11 +50,13 @@ const Product = () => {
   const [related, setRelated] = useState([]);
   const [status, setStatus] = useState("loading"); // loading | ready | missing | error
   const [qty, setQty] = useState(1);
+  const [photo, setPhoto] = useState(0); // which photo is shown large
 
   useEffect(() => {
     let alive = true;
     setStatus("loading");
     setQty(1);
+    setPhoto(0);
 
     api
       .get(`/products/${id}`)
@@ -116,6 +132,12 @@ const Product = () => {
 
   const sameCategory = (p) => p.id !== product.id && p.category_name === product.category_name;
 
+  // main photo first, then the extra ones
+  const photos = [product.image, ...(product.images || []).map((g) => g.image)].filter(Boolean);
+  const shown = photos[Math.min(photo, photos.length - 1)];
+  const step = (dir) => setPhoto((i) => (i + dir + photos.length) % photos.length);
+  const specs = parseSpecs(product.specs);
+
   return (
     <div className="mt-page hp">
       <div className="mt-container">
@@ -130,18 +152,61 @@ const Product = () => {
         </nav>
 
         <div className="pd">
-          {/* ===== Photo ===== */}
-          <div className="pd-media">
-            {label && (
-              <span
-                className={`pc-label ${
-                  isBestSeller(product) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""
-                }`}
-              >
-                {isBestSeller(product) ? "Best Seller" : label}
-              </span>
+          {/* ===== Photos ===== */}
+          <div className="pd-gallery">
+            <div
+              className="pd-media"
+              tabIndex={photos.length > 1 ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (photos.length < 2) return;
+                if (e.key === "ArrowRight") step(1);
+                if (e.key === "ArrowLeft") step(-1);
+              }}
+              aria-label={photos.length > 1 ? `Photo ${photo + 1} of ${photos.length}` : undefined}
+            >
+              {label && (
+                <span
+                  className={`pc-label ${
+                    isBestSeller(product) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""
+                  }`}
+                >
+                  {isBestSeller(product) ? "Best Seller" : label}
+                </span>
+              )}
+              <img key={shown} src={imageUrl(shown) || FALLBACK_IMG} alt={product.name} onError={onImageError} />
+
+              {photos.length > 1 && (
+                <>
+                  <button type="button" className="pd-arrow pd-arrow--prev" onClick={() => step(-1)} aria-label="Previous photo">
+                    <ChevronLeftIcon />
+                  </button>
+                  <button type="button" className="pd-arrow pd-arrow--next" onClick={() => step(1)} aria-label="Next photo">
+                    <ChevronRightIcon />
+                  </button>
+                  <span className="pd-count">
+                    {photo + 1} / {photos.length}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {photos.length > 1 && (
+              <div className="pd-thumbs" role="tablist" aria-label="Product photos">
+                {photos.map((img, i) => (
+                  <button
+                    key={`${img}-${i}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === photo}
+                    aria-label={`Show photo ${i + 1}`}
+                    className={i === photo ? "is-active" : ""}
+                    onClick={() => setPhoto(i)}
+                  >
+                    <img src={imageUrl(img)} alt="" loading="lazy" onError={onImageError} />
+                  </button>
+                ))}
+              </div>
             )}
-            <img src={imageUrl(product.image) || FALLBACK_IMG} alt={product.name} onError={onImageError} />
           </div>
 
           {/* ===== Details ===== */}
@@ -218,6 +283,36 @@ const Product = () => {
             </ul>
           </div>
         </div>
+
+        {/* ===== Specifications ===== */}
+        {specs.length > 0 && (
+          <section className="mt-section">
+            <div className="mt-section-head">
+              <div>
+                <h2>Specifications</h2>
+                <p>Technical details for the {product.name}.</p>
+              </div>
+            </div>
+            <div className="pd-specs">
+              <table>
+                <tbody>
+                  {specs.map((row, i) =>
+                    row.name ? (
+                      <tr key={i}>
+                        <th scope="row">{row.name}</th>
+                        <td>{row.value}</td>
+                      </tr>
+                    ) : (
+                      <tr key={i}>
+                        <td colSpan={2}>{row.value}</td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         {/* ===== Related ===== */}
         {related.some(sameCategory) && (

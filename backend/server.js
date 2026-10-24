@@ -12,7 +12,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail } = require("./emails");
-const { processProductUpload } = require("./productImages");
+const { processProductUploads } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -92,8 +92,9 @@ const removeImageIfUnused = (image) => {
   const file = path.basename(image); // never touch anything outside /images
 
   db.query(
-    "SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?) AS n",
-    [file, file],
+    `SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?)
+          + (SELECT COUNT(*) FROM product_images WHERE image=?) AS n`,
+    [file, file, file],
     (err, rows) => {
       if (err || rows[0].n > 0) return;
       fs.unlink(path.join(imagesDir, file), (unlinkErr) => {
@@ -105,7 +106,8 @@ const removeImageIfUnused = (image) => {
 
 // Remove a just-uploaded file when saving the row failed
 const discardUpload = (req) => {
-  if (req.file) fs.unlink(req.file.path, () => {});
+  const files = req.files ? Object.values(req.files).flat() : req.file ? [req.file] : [];
+  files.forEach((file) => fs.unlink(file.path, () => {}));
 };
 
 // Current image of a product/place row (table name is fixed in code, never user input)
@@ -114,20 +116,31 @@ const getCurrentImage = (table, id, cb) =>
     cb(err, rows && rows[0] ? rows[0].image : null)
   );
 
+// Only real image types (extension and type must match)
+const imageFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (ALLOWED_IMAGE_TYPES[ext] && ALLOWED_IMAGE_TYPES[ext] === file.mimetype) {
+    return cb(null, true);
+  }
+
+  const err = new Error("Only JPG, PNG, WEBP or GIF images are allowed");
+  err.status = 400;
+  cb(err);
+};
+
 const upload = multer({
   storage,
   limits: { fileSize: MAX_UPLOAD_SIZE, files: 1 },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
+  fileFilter: imageFileFilter,
+});
 
-    if (ALLOWED_IMAGE_TYPES[ext] && ALLOWED_IMAGE_TYPES[ext] === file.mimetype) {
-      return cb(null, true);
-    }
-
-    const err = new Error("Only JPG, PNG, WEBP or GIF images are allowed");
-    err.status = 400;
-    cb(err);
-  },
+// Product form: main photo + up to 8 extra photos
+const MAX_GALLERY = 8;
+const productUpload = multer({
+  storage,
+  limits: { fileSize: MAX_UPLOAD_SIZE, files: 1 + MAX_GALLERY },
+  fileFilter: imageFileFilter,
 });
 
 /*
@@ -915,7 +928,15 @@ app.get("/products/:id", (req, res) => {
   db.query(q, [id], (err, rows) => {
     if (err) return serverError(res, err);
     if (!rows.length) return res.status(404).json({ message: "Product not found" });
-    res.json(rows[0]);
+
+    db.query(
+      "SELECT id, image FROM product_images WHERE product_id=? ORDER BY sort_order, id",
+      [id],
+      (err2, images) => {
+        if (err2) return serverError(res, err2);
+        res.json({ ...rows[0], images });
+      }
+    );
   });
 });
 
@@ -926,89 +947,113 @@ app.get("/products/search/:id", (req, res) => {
   });
 });
 
-// processProductUpload: every product photo gets the same size and margin
-app.post("/products", verifyAdmin, upload.single("image"), processProductUpload, (req, res) => {
-  // ✅ ADDED stock_quantity
-  const { category_id, name, price, label, description, stock_quantity } = req.body;
+// Specs: one per line ("Memory: 24 GB"), blank lines dropped, kept short
+const cleanSpecs = (text) =>
+  String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 40)
+    .join("\n")
+    .slice(0, 4000) || null;
+
+// Ids of extra photos to remove, sent as a JSON list
+const parseIdList = (value) => {
+  try {
+    const list = JSON.parse(value || "[]");
+    return Array.isArray(list) ? list.map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Extra photos go after the ones the product already has
+async function addGalleryImages(conn, productId, files) {
+  if (!files?.length) return;
+  const [row] = await runQuery(conn, "SELECT COALESCE(MAX(sort_order), 0) AS last FROM product_images WHERE product_id=?", [productId]);
+  await runQuery(
+    conn,
+    "INSERT INTO product_images (product_id, image, sort_order) VALUES ?",
+    [files.map((file, i) => [productId, file.filename, row.last + i + 1])]
+  );
+}
+
+const PRODUCT_FIELDS = [
+  { name: "image", maxCount: 1 },
+  { name: "gallery", maxCount: MAX_GALLERY },
+];
+
+// processProductUploads: every product photo gets the same size and margin
+app.post("/products", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), processProductUploads, async (req, res) => {
+  const { category_id, name, price, label, description, stock_quantity, specs } = req.body;
   const image = req.file ? req.file.filename : null;
 
-  // ✅ ADDED stock_quantity column
-  const q =
-    "INSERT INTO products (category_id,name,price,image,label,description,stock_quantity) VALUES (?,?,?,?,?,?,?)";
-
-  db.query(
-    q,
-    [
-      category_id,
-      name,
-      price,
-      image,
-      label || null,
-      description,
-      Number(stock_quantity) || 0, // ✅ ADDED
-    ],
-    (err) => {
-      if (err) {
-        discardUpload(req);
-        return serverError(res, err);
-      }
-      res.json({ message: "Product added ✅" });
-    }
-  );
-});
-
-app.delete("/products/:id", verifyAdmin, (req, res) => {
-  getCurrentImage("products", req.params.id, (imgErr, oldImage) => {
-    if (imgErr) return serverError(res, imgErr);
-
-    db.query("DELETE FROM products WHERE id=?", [req.params.id], (err) => {
-      if (err) return serverError(res, err);
-      removeImageIfUnused(oldImage);
-      res.json({ message: "Product deleted ✅" });
-    });
-  });
-});
-
-app.post("/products/modify/:id", verifyAdmin, upload.single("image"), processProductUpload, (req, res) => {
-  // ✅ ADDED stock_quantity
-  const { category_id, name, price, label, description, existingImage, stock_quantity } = req.body;
-  const image = req.file ? req.file.filename : existingImage;
-
-  // ✅ ADDED stock_quantity in update
-  const q = `
-    UPDATE products
-    SET category_id=?, name=?, price=?, image=?, label=?, description=?, stock_quantity=?
-    WHERE id=?
-  `;
-
-  getCurrentImage("products", req.params.id, (imgErr, oldImage) => {
-    if (imgErr) {
-      discardUpload(req);
-      return serverError(res, imgErr);
-    }
-
-    db.query(
-      q,
-      [
-        category_id,
-        name,
-        price,
-        image,
-        label || null,
-        description,
-        Number(stock_quantity) || 0, // ✅ ADDED
-        req.params.id,
-      ],
-      (err) => {
-        if (err) {
-          discardUpload(req);
-          return serverError(res, err);
-        }
-        if (oldImage !== image) removeImageIfUnused(oldImage);
-        res.json({ message: "Product updated ✅" });
-      }
+  try {
+    const result = await runQuery(
+      db,
+      "INSERT INTO products (category_id,name,price,image,label,description,stock_quantity,specs) VALUES (?,?,?,?,?,?,?,?)",
+      [category_id, name, price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs)]
     );
-  });
+    await addGalleryImages(db, result.insertId, req.files?.gallery);
+    res.json({ message: "Product added ✅", id: result.insertId });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
+});
+
+app.delete("/products/:id", verifyAdmin, async (req, res) => {
+  try {
+    const [product] = await runQuery(db, "SELECT image FROM products WHERE id=?", [req.params.id]);
+    const gallery = await runQuery(db, "SELECT image FROM product_images WHERE product_id=?", [req.params.id]);
+
+    // extra photos are removed with the product (ON DELETE CASCADE)
+    await runQuery(db, "DELETE FROM products WHERE id=?", [req.params.id]);
+    if (product) removeImageIfUnused(product.image);
+    gallery.forEach((g) => removeImageIfUnused(g.image));
+    res.json({ message: "Product deleted ✅" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.post("/products/modify/:id", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), processProductUploads, async (req, res) => {
+  const { category_id, name, price, label, description, existingImage, stock_quantity, specs } = req.body;
+  const image = req.file ? req.file.filename : existingImage;
+  const productId = req.params.id;
+  const removeIds = parseIdList(req.body.removeGallery);
+
+  try {
+    const [current] = await runQuery(db, "SELECT image FROM products WHERE id=?", [productId]);
+    if (!current) {
+      discardUpload(req);
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    let removed = [];
+    await withTransaction(async (conn) => {
+      await runQuery(
+        conn,
+        `UPDATE products
+         SET category_id=?, name=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?
+         WHERE id=?`,
+        [category_id, name, price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), productId]
+      );
+
+      if (removeIds.length) {
+        removed = await runQuery(conn, "SELECT image FROM product_images WHERE product_id=? AND id IN (?)", [productId, removeIds]);
+        await runQuery(conn, "DELETE FROM product_images WHERE product_id=? AND id IN (?)", [productId, removeIds]);
+      }
+      await addGalleryImages(conn, productId, req.files?.gallery);
+    });
+
+    if (current.image !== image) removeImageIfUnused(current.image);
+    removed.forEach((g) => removeImageIfUnused(g.image));
+    res.json({ message: "Product updated ✅" });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
 });
 
 /*
@@ -1574,6 +1619,8 @@ app.use((err, req, res, next) => {
     const message =
       err.code === "LIMIT_FILE_SIZE"
         ? `Image must be ${MAX_UPLOAD_SIZE / (1024 * 1024)} MB or smaller`
+        : err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE"
+        ? `You can add up to ${MAX_GALLERY} extra photos at a time`
         : err.message;
     return res.status(400).json({ message });
   }

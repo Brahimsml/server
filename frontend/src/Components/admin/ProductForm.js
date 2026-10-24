@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import api from "../../api";
 import { PageHeader, apiError } from "./AdminUI";
 import { imageUrl } from "../../utils/shop";
@@ -8,6 +9,7 @@ import { imageUrl } from "../../utils/shop";
 const LABELS = ["Best Seller", "New"];
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_IMAGE_MB = 5;
+const MAX_GALLERY = 8;
 
 // Old labels were typed by hand ("Best", "New "): map them onto the dropdown values
 const cleanLabel = (label) => {
@@ -18,7 +20,7 @@ const cleanLabel = (label) => {
   return l;
 };
 
-const EMPTY = { name: "", category_id: "", description: "", price: "", stock_quantity: "0", label: "" };
+const EMPTY = { name: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "" };
 
 /*
   Shared form for "Add product" and "Edit product".
@@ -36,6 +38,10 @@ const ProductForm = ({ productId }) => {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(isEdit);
+  // extra photos: ones already saved, ones to remove, and new ones picked now
+  const [gallery, setGallery] = useState([]);
+  const [removeIds, setRemoveIds] = useState([]);
+  const [newPhotos, setNewPhotos] = useState([]); // { file, url }
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -48,29 +54,60 @@ const ProductForm = ({ productId }) => {
   useEffect(() => {
     if (!isEdit) return;
     api
-      .get(`/products/search/${productId}`)
+      .get(`/products/${productId}`)
       .then((res) => {
-        const p = res.data?.[0];
-        if (!p) {
-          setFormError("This product doesn't exist any more.");
-          return;
-        }
+        const p = res.data;
         setValues({
           name: p.name || "",
           category_id: String(p.category_id || ""),
           description: p.description || "",
+          specs: p.specs || "",
           price: String(p.price ?? ""),
           stock_quantity: String(p.stock_quantity ?? 0),
           label: cleanLabel(p.label),
         });
         setExistingImage(p.image || "");
+        setGallery(Array.isArray(p.images) ? p.images : []);
       })
-      .catch(() => setFormError("We couldn't load this product."))
+      .catch((err) =>
+        setFormError(
+          err.response?.status === 404 ? "This product doesn't exist any more." : "We couldn't load this product."
+        )
+      )
       .finally(() => setLoading(false));
   }, [isEdit, productId]);
 
-  // Free the preview URL when it changes / on leave
+  // Free the preview URLs when they change / on leave
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
+  // new photo previews are freed when removed, or when the form closes
+  const newPhotosRef = useRef(newPhotos);
+  newPhotosRef.current = newPhotos;
+  useEffect(() => () => newPhotosRef.current.forEach((p) => URL.revokeObjectURL(p.url)), []);
+
+  const keptGallery = gallery.filter((g) => !removeIds.includes(g.id));
+  const galleryCount = keptGallery.length + newPhotos.length;
+
+  const pickGallery = (e) => {
+    const picked = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!picked.length) return;
+
+    const room = MAX_GALLERY - galleryCount;
+    const valid = picked.filter((f) => IMAGE_TYPES.includes(f.type) && f.size <= MAX_IMAGE_MB * 1024 * 1024);
+    let message;
+    if (valid.length < picked.length) message = `Some files were skipped: use JPG, PNG, WEBP or GIF up to ${MAX_IMAGE_MB} MB.`;
+    if (valid.length > room) message = `You can have up to ${MAX_GALLERY} extra photos.`;
+    setErrors((er) => ({ ...er, gallery: message }));
+
+    const added = valid.slice(0, Math.max(0, room)).map((file) => ({ file, url: URL.createObjectURL(file) }));
+    if (added.length) setNewPhotos((list) => [...list, ...added]);
+  };
+
+  const removeNewPhoto = (url) => {
+    URL.revokeObjectURL(url);
+    setNewPhotos((list) => list.filter((p) => p.url !== url));
+    setErrors((er) => ({ ...er, gallery: undefined }));
+  };
 
   const set = (name) => (e) => {
     setValues((v) => ({ ...v, [name]: e.target.value }));
@@ -121,8 +158,11 @@ const ProductForm = ({ productId }) => {
     formData.append("label", values.label);
     formData.append("description", values.description.trim());
     formData.append("stock_quantity", values.stock_quantity);
+    formData.append("specs", values.specs);
     if (file) formData.append("image", file);
     else if (isEdit) formData.append("existingImage", existingImage);
+    newPhotos.forEach((p) => formData.append("gallery", p.file));
+    if (removeIds.length) formData.append("removeGallery", JSON.stringify(removeIds));
 
     try {
       setSaving(true);
@@ -187,14 +227,25 @@ const ProductForm = ({ productId }) => {
                     {errors.category_id && <small className="mt-field__error">{errors.category_id}</small>}
                   </label>
 
-                  <label className="mt-field" style={{ marginBottom: 0 }}>
+                  <label className="mt-field">
                     <span>Description</span>
                     <textarea
                       rows={4}
                       value={values.description}
                       onChange={set("description")}
-                      placeholder="A short sentence customers see under the product name."
+                      placeholder="What makes this product great. Customers see it on the product page."
                     />
+                  </label>
+
+                  <label className="mt-field" style={{ marginBottom: 0 }}>
+                    <span>Specifications</span>
+                    <textarea
+                      rows={6}
+                      value={values.specs}
+                      onChange={set("specs")}
+                      placeholder={"One per line, for example:\nMemory: 24 GB GDDR6X\nBoost clock: 2.52 GHz\nPower: 450 W"}
+                    />
+                    <small className="ad-hint">Write each one as "Name: value". They show as a table on the product page.</small>
                   </label>
                 </div>
               </section>
@@ -275,6 +326,51 @@ const ProductForm = ({ productId }) => {
                   </label>
                   {file && <span className="ad-upload-name">Selected: {file.name}</span>}
                   {errors.image && <small className="mt-field__error">{errors.image}</small>}
+                </div>
+              </section>
+
+              <section className="mt-panel">
+                <div className="ad-panel-head">
+                  <h2>More photos</h2>
+                  <span className="ad-hint">
+                    {galleryCount} / {MAX_GALLERY}
+                  </span>
+                </div>
+                <div className="ad-panel-body">
+                  <div className="ad-gallery">
+                    {keptGallery.map((g) => (
+                      <div className="ad-gallery__item" key={g.id}>
+                        <img src={imageUrl(g.image)} alt="" />
+                        <button
+                          type="button"
+                          onClick={() => setRemoveIds((ids) => [...ids, g.id])}
+                          aria-label="Remove this photo"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </button>
+                      </div>
+                    ))}
+                    {newPhotos.map((p) => (
+                      <div className="ad-gallery__item is-new" key={p.url}>
+                        <img src={p.url} alt="" />
+                        <button type="button" onClick={() => removeNewPhoto(p.url)} aria-label="Remove this photo">
+                          <CloseIcon fontSize="small" />
+                        </button>
+                      </div>
+                    ))}
+                    {galleryCount < MAX_GALLERY && (
+                      <label className="ad-gallery__add">
+                        <input type="file" multiple accept={IMAGE_TYPES.join(",")} onChange={pickGallery} />
+                        <AddPhotoAlternateOutlinedIcon />
+                        <span>Add photos</span>
+                      </label>
+                    )}
+                  </div>
+                  <small className="ad-hint">
+                    Other angles, ports, the box… Customers click through them on the product page.
+                    {removeIds.length > 0 && ` ${removeIds.length} will be removed when you save.`}
+                  </small>
+                  {errors.gallery && <small className="mt-field__error">{errors.gallery}</small>}
                 </div>
               </section>
             </div>
