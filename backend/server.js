@@ -1746,6 +1746,103 @@ app.delete("/contacts/:id", verifyAdmin, (req, res) => {
    ADMIN DASHBOARD STATS
 */
 /*
+   ADMIN CUSTOMERS
+   Spent / orders count only orders that weren't cancelled.
+   Phone / address: what the customer saved in their account, else their latest order.
+*/
+app.get("/admin/customers", verifyAdmin, async (req, res) => {
+  try {
+    const rows = await runQuery(
+      db,
+      `SELECT u.id, u.name, u.email, u.created_at, u.email_verified, (u.google_id IS NOT NULL) AS google_linked,
+              COALESCE(NULLIF(u.phone, ''), (SELECT o2.customer_phone FROM orders o2 WHERE o2.user_id = u.id ORDER BY o2.id DESC LIMIT 1)) AS phone,
+              COUNT(o.id) AS orders_count,
+              COALESCE(SUM(o.total), 0) AS total_spent,
+              MAX(o.created_at) AS last_order_at,
+              COALESCE(SUM(o.status IN ('pending', 'processing')), 0) AS open_orders
+       FROM users u
+       LEFT JOIN orders o ON o.user_id = u.id AND o.status <> 'cancelled'
+       GROUP BY u.id
+       ORDER BY total_spent DESC, u.id DESC`
+    );
+    res.json(
+      rows.map((r) => ({
+        ...r,
+        email_verified: !!r.email_verified,
+        google_linked: !!r.google_linked,
+        orders_count: Number(r.orders_count),
+        total_spent: Number(r.total_spent),
+        open_orders: Number(r.open_orders),
+      }))
+    );
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.get("/admin/customers/:id", verifyAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) return res.status(404).json({ message: "Customer not found" });
+  try {
+    const [user] = await runQuery(
+      db,
+      `SELECT id, name, email, phone, address, created_at, email_verified, (google_id IS NOT NULL) AS google_linked
+       FROM users WHERE id = ?`,
+      [id]
+    );
+    if (!user) return res.status(404).json({ message: "Customer not found" });
+
+    const orders = await runQuery(
+      db,
+      `SELECT o.id, o.created_at, o.status, o.total, o.customer_phone, o.customer_address,
+              (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) AS items
+       FROM orders o WHERE o.user_id = ? ORDER BY o.id DESC`,
+      [id]
+    );
+    const topProducts = await runQuery(
+      db,
+      `SELECT oi.product_id AS id, COALESCE(p.name, MAX(oi.product_name)) AS name, p.image,
+              SUM(oi.quantity) AS qty, SUM(oi.quantity * oi.price) AS spent
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id AND o.user_id = ? AND o.status <> 'cancelled'
+       LEFT JOIN products p ON p.id = oi.product_id
+       GROUP BY oi.product_id, p.name, p.image
+       ORDER BY qty DESC, spent DESC
+       LIMIT 5`,
+      [id]
+    );
+    const [{ n: wishlist }] = await runQuery(db, "SELECT COUNT(*) AS n FROM wishlist_items WHERE user_id = ?", [id]);
+
+    const counted = orders.filter((o) => o.status !== "cancelled");
+    const spent = counted.reduce((sum, o) => sum + Number(o.total), 0);
+    const latest = orders[0];
+
+    res.json({
+      customer: {
+        ...user,
+        email_verified: !!user.email_verified,
+        google_linked: !!user.google_linked,
+        phone: user.phone || latest?.customer_phone || "",
+        address: user.address || latest?.customer_address || "",
+      },
+      stats: {
+        orders: counted.length,
+        cancelled: orders.length - counted.length,
+        spent,
+        average: counted.length ? spent / counted.length : 0,
+        first_order_at: orders.length ? orders[orders.length - 1].created_at : null,
+        last_order_at: latest?.created_at || null,
+        wishlist: Number(wishlist),
+      },
+      orders: orders.map((o) => ({ ...o, total: Number(o.total), items: Number(o.items) })),
+      topProducts: topProducts.map((p) => ({ ...p, qty: Number(p.qty), spent: Number(p.spent) })),
+    });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
    ADMIN SIDEBAR COUNTERS (checked every minute by the admin panel)
 */
 app.get("/admin/counts", verifyAdmin, async (req, res) => {

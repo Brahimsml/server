@@ -1958,3 +1958,55 @@ a.ad-kpi:hover {
 .ad-stock--out .ad-stock__note {
   color: var(--mt-danger);
 }
+
+/* ===== Customers ===== */
+.ad-kpis--compact {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.ad-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.ad-muted {
+  color: var(--mt-faint);
+}
+
+.ad-cust {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ad-cust__avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(201, 162, 77, 0.16);
+  color: var(--mt-accent-bright);
+  font-weight: 700;
+}
+
+.ad-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.ad-tag--gold {
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  color: #1c1408;
+}
+
+.ad-open {
+  display: block;
+  color: var(--mt-warn) !important;
+}

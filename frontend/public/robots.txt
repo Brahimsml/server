@@ -16,3 +16,4 @@ Disallow: /cart
 Disallow: /my-orders
 Disallow: /wishlist
 Disallow: /reset-password
+Disallow: /customers

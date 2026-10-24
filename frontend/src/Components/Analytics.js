@@ -8,7 +8,7 @@ import { useLocation } from "react-router-dom";
   and no names, emails or orders are sent.
 */
 const GA_ID = process.env.REACT_APP_GA_ID;
-const ADMIN_PATH = /^\/(admin|products|categories|places|orders|contacts)(\/|$)/;
+const ADMIN_PATH = /^\/(admin|products|categories|places|orders|contacts|customers)(\/|$)/;
 
 let loaded = false;
 const load = () => {

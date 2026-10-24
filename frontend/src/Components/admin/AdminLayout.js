@@ -6,6 +6,7 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -25,6 +26,7 @@ const NAV = [
   { to: "/categories/admin", label: "Categories", icon: CategoryOutlinedIcon, match: "/categories" },
   { to: "/places/admin", label: "Stores", icon: StorefrontOutlinedIcon, match: "/places" },
   { to: "/orders/admin", label: "Orders", icon: ReceiptLongOutlinedIcon, match: "/orders", count: "pendingOrders" },
+  { to: "/customers/admin", label: "Customers", icon: PeopleOutlineIcon, match: "/customers" },
   { to: "/contacts/admin", label: "Messages", icon: MailOutlineIcon, match: "/contacts", count: "newMessages" },
 ];
 
