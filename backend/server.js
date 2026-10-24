@@ -1023,7 +1023,8 @@ app.post("/products/modify/:id", verifyAdmin, upload.single("image"), processPro
    Delivery fee comes from DELIVERY_FEE in .env (default $5).
 */
 const DELIVERY_FEE = Number(process.env.DELIVERY_FEE ?? 5);
-const PAYMENT_METHODS = { cash: "Cash on delivery", card: "Visa card" };
+// Card payments come back once an online payment provider (e.g. Whish, Areeba) is connected
+const PAYMENT_METHODS = { cash: "Cash on delivery" };
 
 app.get("/checkout-info", (req, res) => {
   res.json({

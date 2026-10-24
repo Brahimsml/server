@@ -204,8 +204,8 @@ const Product = () => {
               <li>
                 <PaymentsOutlinedIcon fontSize="small" />
                 <span>
-                  <strong>Pay on delivery</strong>
-                  Cash or Visa card when your order arrives.
+                  <strong>Cash on delivery</strong>
+                  Pay when your order arrives.
                 </span>
               </li>
               <li>

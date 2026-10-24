@@ -38,13 +38,16 @@ export const toCartProduct = (product) => ({
 });
 
 // Order status -> badge style + customer-friendly label
-// How the customer pays (matches the backend)
+// How the customer can pay at checkout (matches the backend).
+// Online card payment will be added once a payment provider is connected.
 export const PAYMENT_METHODS = {
   cash: { label: "Cash on delivery", hint: "Pay the driver in cash when your order arrives." },
-  card: { label: "Visa card", hint: "Pay with your Visa card when your order arrives." },
 };
 
-export const paymentLabel = (method) => PAYMENT_METHODS[method]?.label || "";
+// Labels for orders, including any older ones paid by card
+const PAYMENT_LABELS = { cash: "Cash on delivery", card: "Visa card" };
+
+export const paymentLabel = (method) => PAYMENT_LABELS[method] || "";
 
 export const DEFAULT_DELIVERY_FEE = 5;
 

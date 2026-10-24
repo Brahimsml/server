@@ -6,7 +6,7 @@ import "../Styles/Policy.css";
 /*
   Shop policies. The rules come from the shop owner:
   - delivery fee $5 per order, Beirut is delivered faster than other areas
-  - pay cash or by Visa card when the order arrives
+  - pay cash when the order arrives (online card payment comes later)
   - returns within 7 days
   Change the text here if a rule changes (and DELIVERY_FEE in backend/.env for the fee).
 */
@@ -33,7 +33,7 @@ const POLICIES = {
       {
         heading: "Paying for your order",
         body: [
-          "You choose how to pay at checkout: cash on delivery, or by Visa card when your order arrives.",
+          "You pay cash on delivery, when your order arrives.",
           "We never ask for your card details on this website or by email.",
         ],
       },

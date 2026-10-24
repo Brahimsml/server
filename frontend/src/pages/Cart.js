@@ -9,13 +9,12 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import "../Styles/card.css";
 import { API_URL } from "../api";
 import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isLowStock } from "../utils/shop";
 
-const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon, card: CreditCardOutlinedIcon };
+const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon };
 
 // Neutral grey box shown when a product image fails to load
 const FALLBACK_IMG =
