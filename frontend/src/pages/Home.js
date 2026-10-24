@@ -19,6 +19,7 @@ import {
   isSoldOut,
   normalizeLabel,
   onImageError,
+  productPath,
   toCartProduct,
 } from "../utils/shop";
 import "../Styles/theme.css";
@@ -182,7 +183,7 @@ const Home = () => {
                 </div>
 
                 <h2 className="hp-slide__title">
-                  <Link to={`/product/${current.id}`}>{current.name}</Link>
+                  <Link to={productPath(current)}>{current.name}</Link>
                 </h2>
                 {current.description && <p className="hp-slide__desc">{current.description}</p>}
                 <span className="hp-slide__price">{formatMoney(current.price)}</span>
@@ -244,7 +245,7 @@ const Home = () => {
                 )}
               </div>
 
-              <Link to={`/product/${current.id}`} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
+              <Link to={productPath(current)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
                 <img src={imageUrl(current.image)} alt="" onError={onImageError} />
               </Link>
             </div>

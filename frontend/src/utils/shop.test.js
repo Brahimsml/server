@@ -9,6 +9,9 @@ import {
   orderStatus,
   toCartProduct,
   formatOrderDate,
+  slugify,
+  productPath,
+  productIdFromParam,
 } from "./shop";
 import { API_URL } from "../api";
 
@@ -101,5 +104,26 @@ describe("toCartProduct", () => {
     expect(item.image).toBe(`${API_URL}/images/rtx.jpg`);
     expect(item.price).toBe("$499.00");
     expect(item.stock_quantity).toBe(3);
+  });
+});
+
+describe("product addresses", () => {
+  test("slugify makes clean, lowercase addresses", () => {
+    expect(slugify("NVIDIA RTX 4090")).toBe("nvidia-rtx-4090");
+    expect(slugify('32" QHD Curved')).toBe("32-qhd-curved");
+    expect(slugify("  Gaming Laptop -- RTX 4070! ")).toBe("gaming-laptop-rtx-4070");
+    expect(slugify("Café Écran")).toBe("cafe-ecran");
+  });
+
+  test("productPath puts the id first", () => {
+    expect(productPath({ id: 12, name: "NVIDIA RTX 4090" })).toBe("/product/12-nvidia-rtx-4090");
+    expect(productPath({ id: 7, name: "" })).toBe("/product/7");
+  });
+
+  test("productIdFromParam reads the number back", () => {
+    expect(productIdFromParam("12-nvidia-rtx-4090")).toBe(12);
+    expect(productIdFromParam("12")).toBe(12);
+    expect(productIdFromParam("abc")).toBeNull();
+    expect(productIdFromParam("-3")).toBeNull();
   });
 });

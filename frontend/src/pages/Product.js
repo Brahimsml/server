@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import AddIcon from "@mui/icons-material/Add";
@@ -20,6 +20,8 @@ import {
   isSoldOut,
   normalizeLabel,
   onImageError,
+  productIdFromParam,
+  productPath,
   toCartProduct,
   FALLBACK_IMG,
 } from "../utils/shop";
@@ -42,8 +44,10 @@ const parseSpecs = (text) =>
     });
 
 const Product = () => {
-  const { id } = useParams();
+  const { id: param } = useParams();
+  const productId = productIdFromParam(param); // "12-nvidia-rtx-4090" -> 12
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { addToCart } = useContext(CartContext);
 
   const [product, setProduct] = useState(null);
@@ -58,8 +62,13 @@ const Product = () => {
     setQty(1);
     setPhoto(0);
 
+    if (!productId) {
+      setStatus("missing");
+      return undefined;
+    }
+
     api
-      .get(`/products/${id}`)
+      .get(`/products/${productId}`)
       .then((res) => {
         if (!alive) return;
         setProduct(res.data);
@@ -80,7 +89,14 @@ const Product = () => {
       alive = false;
       document.title = "MegaTech | PC Components & Gaming Gear";
     };
-  }, [id]);
+  }, [productId]);
+
+  // Old or short links (/product/12) get the current name added: /product/12-nvidia-rtx-4090
+  useEffect(() => {
+    if (status !== "ready" || !product) return;
+    const canonical = productPath(product);
+    if (pathname !== canonical) navigate(canonical, { replace: true });
+  }, [status, product, pathname, navigate]);
 
   if (status === "loading") {
     return (

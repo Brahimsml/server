@@ -30,6 +30,27 @@ export const isSoldOut = (product) =>
   product.stock_quantity !== null &&
   Number(product.stock_quantity) <= 0;
 
+// Product page address with the name in it, like big shops: /product/12-nvidia-rtx-4090
+export const slugify = (text) =>
+  String(text || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+
+export const productPath = (product) => {
+  const slug = slugify(product?.name);
+  return `/product/${product?.id}${slug ? `-${slug}` : ""}`;
+};
+
+// "12-nvidia-rtx-4090" (or just "12") -> 12
+export const productIdFromParam = (param) => {
+  const id = parseInt(String(param || ""), 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+};
+
 // Shape the cart expects (full image URL, "$" price string)
 export const toCartProduct = (product) => ({
   ...product,

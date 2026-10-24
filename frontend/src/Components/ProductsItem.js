@@ -14,6 +14,7 @@ import {
   isSoldOut,
   normalizeLabel,
   onImageError,
+  productPath,
   toCartProduct,
   FALLBACK_IMG,
 } from "../utils/shop";
@@ -229,7 +230,7 @@ const ProductsItem = ({
                     )}
                     {soldOut && <span className="pc-label pc-label--out">Sold out</span>}
 
-                    <Link to={`/product/${product.id}`} className="pc-media__link" tabIndex={-1} aria-hidden="true">
+                    <Link to={productPath(product)} className="pc-media__link" tabIndex={-1} aria-hidden="true">
                       <img
                         src={imageUrl(product.image) || FALLBACK_IMG}
                         alt=""
@@ -243,7 +244,7 @@ const ProductsItem = ({
                     <span className="pc-cat">{product.category_name}</span>
 
                     <h3 className="pc-name" title={product.name}>
-                      <Link to={`/product/${product.id}`}>{product.name}</Link>
+                      <Link to={productPath(product)}>{product.name}</Link>
                     </h3>
 
                     <p className="pc-desc">{product.description || " "}</p>
