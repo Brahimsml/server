@@ -592,6 +592,75 @@ app.post("/users/resend-code", async (req, res) => {
 });
 
 /*
+   MY ACCOUNT
+*/
+const accountDetails = (u) => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  phone: u.phone || "",
+  address: u.address || "",
+  google_linked: !!u.google_id,
+  created_at: u.created_at,
+});
+
+app.get("/users/me", verifyUser, async (req, res) => {
+  try {
+    const [user] = await runQuery(db, "SELECT * FROM users WHERE id=?", [req.user.id]);
+    if (!user) return res.status(404).json({ message: "Account not found" });
+    res.json(accountDetails(user));
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.put("/users/me", verifyUser, async (req, res) => {
+  const name = String(req.body?.name || "").trim();
+  const phone = String(req.body?.phone || "").trim();
+  const address = String(req.body?.address || "").trim();
+
+  if (!name) return res.status(400).json({ message: "Enter your name." });
+  if (name.length > 100 || phone.length > 30 || address.length > 255) {
+    return res.status(400).json({ message: "One of the fields is too long." });
+  }
+  if (phone && !/^[0-9+()\s-]{6,30}$/.test(phone)) {
+    return res.status(400).json({ message: "Enter a valid phone number." });
+  }
+
+  try {
+    await runQuery(db, "UPDATE users SET name=?, phone=?, address=? WHERE id=?", [
+      name,
+      phone || null,
+      address || null,
+      req.user.id,
+    ]);
+    const [user] = await runQuery(db, "SELECT * FROM users WHERE id=?", [req.user.id]);
+    res.json({ message: "Your details were saved.", user: accountDetails(user) });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.put("/users/me/password", verifyUser, limitLoginAttempts, async (req, res) => {
+  const current = String(req.body?.current_password || "");
+  const next = String(req.body?.new_password || "");
+
+  if (next.length < 8) return res.status(400).json({ message: "Use at least 8 characters for the new password." });
+
+  try {
+    const [user] = await runQuery(db, "SELECT id, password FROM users WHERE id=?", [req.user.id]);
+    if (!user || !(await bcrypt.compare(current, user.password))) {
+      res.locals.authFailed = true;
+      return res.status(400).json({ message: "Your current password isn't right." });
+    }
+    await runQuery(db, "UPDATE users SET password=? WHERE id=?", [await bcrypt.hash(next, 10), user.id]);
+    res.json({ message: "Your password was changed." });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
    CONTINUE WITH GOOGLE
    The browser gets a signed ID token from Google; we check it with Google's library.
 */
@@ -1094,7 +1163,7 @@ app.get("/checkout-info", (req, res) => {
 });
 
 app.post("/orders", verifyUser, async (req, res) => {
-  const { customer_name, customer_phone, customer_address, items, payment_method } = req.body;
+  const { customer_name, customer_phone, customer_address, items, payment_method, save_details } = req.body;
 
   if (!PAYMENT_METHODS[payment_method]) {
     return res.status(400).json({ message: "Please choose how you'd like to pay." });
@@ -1206,6 +1275,15 @@ app.post("/orders", verifyUser, async (req, res) => {
     if (conn) conn.release();
   }
 
+  // "Save these details for next time": fill in checkout automatically next time
+  if (save_details === true) {
+    runQuery(db, "UPDATE users SET phone=?, address=? WHERE id=?", [
+      String(customer_phone).trim().slice(0, 30),
+      String(customer_address).trim().slice(0, 255),
+      req.user.id,
+    ]).catch((e) => console.error("❌ Could not save delivery details:", e));
+  }
+
   // Confirmation email (with product photos)
   try {
     const email = buildOrderEmail({
@@ -1269,6 +1347,41 @@ app.get("/orders", verifyAdmin, (req, res) => {
     res.json(data);
   });
 });
+// Email the customer about a status change (same design as the confirmation, with the items).
+// Returns true when the email went out; a failed email never fails the status change.
+async function sendStatusEmail(orderId, status) {
+  try {
+    const [order] = await runQuery(
+      db,
+      `SELECT orders.id, orders.customer_name, orders.customer_phone, orders.customer_address,
+              orders.total, orders.delivery_fee, orders.payment_method, orders.status,
+              orders.created_at, users.email
+       FROM orders
+       JOIN users ON orders.user_id = users.id
+       WHERE orders.id = ?`,
+      [orderId]
+    );
+    if (!order) return false;
+
+    const items = await runQuery(
+      db,
+      `SELECT order_items.product_name AS name, order_items.price, order_items.quantity AS qty,
+              products.image
+       FROM order_items
+       LEFT JOIN products ON products.id = order_items.product_id
+       WHERE order_items.order_id = ?`,
+      [orderId]
+    );
+    const email = buildOrderEmail({ kind: status, order, items, siteUrl: SITE_URL, imagesDir });
+    await transporter.sendMail({ from: `"MegaTech" <${process.env.EMAIL_USER}>`, to: order.email, ...email });
+    console.log(`✅ Status email sent to ${order.email}`);
+    return true;
+  } catch (err) {
+    console.error("❌ Status email failed:", err);
+    return false;
+  }
+}
+
 app.put("/orders/:id/status", verifyAdmin, async (req, res) => {
   const { status } = req.body;
   const orderId = req.params.id;
@@ -1308,63 +1421,10 @@ app.put("/orders/:id/status", verifyAdmin, async (req, res) => {
     return serverError(res, err);
   }
 
-  {
-    // Status email to the customer (same design as the confirmation, with the items)
-    const qOrder = `
-      SELECT orders.id, orders.customer_name, orders.customer_phone, orders.customer_address,
-             orders.total, orders.delivery_fee, orders.payment_method, orders.status,
-             orders.created_at, users.email
-      FROM orders
-      JOIN users ON orders.user_id = users.id
-      WHERE orders.id = ?
-    `;
-    const qItems = `
-      SELECT order_items.product_name AS name, order_items.price, order_items.quantity AS qty,
-             products.image
-      FROM order_items
-      LEFT JOIN products ON products.id = order_items.product_id
-      WHERE order_items.order_id = ?
-    `;
-
-    db.query(qOrder, [orderId], async (err2, rows) => {
-      if (err2) return serverError(res, err2);
-
-      if (!rows.length) {
-        return res.json({
-          message: "Order status updated ✅ but user email not found",
-        });
-      }
-
-      const order = rows[0];
-
-      try {
-        const items = await new Promise((resolve, reject) =>
-          db.query(qItems, [orderId], (e, r) => (e ? reject(e) : resolve(r)))
-        );
-        const email = buildOrderEmail({
-          kind: status,
-          order,
-          items,
-          siteUrl: SITE_URL,
-          imagesDir,
-        });
-        await transporter.sendMail({
-          from: `"MegaTech" <${process.env.EMAIL_USER}>`,
-          to: order.email,
-          ...email,
-        });
-
-        console.log(`✅ Status email sent to ${order.email}`);
-      } catch (emailErr) {
-        console.error("❌ Status email failed:", emailErr);
-      }
-
-      res.json({
-        message: "Order status updated ✅ Email sent to user",
-      });
-    });
-  }
+  const sent = await sendStatusEmail(orderId, status);
+  res.json({ message: sent ? "Order status updated ✅ Email sent to user" : "Order status updated ✅" });
 });
+
 app.get("/orders/:id", verifyAdmin, (req, res) => {
   const id = req.params.id;
 
@@ -1439,6 +1499,31 @@ app.get("/my-orders", verifyUser, (req, res) => {
     if (err) return serverError(res, err);
     res.json(rows);
   });
+});
+
+// Customer cancels their own order while it's still pending: stock goes back, email confirms
+app.post("/my-orders/:id/cancel", verifyUser, async (req, res) => {
+  const orderId = Number(req.params.id);
+  try {
+    await withTransaction(async (conn) => {
+      const [order] = await runQuery(conn, "SELECT status FROM orders WHERE id=? AND user_id=? FOR UPDATE", [
+        orderId,
+        req.user.id,
+      ]);
+      if (!order) throw httpError(404, "Order not found");
+      if (String(order.status || "pending").toLowerCase() !== "pending") {
+        throw httpError(400, "This order is already being prepared, so it can't be cancelled online. Please call us.");
+      }
+      await restoreOrderStock(conn, orderId);
+      await runQuery(conn, "UPDATE orders SET status='cancelled' WHERE id=?", [orderId]);
+    });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message });
+    return serverError(res, err);
+  }
+
+  await sendStatusEmail(orderId, "cancelled");
+  res.json({ message: "Your order was cancelled." });
 });
 
 // ✅ USER: get one order with items

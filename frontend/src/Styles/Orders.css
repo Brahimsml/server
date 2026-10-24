@@ -471,3 +471,43 @@
     font-size: 0.78rem;
   }
 }
+
+/* Customer can cancel a pending order */
+.mod-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+}
+
+.mod-cancel p {
+  margin: 0;
+  color: var(--mt-muted);
+  font-size: 0.92rem;
+}
+
+.mod-cancel p strong {
+  color: var(--mt-text);
+}
+
+.mod-cancel__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mod-cancel-msg {
+  margin-bottom: 18px;
+}
+
+.mt-btn--danger {
+  border-color: transparent;
+  background: #b94a4a;
+  color: #fff;
+}
+
+.mt-btn--danger:hover:not(:disabled) {
+  background: #c95454;
+}

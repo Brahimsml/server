@@ -827,3 +827,230 @@ body.nb-menu-open .chatbot-box {
 .ft-legal .ft-staff {
   color: var(--mt-faint);
 }
+
+/* ===================== SEARCH (menu bar) ===================== */
+.ns {
+  position: relative;
+}
+
+.ns-toggle {
+  display: none;
+}
+
+.ns-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 230px;
+  height: 40px;
+  padding: 0 12px;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(246, 241, 231, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  transition: width 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ns-form:focus-within {
+  width: 300px;
+  border-color: var(--mt-accent);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.16);
+}
+
+.ns-icon {
+  flex-shrink: 0;
+  color: var(--mt-faint);
+}
+
+.ns-form input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: none;
+  color: var(--mt-text);
+  font: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.ns-form input::placeholder {
+  color: var(--mt-faint);
+}
+
+.ns-form input::-webkit-search-cancel-button {
+  filter: invert(0.7);
+}
+
+.ns-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1002;
+  width: max(100%, 360px);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--mt-border-strong);
+  background: var(--mt-surface);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55);
+  animation: nb-drop 0.16s ease;
+}
+
+.ns-item,
+.ns-all {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--mt-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ns-item.is-active,
+.ns-all.is-active {
+  background: rgba(201, 162, 77, 0.12);
+}
+
+.ns-item img {
+  flex-shrink: 0;
+  width: 52px;
+  height: 40px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #f3f0ea;
+  object-fit: contain;
+}
+
+.ns-item__text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.ns-item__text strong {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ns-item__text small {
+  color: var(--mt-faint);
+  font-size: 0.78rem;
+}
+
+.ns-item__price {
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-all {
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 10px;
+  border-top: 1px solid var(--mt-border);
+  border-radius: 0 0 10px 10px;
+  color: var(--mt-accent-bright);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.ns-empty {
+  margin: 0;
+  padding: 12px 10px 8px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+/* Narrower screens: a search icon opens the box under the menu bar */
+@media (max-width: 1180px) {
+  .ns-toggle {
+    display: grid;
+  }
+
+  .ns-form {
+    display: none;
+  }
+
+  .ns.is-open .ns-form {
+    display: flex;
+    position: fixed;
+    top: 76px;
+    left: 16px;
+    right: 16px;
+    z-index: 1002;
+    width: auto;
+    height: 48px;
+    background: var(--mt-surface);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+
+  .ns.is-open .ns-form:focus-within {
+    width: auto;
+  }
+
+  .ns-panel {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Wishlist heart in the menu bar */
+.nb-wish {
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .nb-wish {
+    display: none; /* in the phone menu instead */
+  }
+}
+
+/* ===================== WISHLIST HEART (cards, product page) ===================== */
+.wl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.wl-btn:active {
+  transform: scale(0.9);
+}
+
+.wl-btn.is-saved {
+  color: #e25c5c;
+}
+
+.pc-wish {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(26, 22, 16, 0.8);
+  color: #f6f1e7;
+}
+
+.pc-wish:hover {
+  background: #1a1610;
+}
+
+.pc-wish.is-saved {
+  color: #ff7676;
+}

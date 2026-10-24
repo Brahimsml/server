@@ -75,3 +75,13 @@ export const getUser = () => {
     return null;
   }
 };
+
+// After the customer edits their name on the account page, keep the navbar in step
+export const updateStoredUser = (user) => {
+  const store = activeStore();
+  if (!store) return;
+  try {
+    const current = JSON.parse(store.getItem(USER_KEY) || "{}");
+    store.setItem(USER_KEY, JSON.stringify({ ...current, ...user }));
+  } catch {}
+};

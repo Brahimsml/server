@@ -12,6 +12,7 @@ import "../Styles/Shop.css";
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get("category") || "All";
+  const query = searchParams.get("q") || "";
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +33,12 @@ const Shop = () => {
     };
   }, []);
 
+  // Keep the search when switching category, so "rtx" + Laptops works
   const changeCategory = (name) => {
-    setSearchParams(name === "All" ? {} : { category: name });
+    const next = {};
+    if (name !== "All") next.category = name;
+    if (query) next.q = query;
+    setSearchParams(next);
   };
 
   const isAll = category === "All";
@@ -55,9 +60,11 @@ const Shop = () => {
               </>
             )}
           </nav>
-          <h1 className="mt-title">{isAll ? "All products" : category}</h1>
+          <h1 className="mt-title">{query ? `Results for “${query}”` : isAll ? "All products" : category}</h1>
           <p className="mt-lead">
-            {isAll
+            {query
+              ? "Change the words in the search box, or pick a category to narrow it down."
+              : isAll
               ? "Graphics cards, monitors, laptops and peripherals. Search, filter and sort the full catalog."
               : `Browse our ${category.toLowerCase()}. Search or sort to find the right one.`}
           </p>
@@ -74,6 +81,7 @@ const Shop = () => {
           loading={loading}
           category={category}
           onCategoryChange={changeCategory}
+          initialQuery={query}
         />
       </div>
     </div>

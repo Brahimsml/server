@@ -13,6 +13,9 @@ import Shop from "./pages/Shop";
 import Product from "./pages/Product";
 import Policy from "./pages/Policy";
 import NotFound from "./pages/NotFound";
+import Account from "./pages/Account";
+import Wishlist from "./pages/Wishlist";
+import { WishlistProvider } from "./Context/WishlistContext";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -70,145 +73,149 @@ const SiteChrome = ({ children }) => {
 
 const App = () => (
   <CartProvider>
-    <Router>
-      <ScrollToTop />
-      <SiteChrome>
-        <Routes>
-          {/* PUBLIC */}
-          <Route index element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/product/:id" element={<Product />} />
-          <Route path="/shipping" element={<Policy slug="shipping" />} />
-          <Route path="/returns" element={<Policy slug="returns" />} />
-          <Route path="/privacy" element={<Policy slug="privacy" />} />
-          <Route path="/terms" element={<Policy slug="terms" />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-<Route path="/my-orders/:id" element={<MyOrderDetails />} />
+    <WishlistProvider>
+      <Router>
+        <ScrollToTop />
+        <SiteChrome>
+          <Routes>
+            {/* PUBLIC */}
+            <Route index element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:id" element={<Product />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/shipping" element={<Policy slug="shipping" />} />
+            <Route path="/returns" element={<Policy slug="returns" />} />
+            <Route path="/privacy" element={<Policy slug="privacy" />} />
+            <Route path="/terms" element={<Policy slug="terms" />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/my-orders" element={<MyOrders />} />
+  <Route path="/my-orders/:id" element={<MyOrderDetails />} />
 
-          {/* ADMIN LOGIN */}
-          <Route path="/admin/login" element={<AdminLogin />} />
+            {/* ADMIN LOGIN */}
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* ADMIN DASHBOARD */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN DASHBOARD */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
 
-          {/* ADMIN PRODUCTS */}
-          <Route
-            path="/products/admin"
-            element={
-              <AdminRoute>
-                <AdminProducts />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/products/add"
-            element={
-              <AdminRoute>
-                <AddProduct />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/products/update/:id"
-            element={
-              <AdminRoute>
-                <UpdateProduct />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN PRODUCTS */}
+            <Route
+              path="/products/admin"
+              element={
+                <AdminRoute>
+                  <AdminProducts />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/products/add"
+              element={
+                <AdminRoute>
+                  <AddProduct />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/products/update/:id"
+              element={
+                <AdminRoute>
+                  <UpdateProduct />
+                </AdminRoute>
+              }
+            />
 
-          {/* ADMIN PLACES */}
-          <Route
-            path="/places/admin"
-            element={
-              <AdminRoute>
-                <AdminPlaces />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/places/add"
-            element={
-              <AdminRoute>
-                <AddPlace />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/places/update/:id"
-            element={
-              <AdminRoute>
-                <UpdatePlace />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN PLACES */}
+            <Route
+              path="/places/admin"
+              element={
+                <AdminRoute>
+                  <AdminPlaces />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/places/add"
+              element={
+                <AdminRoute>
+                  <AddPlace />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/places/update/:id"
+              element={
+                <AdminRoute>
+                  <UpdatePlace />
+                </AdminRoute>
+              }
+            />
 
-          {/* ADMIN ORDERS */}
-          <Route
-            path="/orders/admin"
-            element={
-              <AdminRoute>
-                <AdminOrders />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/orders/:id"
-            element={
-              <AdminRoute>
-                <OrderDetails />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN ORDERS */}
+            <Route
+              path="/orders/admin"
+              element={
+                <AdminRoute>
+                  <AdminOrders />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <AdminRoute>
+                  <OrderDetails />
+                </AdminRoute>
+              }
+            />
 
-          {/* ADMIN CONTACTS */}
-          <Route
-            path="/contacts/admin"
-            element={
-              <AdminRoute>
-                <AdminContacts />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN CONTACTS */}
+            <Route
+              path="/contacts/admin"
+              element={
+                <AdminRoute>
+                  <AdminContacts />
+                </AdminRoute>
+              }
+            />
 
-          {/* ADMIN CATEGORIES + SETTINGS */}
-          <Route
-            path="/categories/admin"
-            element={
-              <AdminRoute>
-                <AdminCategories />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <AdminRoute>
-                <AdminSettings />
-              </AdminRoute>
-            }
-          />
+            {/* ADMIN CATEGORIES + SETTINGS */}
+            <Route
+              path="/categories/admin"
+              element={
+                <AdminRoute>
+                  <AdminCategories />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <AdminRoute>
+                  <AdminSettings />
+                </AdminRoute>
+              }
+            />
 
-          {/* Anything else */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </SiteChrome>
-    </Router>
+            {/* Anything else */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </SiteChrome>
+      </Router>
+    </WishlistProvider>
   </CartProvider>
 );
 

@@ -10,6 +10,7 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ProductsItem from "../Components/ProductsItem";
+import WishlistButton from "../Components/WishlistButton";
 import { CartContext } from "../Context/CartContext";
 import api from "../api";
 import {
@@ -306,6 +307,7 @@ const Product = () => {
                 Buy now
               </button>
             </div>
+            <WishlistButton product={product} withLabel className="pd-wish" />
 
             <ul className="pd-perks">
               <li>

@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `verify_code_expires` datetime DEFAULT NULL,
   `verify_attempts` int(11) NOT NULL DEFAULT 0,
   `google_id` varchar(64) DEFAULT NULL,
+  `phone` varchar(30) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `uniq_google_id` (`google_id`)

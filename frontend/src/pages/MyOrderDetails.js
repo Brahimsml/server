@@ -34,6 +34,31 @@ function MyOrderDetails() {
   const [order, setOrder] = useState(null);
   const [items, setItems] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelMsg, setCancelMsg] = useState(null); // { type, text }
+
+  const cancelOrder = async () => {
+    setCancelMsg(null);
+    try {
+      setCancelling(true);
+      await api.post(`/my-orders/${id}/cancel`, null, {
+        headers: { Authorization: `Bearer ${getUserToken()}` },
+      });
+      setOrder((o) => ({ ...o, status: "cancelled" }));
+      setCancelMsg({ type: "success", text: "Your order was cancelled. We've emailed you a confirmation." });
+    } catch (err) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        clearUserSession();
+        navigate(`/login?redirect=/my-orders/${id}`);
+        return;
+      }
+      setCancelMsg({ type: "error", text: err?.response?.data?.message || "We couldn't cancel this order." });
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
+    }
+  };
 
   useEffect(() => {
     const token = getUserToken();
@@ -144,6 +169,39 @@ function MyOrderDetails() {
             ))}
           </ol>
         ) : null}
+
+        {cancelMsg && (
+          <div className={`mt-alert mt-alert--${cancelMsg.type} mod-cancel-msg`} role={cancelMsg.type === "error" ? "alert" : "status"}>
+            {cancelMsg.text}
+          </div>
+        )}
+
+        {status.key === "pending" && (
+          <div className="mt-panel mod-cancel">
+            {confirmCancel ? (
+              <>
+                <p>
+                  <strong>Cancel order #{order.id}?</strong> The items go back on sale and you won't be charged.
+                </p>
+                <div className="mod-cancel__actions">
+                  <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={() => setConfirmCancel(false)} disabled={cancelling}>
+                    Keep my order
+                  </button>
+                  <button type="button" className="mt-btn mt-btn--danger mt-btn--sm" onClick={cancelOrder} disabled={cancelling}>
+                    {cancelling ? "Cancelling…" : "Yes, cancel it"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>Changed your mind? You can cancel this order until we start preparing it.</p>
+                <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={() => setConfirmCancel(true)}>
+                  Cancel order
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mod-grid">
           {/* ===== Items ===== */}

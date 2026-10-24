@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../Context/CartContext";
 import MiniCart from "./MiniCart";
+import NavSearch from "./NavSearch";
+import { useWishlist } from "../Context/WishlistContext";
 
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -10,6 +12,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
@@ -52,6 +56,7 @@ const NavBar = () => {
   const cartRef = useRef(null);
   const prevCount = useRef(cartCount);
 
+  const { items: wishlist } = useWishlist();
   const isAdmin = !!localStorage.getItem("adminToken");
   const user = getUser();
   const firstName = (user?.name || "Account").trim().split(/\s+/)[0];
@@ -167,6 +172,8 @@ const NavBar = () => {
         </nav>
 
         <div className="nb-actions">
+          <NavSearch />
+
           {/* ===== Admin menu (only for signed-in admins) ===== */}
           {isAdmin && (
             <div className="nb-dropdown nb-admin" ref={adminRef}>
@@ -220,8 +227,14 @@ const NavBar = () => {
                     <strong>{user.name}</strong>
                     {user.email && <span>{user.email}</span>}
                   </div>
+                  <Link to="/account" role="menuitem">
+                    <ManageAccountsOutlinedIcon fontSize="small" /> My account
+                  </Link>
                   <Link to="/my-orders" role="menuitem">
                     <ReceiptLongOutlinedIcon fontSize="small" /> My orders
+                  </Link>
+                  <Link to="/wishlist" role="menuitem">
+                    <FavoriteBorderIcon fontSize="small" /> Wishlist
                   </Link>
                   <hr />
                   <button type="button" role="menuitem" onClick={logoutUser}>
@@ -236,6 +249,16 @@ const NavBar = () => {
               <span>Sign in</span>
             </Link>
           )}
+
+          {/* ===== Wishlist ===== */}
+          <Link
+            to="/wishlist"
+            className="nb-icon-btn nb-wish"
+            aria-label={`Wishlist, ${wishlist.length} ${wishlist.length === 1 ? "item" : "items"}`}
+          >
+            <FavoriteBorderIcon />
+            {wishlist.length > 0 && <span className="nb-badge">{wishlist.length > 99 ? "99+" : wishlist.length}</span>}
+          </Link>
 
           {/* ===== Cart ===== */}
           <div className="nb-cart" ref={cartRef}>
@@ -280,8 +303,14 @@ const NavBar = () => {
                       {user.email && <span>{user.email}</span>}
                     </div>
                   </div>
+                  <NavLink to="/account" className={(s) => linkClass(s, "/account")}>
+                    My account
+                  </NavLink>
                   <NavLink to="/my-orders" className={(s) => linkClass(s, "/my-orders")}>
                     My orders
+                  </NavLink>
+                  <NavLink to="/wishlist" className={(s) => linkClass(s, "/wishlist")}>
+                    Wishlist{wishlist.length > 0 ? ` (${wishlist.length})` : ""}
                   </NavLink>
                   <button type="button" className="nb-link" onClick={logoutUser}>
                     Sign out

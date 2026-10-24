@@ -1,0 +1,209 @@
+/* My account (acc-) and Wishlist (wl-) pages */
+.acc {
+  max-width: 1000px;
+}
+
+.acc-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.acc-avatar {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  color: #1c1408;
+  font-family: var(--mt-font-display);
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.acc-head .mt-title {
+  margin: 4px 0 0;
+}
+
+.acc-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 6px 0 0;
+  color: var(--mt-muted);
+}
+
+.acc-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mt-border-strong);
+  color: var(--mt-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.acc-since {
+  color: var(--mt-faint);
+  font-size: 0.88rem;
+}
+
+/* Shortcuts */
+.acc-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.acc-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--mt-border);
+  background: var(--mt-surface);
+  color: var(--mt-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.acc-link:hover {
+  border-color: var(--mt-border-strong);
+  transform: translateY(-2px);
+}
+
+.acc-link svg {
+  color: var(--mt-accent-bright);
+}
+
+.acc-link span {
+  display: grid;
+  gap: 2px;
+}
+
+.acc-link small {
+  color: var(--mt-muted);
+  font-size: 0.82rem;
+}
+
+/* Forms */
+.acc-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+.acc-panel {
+  padding: 24px;
+}
+
+.acc-panel h2 {
+  margin: 0;
+  font-family: var(--mt-font-display);
+  font-size: 1.2rem;
+}
+
+.acc-hint {
+  margin: 6px 0 18px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.acc-panel input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.acc-panel .mt-alert {
+  margin-bottom: 14px;
+}
+
+.acc-password {
+  position: relative;
+}
+
+.acc-password input {
+  padding-right: 44px;
+}
+
+.acc-password button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--mt-muted);
+  cursor: pointer;
+}
+
+.acc-forgot {
+  display: inline-block;
+  margin-left: 14px;
+  color: var(--mt-accent-bright);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.acc-forgot:hover {
+  text-decoration: underline;
+}
+
+/* Wishlist page */
+.wl-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.wl-empty {
+  max-width: 520px;
+  margin: 20px auto 0;
+}
+
+@media (max-width: 860px) {
+  .acc-links,
+  .acc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .acc-head {
+    align-items: flex-start;
+  }
+
+  .acc-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .acc-panel {
+    padding: 20px 18px;
+  }
+
+  .acc-forgot {
+    display: block;
+    margin: 14px 0 0;
+  }
+}

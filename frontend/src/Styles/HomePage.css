@@ -603,7 +603,7 @@
 
 .pc-label--out {
   left: auto;
-  right: 12px;
+  right: 52px; /* leaves room for the wishlist heart */
   background: #b94a4a;
   color: #fff;
 }

@@ -592,3 +592,20 @@
   color: var(--c-accent-bright);
   font-weight: 600;
 }
+
+.cart-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+  color: var(--c-muted);
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.cart-save input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--c-accent);
+}

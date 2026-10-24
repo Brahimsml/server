@@ -173,6 +173,24 @@
   font-weight: 600;
 }
 
+/* Save for later */
+.pd-wish {
+  margin-top: 12px;
+  padding: 8px 0;
+  background: none;
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pd-wish:hover {
+  color: var(--mt-text);
+}
+
+.pd-wish.is-saved {
+  color: #ff7676;
+}
+
 /* Photo gallery */
 .pd-gallery {
   min-width: 0;

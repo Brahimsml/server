@@ -50,6 +50,23 @@ const Cart = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [saveDetails, setSaveDetails] = useState(true);
+
+  // Fill in the phone and address saved on the account (My account, or the last order)
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        const me = res.data || {};
+        setCustomer((c) => ({
+          customer_name: c.customer_name || me.name || "",
+          customer_phone: c.customer_phone || me.phone || "",
+          customer_address: c.customer_address || me.address || "",
+        }));
+      })
+      .catch(() => {});
+  }, [token]);
   const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
 
   // The delivery fee is set on the server (DELIVERY_FEE in backend/.env)
@@ -166,6 +183,7 @@ const Cart = () => {
       customer_phone: customer.customer_phone.trim(),
       customer_address: customer.customer_address.trim(),
       payment_method: paymentMethod,
+      save_details: saveDetails,
       items,
     };
 
@@ -379,6 +397,11 @@ const Cart = () => {
                     onChange={handleCustomerChange}
                     placeholder="City, street, building, floor"
                   />
+                </label>
+
+                <label className="cart-save">
+                  <input type="checkbox" checked={saveDetails} onChange={(e) => setSaveDetails(e.target.checked)} />
+                  <span>Save these details for next time</span>
                 </label>
 
                 <h3 className="cart-form__gap">Payment</h3>

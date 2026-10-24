@@ -7,6 +7,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { CartContext } from "../Context/CartContext";
+import WishlistButton from "./WishlistButton";
 import {
   formatMoney,
   imageUrl,
@@ -39,8 +40,14 @@ const ProductsItem = ({
   showPagination = true,
   emptyTitle = "No products found",
   emptyText = "Try another category, or clear the search.",
+  initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
 }) => {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
+
+  // A new search from the navbar while the shop is already open
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
   const [sort, setSort] = useState("newest");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [page, setPage] = useState(1);
@@ -229,6 +236,7 @@ const ProductsItem = ({
                       </span>
                     )}
                     {soldOut && <span className="pc-label pc-label--out">Sold out</span>}
+                    <WishlistButton product={product} className="pc-wish" />
 
                     <Link to={productPath(product)} className="pc-media__link" tabIndex={-1} aria-hidden="true">
                       <img
