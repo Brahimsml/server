@@ -926,3 +926,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Product cards and the banner open the product page */
+.pc-media__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.pc-name a,
+.hp-slide__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pc-name a:hover,
+.hp-slide__title a:hover {
+  color: var(--mt-accent-bright);
+}

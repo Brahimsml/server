@@ -21,6 +21,8 @@ const escapeHtml = (value) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const PAYMENT_LABELS = { cash: "Cash on delivery", card: "Visa card" };
+
 const money = (n) => Number(n || 0).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 const longDate = (value) => {
@@ -166,6 +168,8 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
 
   const subtotal = items.reduce((s, it) => s + Number(it.price) * Number(it.qty), 0);
   const itemCount = items.reduce((s, it) => s + Number(it.qty), 0);
+  const deliveryFee = Number(order.delivery_fee || 0);
+  const paymentLabel = PAYMENT_LABELS[order.payment_method] || "";
 
   // ----- items -----
   const itemRows = items
@@ -247,6 +251,10 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
                   <td align="right" style="padding:4px 0;font-size:14px;color:#3d3830;">${money(subtotal)}</td>
                 </tr>
                 <tr>
+                  <td style="padding:4px 0;font-size:14px;color:#7a7266;">Delivery</td>
+                  <td align="right" style="padding:4px 0;font-size:14px;color:#3d3830;">${deliveryFee ? money(deliveryFee) : "Free"}</td>
+                </tr>
+                <tr>
                   <td style="padding:12px 0 4px;font-size:17px;font-weight:700;color:#1c1a16;border-top:1px solid #efe9de;">Total</td>
                   <td align="right" style="padding:12px 0 4px;font-size:20px;font-weight:700;color:#1c1a16;border-top:1px solid #efe9de;">${money(order.total)}</td>
                 </tr>
@@ -262,7 +270,11 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
                 ${escapeHtml(order.customer_name)}<br>
                 ${escapeHtml(order.customer_phone)}<br>
                 ${escapeHtml(order.customer_address)}
-              </div>
+              </div>${
+                paymentLabel
+                  ? `<div style="margin-top:12px;font-size:14px;color:#3d3830;"><strong>Payment:</strong> ${escapeHtml(paymentLabel)}</div>`
+                  : ""
+              }
             </td>
           </tr>
 
@@ -293,7 +305,9 @@ function buildOrderEmail({ kind, order, items, siteUrl, imagesDir }) {
     "Your items:",
     ...items.map((it) => `- ${String(it.name).trim()}  x${it.qty}  ${money(Number(it.price) * Number(it.qty))}`),
     "",
+    `Delivery: ${deliveryFee ? money(deliveryFee) : "Free"}`,
     `Total: ${money(order.total)}`,
+    ...(paymentLabel ? [`Payment: ${paymentLabel}`] : []),
     "",
     "Delivery details:",
     order.customer_name,

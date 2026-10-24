@@ -966,6 +966,14 @@ a.ad-kpi:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.ad-subline {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 20px 0;
+  color: var(--mt-muted);
+  font-size: 0.92rem;
+}
+
 .ad-total {
   display: flex;
   justify-content: space-between;

@@ -10,6 +10,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import Shop from "./pages/Shop";
+import Product from "./pages/Product";
+import Policy from "./pages/Policy";
+import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -75,6 +78,11 @@ const App = () => (
           <Route index element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route path="/shipping" element={<Policy slug="shipping" />} />
+          <Route path="/returns" element={<Policy slug="returns" />} />
+          <Route path="/privacy" element={<Policy slug="privacy" />} />
+          <Route path="/terms" element={<Policy slug="terms" />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -195,6 +203,9 @@ const App = () => (
               </AdminRoute>
             }
           />
+
+          {/* Anything else */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </SiteChrome>
     </Router>

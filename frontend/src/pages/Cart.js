@@ -1,16 +1,21 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { CartContext } from "../Context/CartContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import "../Styles/card.css";
 import { API_URL } from "../api";
-import { isLowStock } from "../utils/shop";
+import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isLowStock } from "../utils/shop";
+
+const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon, card: CreditCardOutlinedIcon };
 
 // Neutral grey box shown when a product image fails to load
 const FALLBACK_IMG =
@@ -44,6 +49,19 @@ const Cart = () => {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
+
+  // The delivery fee is set on the server (DELIVERY_FEE in backend/.env)
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/checkout-info`)
+      .then((res) => {
+        const fee = Number(res.data?.delivery_fee);
+        if (Number.isFinite(fee)) setDeliveryFee(fee);
+      })
+      .catch(() => {});
+  }, []);
 
   const getImgSrc = (img) => {
     if (!img) return FALLBACK_IMG;
@@ -65,9 +83,11 @@ const Cart = () => {
     }));
   };
 
-  const total = useMemo(() => {
+  const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + toNumber(item.price) * (item.quantity || 1), 0);
   }, [cart]);
+
+  const total = subtotal + deliveryFee;
 
   const itemCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -145,6 +165,7 @@ const Cart = () => {
       customer_name: customer.customer_name.trim(),
       customer_phone: customer.customer_phone.trim(),
       customer_address: customer.customer_address.trim(),
+      payment_method: paymentMethod,
       items,
     };
 
@@ -294,7 +315,12 @@ const Cart = () => {
               <span>
                 Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
               </span>
-              <span>{formatMoney(total)}</span>
+              <span>{formatMoney(subtotal)}</span>
+            </div>
+
+            <div className="cart-summary__line">
+              <span>Delivery</span>
+              <span>{deliveryFee ? formatMoney(deliveryFee) : "Free"}</span>
             </div>
 
             <div className="cart-summary__line cart-summary__line--total">
@@ -355,6 +381,37 @@ const Cart = () => {
                     placeholder="City, street, building, floor"
                   />
                 </label>
+
+                <h3 className="cart-form__gap">Payment</h3>
+                <div className="cart-pay" role="radiogroup" aria-label="Payment method">
+                  {Object.entries(PAYMENT_METHODS).map(([id, method]) => {
+                    const Icon = PAYMENT_ICONS[id];
+                    return (
+                      <label key={id} className={`cart-pay__option ${paymentMethod === id ? "is-selected" : ""}`}>
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value={id}
+                          checked={paymentMethod === id}
+                          onChange={() => setPaymentMethod(id)}
+                        />
+                        <Icon fontSize="small" />
+                        <span>
+                          <strong>{method.label}</strong>
+                          <small>{method.hint}</small>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <p className="cart-delivery-note">
+                  <LocalShippingOutlinedIcon fontSize="small" />
+                  <span>
+                    Beirut orders arrive faster; other areas take a little longer.{" "}
+                    <Link to="/shipping">Delivery info</Link>
+                  </span>
+                </p>
 
                 <button type="submit" className="cart-btn cart-btn--primary" disabled={loading}>
                   {loading ? "Placing order..." : `Place order · ${formatMoney(total)}`}

@@ -693,6 +693,20 @@
   margin: 0;
 }
 
+.ft-legal {
+  display: flex;
+  gap: 18px;
+}
+
+.ft-legal a {
+  color: var(--mt-muted);
+  text-decoration: none;
+}
+
+.ft-legal a:hover {
+  color: var(--mt-text);
+}
+
 .ft-staff {
   color: var(--mt-faint);
   text-decoration: none;
@@ -808,4 +822,8 @@ body.nb-menu-open .chatbot-box {
   .nb-brand span {
     display: none;
   }
+}
+
+.ft-legal .ft-staff {
+  color: var(--mt-faint);
 }

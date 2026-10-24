@@ -901,6 +901,24 @@ app.get("/products", (req, res) => {
   });
 });
 
+// One product with its category (product page)
+app.get("/products/:id", (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) return res.status(404).json({ message: "Product not found" });
+
+  const q = `
+    SELECT p.*, c.name AS category_name
+    FROM products p
+    JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?
+  `;
+  db.query(q, [id], (err, rows) => {
+    if (err) return serverError(res, err);
+    if (!rows.length) return res.status(404).json({ message: "Product not found" });
+    res.json(rows[0]);
+  });
+});
+
 app.get("/products/search/:id", (req, res) => {
   db.query("SELECT * FROM products WHERE id=?", [req.params.id], (err, data) => {
     if (err) return serverError(res, err);
@@ -1000,8 +1018,26 @@ app.post("/products/modify/:id", verifyAdmin, upload.single("image"), processPro
 /*
    USER CHECKOUT - LOGIN REQUIRED
 */
+/*
+   CHECKOUT SETTINGS
+   Delivery fee comes from DELIVERY_FEE in .env (default $5).
+*/
+const DELIVERY_FEE = Number(process.env.DELIVERY_FEE ?? 5);
+const PAYMENT_METHODS = { cash: "Cash on delivery", card: "Visa card" };
+
+app.get("/checkout-info", (req, res) => {
+  res.json({
+    delivery_fee: DELIVERY_FEE,
+    payment_methods: Object.entries(PAYMENT_METHODS).map(([id, label]) => ({ id, label })),
+  });
+});
+
 app.post("/orders", verifyUser, async (req, res) => {
-  const { customer_name, customer_phone, customer_address, items } = req.body;
+  const { customer_name, customer_phone, customer_address, items, payment_method } = req.body;
+
+  if (!PAYMENT_METHODS[payment_method]) {
+    return res.status(400).json({ message: "Please choose how you'd like to pay." });
+  }
 
   if (
     ![customer_name, customer_phone, customer_address].every(
@@ -1076,12 +1112,13 @@ app.post("/orders", verifyUser, async (req, res) => {
       });
     }
 
-    total = orderItems.reduce((sum, it) => sum + it.price * it.qty, 0);
+    const subtotal = orderItems.reduce((sum, it) => sum + it.price * it.qty, 0);
+    total = subtotal + DELIVERY_FEE;
 
     const result = await runQuery(
       conn,
-      "INSERT INTO orders (user_id, customer_name, customer_phone, customer_address, total) VALUES (?,?,?,?,?)",
-      [req.user.id, customer_name, customer_phone, customer_address, total]
+      "INSERT INTO orders (user_id, customer_name, customer_phone, customer_address, total, delivery_fee, payment_method) VALUES (?,?,?,?,?,?,?)",
+      [req.user.id, customer_name, customer_phone, customer_address, total, DELIVERY_FEE, payment_method]
     );
     orderId = result.insertId;
 
@@ -1112,7 +1149,16 @@ app.post("/orders", verifyUser, async (req, res) => {
   try {
     const email = buildOrderEmail({
       kind: "confirmation",
-      order: { id: orderId, customer_name, customer_phone, customer_address, total, created_at: new Date() },
+      order: {
+        id: orderId,
+        customer_name,
+        customer_phone,
+        customer_address,
+        total,
+        delivery_fee: DELIVERY_FEE,
+        payment_method,
+        created_at: new Date(),
+      },
       items: orderItems,
       siteUrl: SITE_URL,
       imagesDir,
@@ -1205,7 +1251,8 @@ app.put("/orders/:id/status", verifyAdmin, async (req, res) => {
     // Status email to the customer (same design as the confirmation, with the items)
     const qOrder = `
       SELECT orders.id, orders.customer_name, orders.customer_phone, orders.customer_address,
-             orders.total, orders.status, orders.created_at, users.email
+             orders.total, orders.delivery_fee, orders.payment_method, orders.status,
+             orders.created_at, users.email
       FROM orders
       JOIN users ON orders.user_id = users.id
       WHERE orders.id = ?
@@ -1320,7 +1367,8 @@ app.delete("/orders/:id", verifyAdmin, async (req, res) => {
 // ✅ USER: get my orders
 app.get("/my-orders", verifyUser, (req, res) => {
   const q = `
-    SELECT id, customer_name, customer_phone, customer_address, total, status, created_at
+    SELECT id, customer_name, customer_phone, customer_address, total, delivery_fee,
+           payment_method, status, created_at
     FROM orders
     WHERE user_id = ?
     ORDER BY id DESC
@@ -1337,7 +1385,8 @@ app.get("/my-orders/:id", verifyUser, (req, res) => {
   const orderId = req.params.id;
 
   const qOrder = `
-    SELECT id, customer_name, customer_phone, customer_address, total, status, created_at
+    SELECT id, customer_name, customer_phone, customer_address, total, delivery_fee,
+           payment_method, status, created_at
     FROM orders
     WHERE id = ? AND user_id = ?
   `;

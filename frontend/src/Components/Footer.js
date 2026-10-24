@@ -66,6 +66,8 @@ const Footer = () => {
             <Link to="/menu">Find a store</Link>
             <Link to="/about">About us</Link>
             <Link to="/contact">Contact us</Link>
+            <Link to="/shipping">Shipping &amp; delivery</Link>
+            <Link to="/returns">Returns</Link>
           </nav>
 
           <div className="ft-col ft-contact">
@@ -84,9 +86,13 @@ const Footer = () => {
 
         <div className="ft-bottom">
           <p>© {new Date().getFullYear()} MegaTech. All rights reserved.</p>
-          <Link to="/admin/login" className="ft-staff">
-            Staff login
-          </Link>
+          <div className="ft-legal">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/admin/login" className="ft-staff">
+              Staff login
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -38,6 +38,16 @@ export const toCartProduct = (product) => ({
 });
 
 // Order status -> badge style + customer-friendly label
+// How the customer pays (matches the backend)
+export const PAYMENT_METHODS = {
+  cash: { label: "Cash on delivery", hint: "Pay the driver in cash when your order arrives." },
+  card: { label: "Visa card", hint: "Pay with your Visa card when your order arrives." },
+};
+
+export const paymentLabel = (method) => PAYMENT_METHODS[method]?.label || "";
+
+export const DEFAULT_DELIVERY_FEE = 5;
+
 const ORDER_STATUSES = {
   pending: "Pending",
   processing: "Processing",

@@ -1,0 +1,97 @@
+/* Policy pages (pol-): side menu + readable text column */
+.pol {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.pol-nav {
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--mt-border);
+}
+
+.pol-nav a {
+  margin-left: -1px;
+  padding: 9px 0 9px 16px;
+  border-left: 2px solid transparent;
+  color: var(--mt-muted);
+  font-size: 0.94rem;
+  text-decoration: none;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.pol-nav a:hover {
+  color: var(--mt-text);
+}
+
+.pol-nav a.is-active {
+  border-left-color: var(--mt-accent-bright);
+  color: var(--mt-text);
+  font-weight: 600;
+}
+
+.pol-body {
+  max-width: 720px;
+}
+
+.pol-section {
+  margin-top: 34px;
+}
+
+.pol-section h2 {
+  margin: 0 0 10px;
+  font-family: var(--mt-font-display);
+  font-size: 1.25rem;
+  color: var(--mt-text);
+}
+
+.pol-section p {
+  margin: 0 0 10px;
+  color: var(--mt-muted);
+  line-height: 1.7;
+}
+
+.pol-updated {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--mt-border);
+  color: var(--mt-faint);
+  font-size: 0.88rem;
+}
+
+.pol-updated a {
+  color: var(--mt-accent-bright);
+}
+
+@media (max-width: 860px) {
+  .pol {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .pol-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    border-left: none;
+    border-bottom: 1px solid var(--mt-border);
+    scrollbar-width: none;
+  }
+
+  .pol-nav a {
+    flex-shrink: 0;
+    margin: 0 0 -1px;
+    padding: 10px 14px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+
+  .pol-nav a.is-active {
+    border-bottom-color: var(--mt-accent-bright);
+  }
+}

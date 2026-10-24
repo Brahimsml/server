@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `customer_phone` varchar(30) DEFAULT NULL,
   `customer_address` varchar(255) DEFAULT NULL,
   `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `payment_method` varchar(20) NOT NULL DEFAULT 'cash',
   `status` varchar(30) NOT NULL DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),

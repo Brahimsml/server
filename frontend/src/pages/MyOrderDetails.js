@@ -5,8 +5,17 @@ import CheckIcon from "@mui/icons-material/Check";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import api from "../api";
-import { formatMoney, formatOrderDate, imageUrl, onImageError, orderStatus, FALLBACK_IMG } from "../utils/shop";
+import {
+  formatMoney,
+  formatOrderDate,
+  imageUrl,
+  onImageError,
+  orderStatus,
+  paymentLabel,
+  FALLBACK_IMG,
+} from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/Orders.css";
 
@@ -172,6 +181,12 @@ function MyOrderDetails() {
               })}
             </ul>
 
+            {Number(order.delivery_fee) > 0 && (
+              <div className="mod-subline">
+                <span>Delivery</span>
+                <span>{formatMoney(order.delivery_fee)}</span>
+              </div>
+            )}
             <div className="mod-total">
               <span>Total</span>
               <strong>{formatMoney(order.total)}</strong>
@@ -197,6 +212,12 @@ function MyOrderDetails() {
                 <PlaceOutlinedIcon fontSize="small" />
                 <span>{order.customer_address}</span>
               </li>
+              {paymentLabel(order.payment_method) && (
+                <li>
+                  <PaymentsOutlinedIcon fontSize="small" />
+                  <span>{paymentLabel(order.payment_method)}</span>
+                </li>
+              )}
             </ul>
 
             <p className="mod-help">

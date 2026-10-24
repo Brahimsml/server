@@ -56,6 +56,7 @@ Fill in `backend/.env`:
 | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` | MySQL connection |
 | `SITE_URL` | Address of the website (used for links in emails and allowed to call the API), e.g. `https://megatech.com`. Several addresses can be separated by commas. |
 | `GOOGLE_CLIENT_ID` | Optional, for "Continue with Google" (see below) |
+| `DELIVERY_FEE` | Delivery fee added to every order, in dollars (default 5) |
 
 Never commit `backend/.env`; it holds your secrets (it's already in `.gitignore`).
 
@@ -71,7 +72,7 @@ npm run migrate
 npm start
 ```
 
-`npm run migrate` adds the email-confirmation and Google columns to an existing database. It is safe to run more than once.
+`npm run migrate` adds the email-confirmation, Google, payment-method and delivery-fee columns to an existing database. It is safe to run more than once.
 
 Product photos are cut to the same size and margin (1000×750) when uploaded. To do the same to photos that were added before, run `npm run standardize-images`; the originals are copied to `backend/image-backups/` first.
 

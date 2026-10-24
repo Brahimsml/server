@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import CheckIcon from "@mui/icons-material/Check";
@@ -229,19 +229,21 @@ const ProductsItem = ({
                     )}
                     {soldOut && <span className="pc-label pc-label--out">Sold out</span>}
 
-                    <img
-                      src={imageUrl(product.image) || FALLBACK_IMG}
-                      alt={product.name}
-                      loading="lazy"
-                      onError={onImageError}
-                    />
+                    <Link to={`/product/${product.id}`} className="pc-media__link" tabIndex={-1} aria-hidden="true">
+                      <img
+                        src={imageUrl(product.image) || FALLBACK_IMG}
+                        alt=""
+                        loading="lazy"
+                        onError={onImageError}
+                      />
+                    </Link>
                   </div>
 
                   <div className="pc-body">
                     <span className="pc-cat">{product.category_name}</span>
 
                     <h3 className="pc-name" title={product.name}>
-                      {product.name}
+                      <Link to={`/product/${product.id}`}>{product.name}</Link>
                     </h3>
 
                     <p className="pc-desc">{product.description || " "}</p>

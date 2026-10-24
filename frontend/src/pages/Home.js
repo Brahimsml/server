@@ -181,7 +181,9 @@ const Home = () => {
                   <span className="hp-slide__cat">{current.category_name}</span>
                 </div>
 
-                <h2 className="hp-slide__title">{current.name}</h2>
+                <h2 className="hp-slide__title">
+                  <Link to={`/product/${current.id}`}>{current.name}</Link>
+                </h2>
                 {current.description && <p className="hp-slide__desc">{current.description}</p>}
                 <span className="hp-slide__price">{formatMoney(current.price)}</span>
 
@@ -242,7 +244,7 @@ const Home = () => {
                 )}
               </div>
 
-              <Link to={shopLink(current.category_name)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
+              <Link to={`/product/${current.id}`} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
                 <img src={imageUrl(current.image)} alt="" onError={onImageError} />
               </Link>
             </div>

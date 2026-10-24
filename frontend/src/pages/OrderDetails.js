@@ -4,12 +4,21 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
 import { OrderStatusSelect, useChangeOrderStatus } from "../Components/admin/OrderStatus";
-import { formatMoney, formatOrderDate, imageUrl, onImageError, orderStatus, FALLBACK_IMG } from "../utils/shop";
+import {
+  formatMoney,
+  formatOrderDate,
+  imageUrl,
+  onImageError,
+  orderStatus,
+  paymentLabel,
+  FALLBACK_IMG,
+} from "../utils/shop";
 
 function OrderDetails() {
   const { id } = useParams();
@@ -137,6 +146,12 @@ function OrderDetails() {
             </ul>
           )}
 
+          {Number(order.delivery_fee) > 0 && (
+            <div className="ad-subline">
+              <span>Delivery</span>
+              <span>{formatMoney(order.delivery_fee)}</span>
+            </div>
+          )}
           <div className="ad-total">
             <span>Total</span>
             <strong>{formatMoney(order.total)}</strong>
@@ -162,6 +177,11 @@ function OrderDetails() {
             <li>
               <PlaceOutlinedIcon /> {order.customer_address}
             </li>
+            {paymentLabel(order.payment_method) && (
+              <li>
+                <PaymentsOutlinedIcon /> {paymentLabel(order.payment_method)}
+              </li>
+            )}
           </ul>
           <p className="ad-note">The customer gets an email every time you change the order status.</p>
         </section>

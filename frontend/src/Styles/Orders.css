@@ -320,6 +320,14 @@
   white-space: nowrap;
 }
 
+.mod-subline {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 22px 0;
+  color: var(--mt-muted);
+  font-size: 0.92rem;
+}
+
 .mod-total {
   display: flex;
   justify-content: space-between;

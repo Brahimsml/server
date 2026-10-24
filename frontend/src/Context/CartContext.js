@@ -42,7 +42,9 @@ export const CartProvider = ({ children }) => {
   // Stock checks run here (not inside setCart) so each notice shows only once.
   // Returns true when the item was added, so buttons can show "Added".
   // silent: don't open the mini cart (the chat assistant shows its own confirmation)
-  const addToCart = (product, { silent = false } = {}) => {
+  // quantity: how many to add (the product page has a quantity picker); never more than stock
+  const addToCart = (product, { silent = false, quantity = 1 } = {}) => {
+    const amount = Math.max(1, Math.floor(Number(quantity)) || 1);
     const existing = cart.find((item) => item.id === product.id);
 
     // ✅ ADDED: check product stock
@@ -68,15 +70,12 @@ export const CartProvider = ({ children }) => {
         return false;
       }
 
+      const nextQty = Math.min(stock, currentQty + amount);
       setCart((prev) =>
-        prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
-            : item
-        )
+        prev.map((item) => (item.id === product.id ? { ...item, quantity: nextQty } : item))
       );
     } else {
-      setCart((prev) => [...prev, { ...product, quantity: 1 }]);
+      setCart((prev) => [...prev, { ...product, quantity: Math.min(stock, amount) }]);
     }
 
     if (!silent) setMiniCart({ open: true, lastAddedId: product.id, notice: "" });
