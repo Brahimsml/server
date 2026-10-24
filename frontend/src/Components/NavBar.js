@@ -19,6 +19,7 @@ import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import logo from "../Assets/logo.jpg";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
+import { clearUserSession, getUser } from "../utils/auth";
 
 const MAIN_LINKS = [
   { to: "/home", label: "Home" },
@@ -52,9 +53,7 @@ const NavBar = () => {
   const prevCount = useRef(cartCount);
 
   const isAdmin = !!localStorage.getItem("adminToken");
-  const user = sessionStorage.getItem("userToken")
-    ? JSON.parse(sessionStorage.getItem("user") || "null")
-    : null;
+  const user = getUser();
   const firstName = (user?.name || "Account").trim().split(/\s+/)[0];
   const initial = (user?.name || user?.email || "?").trim().charAt(0).toUpperCase();
 
@@ -119,8 +118,7 @@ const NavBar = () => {
   };
 
   const logoutUser = () => {
-    sessionStorage.removeItem("userToken");
-    sessionStorage.removeItem("user");
+    clearUserSession();
     setOpenMenu(null);
     setMobileOpen(false);
     navigate("/home");

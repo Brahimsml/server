@@ -93,7 +93,7 @@ const POLICIES = {
       {
         heading: "On your device",
         body: [
-          "Your shopping cart is saved in your browser so it's still there when you come back. Your sign-in lasts until you close the tab or it expires.",
+          "Your shopping cart is saved in your browser so it's still there when you come back. If you tick “Keep me signed in”, your sign-in is also saved for up to 30 days; otherwise it ends when you close the tab.",
         ],
       },
       {

@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
 const mysql = require("mysql");
 const path = require("path");
 const fs = require("fs");
@@ -38,6 +40,13 @@ const allowedOrigins = String(process.env.SITE_URL || "http://localhost:3000")
 // Main website address, used for links in emails
 const SITE_URL = allowedOrigins[0];
 
+// Standard security headers. Images are allowed to show on the website's own address
+// (the shop runs on a different address than this API).
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// Smaller responses (product lists, pages) so the shop loads faster
+app.use(compression());
+
 app.use(
   cors({
     origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)),
@@ -48,7 +57,8 @@ app.use(express.json());
 /*
    STATIC IMAGES
 */
-app.use("/images", express.static(path.join(__dirname, "images")));
+// Browsers may keep images for a day instead of downloading them on every visit
+app.use("/images", express.static(path.join(__dirname, "images"), { maxAge: "1d" }));
 
 /*
    MULTER CONFIG
@@ -354,8 +364,13 @@ const VERIFY_MINUTES = 15;
 const VERIFY_MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_SECONDS = 60;
 
-const signUserToken = (user) =>
-  jwt.sign({ id: user.id, email: user.email, role: "user" }, SECRET, { expiresIn: "2h" });
+// "Keep me signed in": 30 days; otherwise 2 hours (and the browser forgets it when the tab closes)
+const signUserToken = (user, remember) =>
+  jwt.sign({ id: user.id, email: user.email, role: "user" }, SECRET, {
+    expiresIn: remember ? "30d" : "2h",
+  });
+
+const wantsRemember = (req) => req.body?.remember === true || req.body?.remember === "true";
 
 const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email });
 
@@ -494,7 +509,7 @@ app.post("/users/login", limitLoginAttempts, (req, res) => {
 
     res.json({
       message: "Login success",
-      token: signUserToken(data[0]),
+      token: signUserToken(data[0], wantsRemember(req)),
       user: publicUser(data[0]),
     });
   });
@@ -542,7 +557,7 @@ app.post("/users/verify-email", limitLoginAttempts, async (req, res) => {
     );
 
     // Confirmed: sign them straight in
-    res.json({ message: "Email confirmed", token: signUserToken(user), user: publicUser(user) });
+    res.json({ message: "Email confirmed", token: signUserToken(user, wantsRemember(req)), user: publicUser(user) });
   } catch (err) {
     serverError(res, err);
   }
@@ -629,7 +644,7 @@ app.post("/users/google", limitLoginAttempts, async (req, res) => {
       }
     }
 
-    res.json({ message: "Login success", token: signUserToken(user), user: publicUser(user) });
+    res.json({ message: "Login success", token: signUserToken(user, wantsRemember(req)), user: publicUser(user) });
   } catch (err) {
     serverError(res, err);
   }

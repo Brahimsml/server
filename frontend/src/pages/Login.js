@@ -7,6 +7,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
 import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
+import { saveUserSession } from "../utils/auth";
 import "../Styles/Login.css";
 
 const RESEND_SECONDS = 60;
@@ -18,6 +19,8 @@ const Login = () => {
 
   const [isRegister, setIsRegister] = useState(params.get("mode") === "register");
   const [showPassword, setShowPassword] = useState(false);
+  // "Keep me signed in": stay signed in for 30 days, even after closing the browser
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -53,8 +56,7 @@ const Login = () => {
   // Save the session and go back to where they came from (e.g. the cart).
   // Only same-site paths, so a link can't redirect people to another website.
   const finishLogin = (data) => {
-    sessionStorage.setItem("userToken", data.token);
-    sessionStorage.setItem("user", JSON.stringify(data.user));
+    saveUserSession(data, remember);
 
     const safeRedirect =
       redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/home";
@@ -105,6 +107,7 @@ const Login = () => {
       const res = await axios.post(`${API_URL}/users/login`, {
         email: form.email.trim(),
         password: form.password,
+        remember,
       });
 
       finishLogin(res.data);
@@ -132,7 +135,7 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post(`${API_URL}/users/verify-email`, { email: verifyEmail, code });
+      const res = await axios.post(`${API_URL}/users/verify-email`, { email: verifyEmail, code, remember });
       finishLogin(res.data);
     } catch (err) {
       const data = err.response?.data;
@@ -164,7 +167,7 @@ const Login = () => {
     setMessage({ type: "", text: "" });
     try {
       setLoading(true);
-      const res = await axios.post(`${API_URL}/users/google`, { credential });
+      const res = await axios.post(`${API_URL}/users/google`, { credential, remember });
       finishLogin(res.data);
     } catch (err) {
       setMessage({
@@ -353,11 +356,17 @@ const Login = () => {
           </div>
         </label>
 
-        {!isRegister && (
-          <Link to="/forgot-password" className="auth-forgot">
-            Forgot password?
-          </Link>
-        )}
+        <div className="auth-options">
+          <label className="auth-remember">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            <span>Keep me signed in</span>
+          </label>
+          {!isRegister && (
+            <Link to="/forgot-password" className="auth-forgot">
+              Forgot password?
+            </Link>
+          )}
+        </div>
 
         <button type="submit" className="auth-submit" disabled={loading}>
           {loading ? "Please wait..." : isRegister ? "Create account" : "Sign in"}

@@ -13,6 +13,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import "../Styles/card.css";
 import { API_URL } from "../api";
 import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isLowStock } from "../utils/shop";
+import { clearUserSession, getUser, getUserToken } from "../utils/auth";
 
 const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon };
 
@@ -35,8 +36,8 @@ const Cart = () => {
   const navigate = useNavigate();
 
   // Checkout needs a signed-in user; after login they come back here to confirm
-  const token = sessionStorage.getItem("userToken");
-  const user = JSON.parse(sessionStorage.getItem("user") || "null");
+  const token = getUserToken();
+  const user = getUser();
   const goToLogin = (mode) =>
     navigate(`/login?redirect=/cart${mode === "register" ? "&mode=register" : ""}`);
 
@@ -185,8 +186,7 @@ const Cart = () => {
 
       // Session expired: sign in again, then come back here (the cart is kept)
       if (err?.response?.status === 401 || err?.response?.status === 403) {
-        sessionStorage.removeItem("userToken");
-        sessionStorage.removeItem("user");
+        clearUserSession();
         goToLogin();
         return;
       }

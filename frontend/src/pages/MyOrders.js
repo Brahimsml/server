@@ -7,6 +7,7 @@ import api from "../api";
 import { formatMoney, formatOrderDate, orderStatus, ORDER_STATUS_OPTIONS } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/Orders.css";
+import { clearUserSession, getUserToken } from "../utils/auth";
 
 const DEFAULT_FILTERS = { search: "", status: "all", date: "all", sort: "newest" };
 const PAGE_SIZE = 10;
@@ -29,7 +30,7 @@ function MyOrders() {
   const placedOrderId = useLocation().state?.placedOrderId;
 
   const loadOrders = useCallback(() => {
-    const token = sessionStorage.getItem("userToken");
+    const token = getUserToken();
 
     if (!token) {
       navigate("/login?redirect=/my-orders");
@@ -51,8 +52,7 @@ function MyOrders() {
       .catch((err) => {
         // Session expired: sign in again and come back here
         if (err?.response?.status === 401 || err?.response?.status === 403) {
-          sessionStorage.removeItem("userToken");
-          sessionStorage.removeItem("user");
+          clearUserSession();
           navigate("/login?redirect=/my-orders");
           return;
         }

@@ -23,6 +23,7 @@ import {
   FALLBACK_IMG,
 } from "../utils/shop";
 import "../Styles/ChatBot.css";
+import { getUserToken } from "../utils/auth";
 
 const STORAGE_KEY = "mt-chat";
 const MIN_TYPING_MS = 550;
@@ -105,7 +106,7 @@ const ChatBot = () => {
 
     let answer;
     try {
-      const token = sessionStorage.getItem("userToken");
+      const token = getUserToken();
       const res = await fetch(`${API_URL}/chatbot`, {
         method: "POST",
         headers: {

@@ -18,6 +18,7 @@ import {
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/Orders.css";
+import { clearUserSession, getUserToken } from "../utils/auth";
 
 // Steps shown in the progress tracker
 const STEPS = [
@@ -35,7 +36,7 @@ function MyOrderDetails() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    const token = sessionStorage.getItem("userToken");
+    const token = getUserToken();
 
     if (!token) {
       navigate(`/login?redirect=/my-orders/${id}`);
@@ -55,8 +56,7 @@ function MyOrderDetails() {
       .catch((err) => {
         // Session expired: sign in again and come back to this order
         if (err?.response?.status === 401 || err?.response?.status === 403) {
-          sessionStorage.removeItem("userToken");
-          sessionStorage.removeItem("user");
+          clearUserSession();
           navigate(`/login?redirect=/my-orders/${id}`);
           return;
         }
