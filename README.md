@@ -72,7 +72,7 @@ npm run migrate
 npm start
 ```
 
-`npm run migrate` adds the email-confirmation, Google, payment-method, delivery-fee, extra-photo, specification and saved-address columns to an existing database. It is safe to run more than once.
+`npm run migrate` adds the email-confirmation, Google, payment-method, delivery-fee, extra-photo, specification, saved-address and wishlist tables/columns to an existing database. It is safe to run more than once.
 
 Product photos are cut to the same size and margin (1000×750) when uploaded. To do the same to photos that were added before, run `npm run standardize-images`; the originals are copied to `backend/image-backups/` first.
 

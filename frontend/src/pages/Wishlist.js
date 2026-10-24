@@ -10,7 +10,7 @@ import "../Styles/Account.css";
 
 // Saved products. Uses the live shop data (price, stock), so what you see is current.
 const Wishlist = () => {
-  const { items, remove } = useWishlist();
+  const { items, remove, inAccount } = useWishlist();
   const [live, setLive] = useState(null);
 
   useEffect(() => {
@@ -54,6 +54,15 @@ const Wishlist = () => {
                 ? `${items.length} saved ${items.length === 1 ? "product" : "products"}. Tap the heart to remove one.`
                 : "Tap the heart on any product to save it here."}
             </p>
+            <p className="wl-where">
+              {inAccount ? (
+                "Saved in your account, so you'll see it on all your devices."
+              ) : (
+                <>
+                  Saved on this device only. <Link to="/login?redirect=/wishlist">Sign in</Link> to keep it in your account.
+                </>
+              )}
+            </p>
           </div>
           {items.length > 0 && (
             <Link to="/shop" className="mt-btn mt-btn--secondary">
@@ -68,7 +77,7 @@ const Wishlist = () => {
               <FavoriteBorderIcon fontSize="inherit" />
             </div>
             <h3>Your wishlist is empty</h3>
-            <p>Save products you like and come back to them any time. Your list stays on this device.</p>
+            <p>Save products you like and come back to them any time.</p>
             <Link to="/shop" className="mt-btn mt-btn--primary">
               Browse the shop
             </Link>

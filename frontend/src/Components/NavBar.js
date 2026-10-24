@@ -122,11 +122,12 @@ const NavBar = () => {
     else openMiniCart();
   };
 
+  // Full reload so everything tied to the account (like the wishlist) is cleared
   const logoutUser = () => {
     clearUserSession();
     setOpenMenu(null);
     setMobileOpen(false);
-    navigate("/home");
+    window.location.href = "/home";
   };
 
   const logoutAdmin = () => {

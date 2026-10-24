@@ -661,6 +661,88 @@ app.put("/users/me/password", verifyUser, limitLoginAttempts, async (req, res) =
 });
 
 /*
+   WISHLIST (saved in the customer's account)
+*/
+const MAX_WISHLIST = 200;
+
+const wishlistFor = (userId) =>
+  runQuery(
+    db,
+    `SELECT p.*, c.name AS category_name
+     FROM wishlist_items w
+     JOIN products p ON p.id = w.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE w.user_id = ?
+     ORDER BY w.created_at DESC, w.product_id DESC`,
+    [userId]
+  );
+
+const productIdParam = (req) => {
+  const id = Number(req.params.productId);
+  return Number.isInteger(id) && id > 0 ? id : null;
+};
+
+app.get("/wishlist", verifyUser, async (req, res) => {
+  try {
+    res.json(await wishlistFor(req.user.id));
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// After signing in: add what the customer saved before signing in, then return the full list
+app.post("/wishlist/merge", verifyUser, async (req, res) => {
+  const ids = [...new Set((Array.isArray(req.body?.ids) ? req.body.ids : []).map(Number))]
+    .filter((n) => Number.isInteger(n) && n > 0)
+    .slice(0, MAX_WISHLIST);
+  try {
+    if (ids.length) {
+      await runQuery(
+        db,
+        "INSERT IGNORE INTO wishlist_items (user_id, product_id) SELECT ?, id FROM products WHERE id IN (?)",
+        [req.user.id, ids]
+      );
+    }
+    res.json(await wishlistFor(req.user.id));
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.post("/wishlist/:productId", verifyUser, async (req, res) => {
+  const productId = productIdParam(req);
+  if (!productId) return res.status(400).json({ message: "Unknown product" });
+  try {
+    const [{ n }] = await runQuery(db, "SELECT COUNT(*) AS n FROM wishlist_items WHERE user_id=?", [req.user.id]);
+    if (n >= MAX_WISHLIST) return res.status(400).json({ message: `Your wishlist can hold up to ${MAX_WISHLIST} products.` });
+    // only products that exist (IGNORE: saving twice is fine)
+    const result = await runQuery(
+      db,
+      "INSERT IGNORE INTO wishlist_items (user_id, product_id) SELECT ?, id FROM products WHERE id=?",
+      [req.user.id, productId]
+    );
+    if (!result.affectedRows) {
+      const [exists] = await runQuery(db, "SELECT id FROM products WHERE id=?", [productId]);
+      if (!exists) return res.status(404).json({ message: "Product not found" });
+    }
+    res.json({ message: "Saved" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.delete("/wishlist/:productId", verifyUser, async (req, res) => {
+  const productId = productIdParam(req);
+  if (!productId) return res.status(400).json({ message: "Unknown product" });
+  try {
+    await runQuery(db, "DELETE FROM wishlist_items WHERE user_id=? AND product_id=?", [req.user.id, productId]);
+    res.json({ message: "Removed" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
    CONTINUE WITH GOOGLE
    The browser gets a signed ID token from Google; we check it with Google's library.
 */
