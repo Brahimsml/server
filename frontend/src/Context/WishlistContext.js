@@ -47,13 +47,31 @@ export const WishlistContext = createContext({
   toggle: () => {},
   remove: () => {},
   inAccount: false,
+  toast: null,
+  dismissToast: () => {},
 });
+
+const TOAST_MS = 5000;
 
 export const WishlistProvider = ({ children }) => {
   const [token, setToken] = useState(getUserToken);
   const [items, setItems] = useState(() => (getUserToken() ? [] : loadLocal()));
   const itemsRef = useRef(items);
   itemsRef.current = items;
+
+  // Small message after saving: signed out -> "Sign in to keep it", signed in -> "Saved"
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+  const showToast = useCallback((next) => {
+    clearTimeout(toastTimer.current);
+    setToast({ ...next, key: Date.now() });
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_MS);
+  }, []);
+  const dismissToast = useCallback(() => {
+    clearTimeout(toastTimer.current);
+    setToast(null);
+  }, []);
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   // Sign-in expired while shopping: carry on with a browser wishlist
   const dropSession = useCallback(() => {
@@ -122,18 +140,19 @@ export const WishlistProvider = ({ children }) => {
       }
       const before = itemsRef.current;
       setItems((list) => [snapshot(product), ...list]);
+      showToast({ name: product.name, signedIn: Boolean(token) });
       if (!token) return;
       api.post(`/wishlist/${product.id}`, null, authHeader(token)).catch((err) => {
         if (isAuthError(err)) return dropSession();
         setItems(before);
       });
     },
-    [token, remove, dropSession]
+    [token, remove, dropSession, showToast]
   );
 
   const value = useMemo(
-    () => ({ items, isSaved, toggle, remove, inAccount: Boolean(token) }),
-    [items, isSaved, toggle, remove, token]
+    () => ({ items, isSaved, toggle, remove, inAccount: Boolean(token), toast, dismissToast }),
+    [items, isSaved, toggle, remove, token, toast, dismissToast]
   );
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 };
