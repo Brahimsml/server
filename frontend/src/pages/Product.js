@@ -43,6 +43,9 @@ const parseSpecs = (text) =>
         : { name: "", value: line };
     });
 
+// How many specs show before "See all"
+const KEY_SPECS = 6;
+
 const Product = () => {
   const { id: param } = useParams();
   const productId = productIdFromParam(param); // "12-nvidia-rtx-4090" -> 12
@@ -55,12 +58,14 @@ const Product = () => {
   const [status, setStatus] = useState("loading"); // loading | ready | missing | error
   const [qty, setQty] = useState(1);
   const [photo, setPhoto] = useState(0); // which photo is shown large
+  const [allSpecs, setAllSpecs] = useState(false);
 
   useEffect(() => {
     let alive = true;
     setStatus("loading");
     setQty(1);
     setPhoto(0);
+    setAllSpecs(false);
 
     if (!productId) {
       setStatus("missing");
@@ -153,6 +158,7 @@ const Product = () => {
   const shown = photos[Math.min(photo, photos.length - 1)];
   const step = (dir) => setPhoto((i) => (i + dir + photos.length) % photos.length);
   const specs = parseSpecs(product.specs);
+  const shownSpecs = allSpecs ? specs : specs.slice(0, KEY_SPECS);
 
   return (
     <div className="mt-page hp">
@@ -245,6 +251,33 @@ const Product = () => {
 
             {product.description && <p className="pd-desc">{product.description}</p>}
 
+            {specs.length > 0 && (
+              <div className="pd-keyspecs">
+                <h2>{allSpecs || specs.length <= KEY_SPECS ? "Specifications" : "Key specs"}</h2>
+                <table>
+                  <tbody>
+                    {shownSpecs.map((row, i) =>
+                      row.name ? (
+                        <tr key={i}>
+                          <th scope="row">{row.name}</th>
+                          <td>{row.value}</td>
+                        </tr>
+                      ) : (
+                        <tr key={i}>
+                          <td colSpan={2}>{row.value}</td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+                {specs.length > KEY_SPECS && (
+                  <button type="button" className="pd-keyspecs__more" onClick={() => setAllSpecs((v) => !v)}>
+                    {allSpecs ? "Show fewer" : `See all ${specs.length} specifications`}
+                  </button>
+                )}
+              </div>
+            )}
+
             {!soldOut && (
               <div className="pd-qty-row">
                 <span className="pd-qty-label">Quantity</span>
@@ -299,36 +332,6 @@ const Product = () => {
             </ul>
           </div>
         </div>
-
-        {/* ===== Specifications ===== */}
-        {specs.length > 0 && (
-          <section className="mt-section">
-            <div className="mt-section-head">
-              <div>
-                <h2>Specifications</h2>
-                <p>Technical details for the {product.name}.</p>
-              </div>
-            </div>
-            <div className="pd-specs">
-              <table>
-                <tbody>
-                  {specs.map((row, i) =>
-                    row.name ? (
-                      <tr key={i}>
-                        <th scope="row">{row.name}</th>
-                        <td>{row.value}</td>
-                      </tr>
-                    ) : (
-                      <tr key={i}>
-                        <td colSpan={2}>{row.value}</td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
 
         {/* ===== Related ===== */}
         {related.some(sameCategory) && (
