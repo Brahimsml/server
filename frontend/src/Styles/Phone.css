@@ -327,3 +327,127 @@
     display: none;
   }
 }
+
+/* ===== Banner fits every screen ===== */
+/* Stacked banner: the text column may shrink, so nothing pokes out on small phones */
+@media (max-width: 860px) {
+  .hp-slide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hp-slide__copy,
+  .hp-slide__tags {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .hp-slide__title,
+  .hp-slide__desc {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Phones held sideways (short screens): photo and text side by side, one screen tall */
+@media (max-height: 520px) and (orientation: landscape) and (max-width: 1000px) {
+  .hp-slide {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    min-height: 0;
+  }
+
+  .hp-slide__media {
+    order: 0;
+    height: auto;
+    min-height: 0;
+    margin: 12px 12px 12px 0;
+    padding: 14px 20px;
+  }
+
+  .hp-slide__copy {
+    padding: 18px 16px 18px 24px;
+  }
+
+  .hp-slide__title {
+    margin-top: 8px;
+    font-size: 1.5rem;
+  }
+
+  .hp-slide__desc {
+    display: none;
+  }
+
+  .hp-slide__price {
+    margin-top: 8px;
+    font-size: 1.4rem;
+  }
+
+  .hp-slide__actions {
+    margin-top: 12px;
+  }
+
+  .hp-slider__controls {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 340px) {
+  .hp-slide__copy {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hp-slide__title {
+    font-size: 1.4rem;
+  }
+
+  .hp-slide__price {
+    font-size: 1.45rem;
+  }
+}
+
+/* Slide arrows and dots: arrows at the edges, dots shrink to fit between them */
+@media (max-width: 640px) {
+  .hp-slider__controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .hp-slider__arrow {
+    flex-shrink: 0;
+  }
+
+  .hp-slider__dots {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .hp-slider__dots button {
+    flex: 0 1 22px;
+    min-width: 8px;
+  }
+}
+
+/* Tablets and sideways phones: category tiles in one swipe row too (never 3 + 1 left alone) */
+@media (min-width: 641px) and (max-width: 900px) {
+  .hp-cats {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 30%;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 -24px;
+    padding: 0 24px;
+    scroll-padding-inline: 24px;
+  }
+
+  .hp-cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-cat {
+    scroll-snap-align: start;
+  }
+}
