@@ -1363,3 +1363,50 @@
 .pc-more .mt-btn {
   min-width: 220px;
 }
+
+/* Shop on small laptops / tablets held sideways: 3 across (not 2 big ones) */
+@media (min-width: 1000px) and (max-width: 1279px) {
+  .pc--shop .pc-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .pc--shop .pc-media {
+    height: 170px;
+  }
+}
+
+/* Shop on laptops and bigger: 4 cards across (12 products = 3 full rows), a bit shorter */
+@media (min-width: 1280px) {
+  .pc--shop .pc-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .pc--shop .pc-media {
+    height: 170px;
+    padding: 18px;
+  }
+
+  .pc--shop .pc-body {
+    padding: 14px;
+  }
+
+  .pc--shop .pc-desc {
+    -webkit-line-clamp: 1;
+    min-height: 1.5em;
+    margin-bottom: 12px;
+  }
+
+  .pc--shop .pc-price {
+    font-size: 1.15rem;
+  }
+
+  .pc--shop .pc-actions {
+    margin-top: 12px;
+  }
+
+  .pc--shop .pc-skeleton {
+    height: 340px;
+  }
+}
