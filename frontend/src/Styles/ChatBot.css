@@ -92,6 +92,7 @@
   z-index: 9999;
   width: 390px;
   height: min(640px, calc(100vh - 48px));
+  height: min(640px, calc(100dvh - 48px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -633,5 +634,18 @@
   .cb-typing span,
   .cb-notice {
     animation: none;
+  }
+}
+
+/* iPhone home bar / notch: keep the chat button clear of them */
+.cb-launch {
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 640px) {
+  .cb-launch {
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }

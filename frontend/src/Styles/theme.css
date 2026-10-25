@@ -26,7 +26,8 @@
 }
 
 .mt-page {
-  min-height: calc(100vh - 68px); /* minus the navbar */
+  min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px); /* minus the navbar */
   padding: 44px 24px 88px;
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -520,5 +521,19 @@ select.mt-input option {
   .mt-page *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* iPhone notch / home bar: keep content inside the safe area (zero on computers) */
+.mt-page {
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+
+@media (max-width: 640px) {
+  .mt-page {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 }

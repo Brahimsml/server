@@ -41,6 +41,7 @@
   --c-warn: #e8b04f;
 
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 44px 24px 80px;
   color: var(--c-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -615,4 +616,19 @@
   max-width: 1200px;
   margin: 56px auto 0;
   color: var(--mt-text);
+}
+
+/* iPhone notch / home bar */
+.cart-page {
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 600px) {
+  .cart-page {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
 }

@@ -52,3 +52,45 @@ h3 {
 .page-content > * {
   width: 100%;
 }
+
+/* ===================================================================
+   PHONES & iPHONE (Safari)
+   =================================================================== */
+
+/* Don't let Safari enlarge text by itself when the phone is turned sideways */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* No grey flash when tapping links and buttons */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iPhone zooms into any text field under 16px; 16px on phones/tablets stops that */
+@media (max-width: 900px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch screens have no hover: a tap would leave cards/buttons stuck "lifted" */
+@media (hover: none) {
+  .pc-card:hover,
+  .hp-cat:hover,
+  .ab-value:hover,
+  .acc-link:hover,
+  a.ad-kpi:hover,
+  .ct-method:hover,
+  .chatbot-float:hover,
+  .auth-submit:hover,
+  .cart-btn--primary:hover,
+  .mt-btn--primary:hover,
+  .pc-card:hover .pc-media img,
+  .hp-cat:hover .hp-cat__media img {
+    transform: none !important;
+  }
+}

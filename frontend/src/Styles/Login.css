@@ -12,7 +12,8 @@
   --a-danger: #f08a8a;
   --a-success: #6fd59c;
 
-  min-height: calc(100vh - 68px); /* minus the navbar */
+  min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px); /* minus the navbar */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -442,4 +443,18 @@
   margin: 0;
   accent-color: var(--a-accent);
   cursor: pointer;
+}
+
+/* iPhone notch / home bar */
+.auth-page {
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
 }

@@ -6,6 +6,7 @@
 
 .ad {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   background: #0f0d0a;
@@ -18,6 +19,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
@@ -1271,6 +1273,7 @@ a.ad-kpi:hover {
 /* ===================== LOGIN ===================== */
 .ad-login {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 32px 18px;
@@ -2009,4 +2012,15 @@ a.ad-kpi:hover {
 .ad-open {
   display: block;
   color: var(--mt-warn) !important;
+}
+
+/* iPhone notch / home bar for the admin on phones */
+@media (max-width: 1024px) {
+  .ad-topbar {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+.ad-content {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
