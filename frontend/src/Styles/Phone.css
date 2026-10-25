@@ -742,3 +742,29 @@
     visibility: hidden;
   }
 }
+
+/* Top banner on phones: full-width "Shop now", the featured product underneath */
+@media (max-width: 640px) {
+  .hp-slide__actions {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .hp-slide__actions .mt-btn {
+    flex: none;
+    font-size: 0.95rem;
+  }
+
+  .hp-slide__actions .mt-btn svg {
+    display: inline-block !important;
+  }
+
+  .hp-slide__featuring {
+    align-self: center;
+    font-size: 0.84rem;
+  }
+}

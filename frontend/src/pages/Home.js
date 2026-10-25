@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -7,20 +7,15 @@ import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
-import CheckIcon from "@mui/icons-material/Check";
 import ProductsItem from "../Components/ProductsItem";
-import { CartContext } from "../Context/CartContext";
 import api from "../api";
 import {
-  formatMoney,
   imageUrl,
   isBestSeller,
   isSoldOut,
   normalizeLabel,
   onImageError,
   productPath,
-  toCartProduct,
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
@@ -33,6 +28,19 @@ const CATEGORY_BLURBS = [
   [/monitor/i, "Sharper visuals for every setup"],
   [/peripheral|keyboard|mouse|headset|audio/i, "Keyboards, mice and headsets"],
 ];
+
+// Top banner: a short campaign line per category (like big stores), not a product listing
+const CATEGORY_HEADLINES = [
+  [/gpu|graphic/i, "Next-gen graphics power", "The latest GPUs for smooth 4K gaming and faster creative work."],
+  [/laptop/i, "Performance that travels", "Gaming and creator laptops, ready wherever you are."],
+  [/monitor/i, "See every frame", "Fast, sharp gaming monitors for every setup."],
+  [/peripheral|keyboard|mouse|headset|audio/i, "Gear up your setup", "Keyboards, mice and headsets built for play."],
+];
+
+const categoryHeadline = (name) => {
+  const match = CATEGORY_HEADLINES.find(([re]) => re.test(name || ""));
+  return match ? { title: match[1], text: match[2] } : { title: `Shop ${name || "the latest gear"}`, text: "Explore the latest PC gear at MegaTech." };
+};
 
 const categoryBlurb = (name) =>
   (CATEGORY_BLURBS.find(([re]) => re.test(name)) || [null, "Explore the range"])[1];
@@ -52,7 +60,6 @@ const isNew = (p) => /^new/i.test(normalizeLabel(p.label));
 const ROW_SIZE = 8; // products per sideways row
 
 const Home = () => {
-  const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
@@ -61,8 +68,6 @@ const Home = () => {
 
   const [featureIndex, setFeatureIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [featureAdded, setFeatureAdded] = useState(false);
-  const addedTimer = useRef(null);
 
   // Load the catalog once and share it with every section
   useEffect(() => {
@@ -79,15 +84,21 @@ const Home = () => {
 
     return () => {
       alive = false;
-      clearTimeout(addedTimer.current);
     };
   }, []);
 
-  // Featured: labelled products (Best Seller / New) with a photo, else the newest ones
+  // Banner: one slide per category, showing its flagship: the priciest
+  // Best Seller / New product with a photo (or the priciest one if none is labelled)
   const featured = useMemo(() => {
-    const withImage = products.filter((p) => p.image && !isSoldOut(p));
-    const labelled = withImage.filter((p) => normalizeLabel(p.label));
-    return (labelled.length >= 3 ? labelled : withImage).slice(0, 6);
+    const byCategory = new Map();
+    products
+      .filter((p) => p.image && !isSoldOut(p))
+      .sort((a, b) => Number(Boolean(normalizeLabel(b.label))) - Number(Boolean(normalizeLabel(a.label))) || Number(b.price) - Number(a.price))
+      .forEach((p) => {
+        const name = p.category_name || "Other";
+        if (!byCategory.has(name)) byCategory.set(name, p);
+      });
+    return Array.from(byCategory.values()).slice(0, 6);
   }, [products]);
 
   // Next slide after a few seconds. Restarts on every change, so a click or a
@@ -156,19 +167,9 @@ const Home = () => {
     if (requested) navigate(shopLink(requested), { replace: true });
   }, [search, navigate]);
 
-  const addFeatured = () => {
-    if (!current) return;
-    if (addToCart(toCartProduct(current))) {
-      setFeatureAdded(true);
-      clearTimeout(addedTimer.current);
-      addedTimer.current = setTimeout(() => setFeatureAdded(false), 1600);
-    }
-  };
-
   const step = (dir) => {
     if (!featured.length) return;
     setFeatureIndex((i) => (i + dir + featured.length) % featured.length);
-    setFeatureAdded(false);
   };
 
   return (
@@ -191,39 +192,17 @@ const Home = () => {
           ) : current ? (
             <div className="hp-slide" key={current.id}>
               <div className="hp-slide__copy">
-                <div className="hp-slide__tags">
-                  {normalizeLabel(current.label) && (
-                    <span
-                      className={`pc-label ${
-                        isBestSeller(current) ? "pc-label--best" : isNew(current) ? "pc-label--new" : ""
-                      }`}
-                    >
-                      {isBestSeller(current) ? "Best Seller" : normalizeLabel(current.label)}
-                    </span>
-                  )}
-                  <span className="hp-slide__cat">{current.category_name}</span>
-                </div>
+                <span className="hp-slide__cat">{current.category_name}</span>
 
-                <h2 className="hp-slide__title">
-                  <Link to={productPath(current)}>{current.name}</Link>
-                </h2>
-                {current.description && <p className="hp-slide__desc">{current.description}</p>}
-                <span className="hp-slide__price">{formatMoney(current.price)}</span>
+                <h2 className="hp-slide__title">{categoryHeadline(current.category_name).title}</h2>
+                <p className="hp-slide__desc">{categoryHeadline(current.category_name).text}</p>
 
                 <div className="hp-slide__actions">
-                  <button type="button" className="mt-btn mt-btn--primary" onClick={addFeatured}>
-                    {featureAdded ? (
-                      <>
-                        <CheckIcon /> Added
-                      </>
-                    ) : (
-                      <>
-                        <AddShoppingCartIcon /> Add to cart
-                      </>
-                    )}
-                  </button>
-                  <Link to={shopLink(current.category_name)} className="mt-btn mt-btn--secondary">
-                    Shop {current.category_name || "all"} <ArrowForwardIcon />
+                  <Link to={shopLink(current.category_name)} className="mt-btn mt-btn--primary">
+                    Shop now <ArrowForwardIcon />
+                  </Link>
+                  <Link to={productPath(current)} className="hp-slide__featuring">
+                    Featuring {current.name}
                   </Link>
                 </div>
 
@@ -233,23 +212,20 @@ const Home = () => {
                       type="button"
                       className="hp-slider__arrow"
                       onClick={() => step(-1)}
-                      aria-label="Previous featured product"
+                      aria-label="Previous banner"
                     >
                       <ChevronLeftIcon />
                     </button>
-                    <div className="hp-slider__dots" role="tablist" aria-label="Featured products">
+                    <div className="hp-slider__dots" role="tablist" aria-label="Banners">
                       {featured.map((p, i) => (
                         <button
                           key={p.id}
                           type="button"
                           role="tab"
                           aria-selected={i === featureIndex}
-                          aria-label={`Show ${p.name}`}
+                          aria-label={`Show ${p.category_name}`}
                           className={i === featureIndex ? "is-active" : ""}
-                          onClick={() => {
-                            setFeatureIndex(i);
-                            setFeatureAdded(false);
-                          }}
+                          onClick={() => setFeatureIndex(i)}
                         >
                           <span />
                         </button>
@@ -259,7 +235,7 @@ const Home = () => {
                       type="button"
                       className="hp-slider__arrow"
                       onClick={() => step(1)}
-                      aria-label="Next featured product"
+                      aria-label="Next banner"
                     >
                       <ChevronRightIcon />
                     </button>

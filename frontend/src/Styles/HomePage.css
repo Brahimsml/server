@@ -1410,3 +1410,34 @@
     height: 340px;
   }
 }
+
+/* ===================== TOP BANNER: campaign style ===================== */
+/* Headline + one "Shop now" button (no price / Add to cart), like big stores */
+.hp-slide__title {
+  margin-top: 14px;
+  font-size: clamp(2.1rem, 3.6vw, 3.2rem);
+}
+
+.hp-slide__desc {
+  -webkit-line-clamp: 3;
+}
+
+.hp-slide__actions {
+  align-items: center;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.hp-slide__featuring {
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(246, 241, 231, 0.25);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.hp-slide__featuring:hover {
+  color: var(--mt-accent-bright);
+  border-color: var(--mt-accent-bright);
+}
