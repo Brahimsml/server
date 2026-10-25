@@ -526,3 +526,27 @@
     height: 230px;
   }
 }
+
+/* ===== Chat button on phones: a little smaller, and it steps aside while you scroll ===== */
+@media (max-width: 640px) {
+  .chatbot-float {
+    width: 44px;
+    height: 44px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .chatbot-float svg {
+    font-size: 20px;
+  }
+
+  .cb-launch.is-scrolling .chatbot-float {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+  }
+
+  .cb-launch.is-scrolling .cb-teaser {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

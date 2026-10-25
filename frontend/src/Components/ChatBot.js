@@ -49,6 +49,21 @@ const ChatBot = () => {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  const [scrolling, setScrolling] = useState(false); // phones: the chat button steps aside while you scroll
+  const scrollTimer = useRef(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolling(true);
+      clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => setScrolling(false), 600);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(scrollTimer.current);
+    };
+  }, []);
   const [{ messages, context }, setChat] = useState(loadChat);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -168,7 +183,7 @@ const ChatBot = () => {
   return (
     <>
       {!open && (
-        <div className="cb-launch">
+        <div className={`cb-launch ${scrolling ? "is-scrolling" : ""}`}>
           {teaser && (
             <div className="cb-teaser" role="status">
               <button type="button" className="cb-teaser__text" onClick={() => setOpen(true)}>
