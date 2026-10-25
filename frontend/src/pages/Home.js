@@ -49,6 +49,8 @@ const shopLink = (category) =>
 
 const isNew = (p) => /^new/i.test(normalizeLabel(p.label));
 
+const ROW_SIZE = 8; // products per sideways row
+
 const Home = () => {
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
@@ -129,9 +131,9 @@ const Home = () => {
     const newest = [...products].sort((a, b) => Number(b.id) - Number(a.id));
     const picks = newest.filter(isNew);
     newest.forEach((p) => {
-      if (picks.length < 4 && !picks.includes(p) && !isBestSeller(p)) picks.push(p);
+      if (picks.length < ROW_SIZE && !picks.includes(p) && !isBestSeller(p)) picks.push(p);
     });
-    return new Set(picks.slice(0, 4).map((p) => p.id));
+    return new Set(picks.slice(0, ROW_SIZE).map((p) => p.id));
   }, [products]);
 
   // Old links (/home?category=Monitors) now open the shop page
@@ -334,7 +336,8 @@ const Home = () => {
               products={products}
               loading={loading}
               filter={isBestSeller}
-              limit={4}
+              limit={ROW_SIZE}
+              row
               showToolbar={false}
               showCategories={false}
               showPagination={false}
@@ -359,13 +362,42 @@ const Home = () => {
               products={products}
               loading={loading}
               filter={(p) => newArrivalIds.has(p.id)}
-              limit={4}
+              limit={ROW_SIZE}
+              row
               showToolbar={false}
               showCategories={false}
               showPagination={false}
             />
           </section>
         )}
+
+        {/* ===== ONE ROW PER CATEGORY ===== */}
+        {!loading &&
+          categories
+            .filter((cat) => cat.count >= 2)
+            .map((cat) => (
+              <section className="mt-section hp-catrow" key={cat.name}>
+                <div className="mt-section-head">
+                  <div>
+                    <h2>{cat.name}</h2>
+                    <p>{categoryBlurb(cat.name)}</p>
+                  </div>
+                  <Link to={shopLink(cat.name)} className="mt-link">
+                    See all {cat.count} <ArrowForwardIcon fontSize="inherit" />
+                  </Link>
+                </div>
+
+                <ProductsItem
+                  products={products}
+                  category={cat.name}
+                  limit={ROW_SIZE}
+                  row
+                  showToolbar={false}
+                  showCategories={false}
+                  showPagination={false}
+                />
+              </section>
+            ))}
 
         {/* ===== CLOSING CTA ===== */}
         <section className="mt-cta">

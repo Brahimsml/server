@@ -43,6 +43,7 @@ const ProductsItem = ({
   emptyTitle = "No products found",
   emptyText = "Try another category, or clear the search.",
   initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
+  row = false, // one sideways-scrolling row instead of a grid (home, related products)
 }) => {
   const [query, setQuery] = useState(initialQuery);
 
@@ -57,6 +58,8 @@ const ProductsItem = ({
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
   const sideList = useRef(null);
+  const rowRef = useRef(null);
+  const [rowEnds, setRowEnds] = useState({ start: true, end: true });
 
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
@@ -123,6 +126,29 @@ const ProductsItem = ({
         return Number(b.id || 0) - Number(a.id || 0);
       });
   }, [products, filter, category, query, sort, inStockOnly]);
+
+  // Row mode: show the arrows only when there is more to scroll that way
+  const updateRowEnds = () => {
+    const el = rowRef.current;
+    if (!el) return;
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setRowEnds((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+  };
+
+  useEffect(() => {
+    if (!row) return undefined;
+    updateRowEnds();
+    window.addEventListener("resize", updateRowEnds);
+    return () => window.removeEventListener("resize", updateRowEnds);
+  });
+
+  const scrollRow = (dir) => {
+    const el = rowRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
+  };
+
+  const gridClass = row ? "pc-grid pc-grid--row" : "pc-grid";
 
   const totalPages = showPagination ? Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)) : 1;
 
@@ -230,7 +256,7 @@ const ProductsItem = ({
       )}
 
       {loading ? (
-        <div className="pc-grid">
+        <div className={gridClass}>
           {Array.from({ length: limit || PAGE_SIZE }).map((_, i) => (
             <div key={i} className="mt-skeleton pc-skeleton" />
           ))}
@@ -250,7 +276,11 @@ const ProductsItem = ({
         </div>
       ) : (
         <>
-          <div className="pc-grid">
+          <div
+            className={gridClass}
+            ref={row ? rowRef : undefined}
+            onScroll={row ? updateRowEnds : undefined}
+          >
             {visibleProducts.map((product) => {
               const soldOut = isSoldOut(product);
               const stock = Number(product.stock_quantity);
@@ -332,6 +362,17 @@ const ProductsItem = ({
             })}
           </div>
 
+          {row && !(rowEnds.start && rowEnds.end) && (
+            <div className="pc-row-arrows">
+              <button type="button" onClick={() => scrollRow(-1)} disabled={rowEnds.start} aria-label="Scroll left">
+                <ChevronLeftIcon />
+              </button>
+              <button type="button" onClick={() => scrollRow(1)} disabled={rowEnds.end} aria-label="Scroll right">
+                <ChevronRightIcon />
+              </button>
+            </div>
+          )}
+
           {showPagination && totalPages > 1 && (
             <nav className="pc-pagination" aria-label="Product pages">
               <button
@@ -376,7 +417,7 @@ const ProductsItem = ({
     </>
   );
 
-  if (!showCategories) return <div className="pc">{content}</div>;
+  if (!showCategories) return <div className={row ? "pc pc--row" : "pc"}>{content}</div>;
 
   // Shop layout: filters in a sidebar next to the products;
   // on phones the sidebar becomes a panel that slides up ("Filters" button)

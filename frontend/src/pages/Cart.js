@@ -68,7 +68,7 @@ const Cart = () => {
       .then((res) => {
         const all = (Array.isArray(res.data) ? res.data : []).filter((p) => !isSoldOut(p) && p.image);
         const best = all.filter(isBestSeller);
-        setPopular((best.length >= 4 ? best : [...best, ...all.filter((p) => !isBestSeller(p))]).slice(0, 4));
+        setPopular((best.length >= 8 ? best : [...best, ...all.filter((p) => !isBestSeller(p))]).slice(0, 8));
       })
       .catch(() => setPopular([]));
   }, [cartIsEmpty, popular]);
@@ -271,6 +271,7 @@ const Cart = () => {
             </div>
             <ProductsItem
               products={popular}
+              row
               showToolbar={false}
               showCategories={false}
               showPagination={false}

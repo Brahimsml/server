@@ -1119,3 +1119,114 @@
     white-space: normal;
   }
 }
+
+/* ===================== SIDEWAYS PRODUCT ROWS (row mode) ===================== */
+/* Home rows, "You may also like" and "Popular right now": one row you swipe or scroll */
+.pc--row {
+  position: relative;
+}
+
+.pc-grid.pc-grid--row {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * 18px) / 4);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* room for the card lift on hover, which the scroll box would otherwise cut off */
+  padding: 4px 0 10px;
+  margin: -4px 0 -10px;
+}
+
+.pc-grid--row::-webkit-scrollbar {
+  display: none;
+}
+
+.pc-grid--row > * {
+  scroll-snap-align: start;
+}
+
+/* Arrows on computers; phones and tablets swipe */
+.pc-row-arrows button {
+  position: absolute;
+  top: 82px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--mt-border-strong);
+  background: rgba(14, 12, 9, 0.92);
+  color: var(--mt-text);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.pc-row-arrows button:first-child {
+  left: -18px;
+}
+
+.pc-row-arrows button:last-child {
+  right: -18px;
+}
+
+.pc-row-arrows button:hover:not(:disabled) {
+  border-color: var(--mt-accent);
+  color: var(--mt-accent-bright);
+}
+
+.pc-row-arrows button:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 1180px) {
+  .pc-grid.pc-grid--row {
+    grid-auto-columns: calc((100% - 2 * 18px) / 3);
+  }
+}
+
+/* Tablets and phones: the row runs edge to edge, with the next card peeking in */
+@media (max-width: 900px), (hover: none) {
+  .pc-row-arrows {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .pc-grid.pc-grid--row {
+    grid-auto-columns: 34%;
+    gap: 14px;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    scroll-padding-inline: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pc-grid.pc-grid--row {
+    grid-auto-columns: 44%;
+    gap: 12px;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-padding-inline: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .pc-grid.pc-grid--row {
+    grid-auto-columns: 58%;
+  }
+}
+
+/* Category rows on the home page: a little tighter than the big sections */
+.hp-catrow.mt-section {
+  margin-top: 56px;
+}
