@@ -1142,8 +1142,8 @@ body.nb-menu-open .chatbot-box {
   gap: 11px;
 }
 
-/* ===================== PHONE MENU BAR ===================== */
-@media (max-width: 640px) {
+/* ===================== PHONE & TABLET MENU BAR ===================== */
+@media (max-width: 900px) {
   .nb-inner {
     height: 60px;
     gap: 4px;
