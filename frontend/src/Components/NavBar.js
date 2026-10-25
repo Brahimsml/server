@@ -19,26 +19,18 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 
 import logo from "../Assets/logo.jpg";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
 import { clearUserSession, getUser } from "../utils/auth";
-import api from "../api";
-import SHOP_INFO from "../utils/shopInfo";
 
 const MAIN_LINKS = [
-  { to: "/home", label: "Home", icon: HomeOutlinedIcon },
-  { to: "/shop", label: "Shop", icon: StorefrontOutlinedIcon },
-  { to: "/menu", label: "Locations", icon: PlaceOutlinedIcon },
-  { to: "/about", label: "About", icon: InfoOutlinedIcon },
-  { to: "/contact", label: "Contact", icon: ChatBubbleOutlineIcon },
+  { to: "/home", label: "Home" },
+  { to: "/shop", label: "Shop" },
+  { to: "/menu", label: "Locations" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
 ];
 
 const ADMIN_LINKS = [
@@ -58,14 +50,6 @@ const NavBar = () => {
   const [openMenu, setOpenMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [badgeBump, setBadgeBump] = useState(false);
-  const [categories, setCategories] = useState([]); // "Shop by category" in the phone menu
-
-  useEffect(() => {
-    api
-      .get("/categories")
-      .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
-      .catch(() => {});
-  }, []);
 
   const accountRef = useRef(null);
   const adminRef = useRef(null);
@@ -299,156 +283,60 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* ===== Phone menu: drawer from the left ===== */}
+      {/* ===== Phone menu ===== */}
       {mobileOpen && (
         <>
-          <div className="nb-drawer-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
-          <nav className="nb-drawer" id="nb-mobile" aria-label="Menu" role="dialog" aria-modal="true">
-            <div className="nb-drawer__head">
-              <Link to="/home" className="nb-brand" aria-label="MegaTech home">
-                <img src={logo} alt="" />
-                <span>MegaTech</span>
-              </Link>
-              <button type="button" className="nb-icon-btn" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-                <CloseIcon />
-              </button>
-            </div>
+          <div className="nb-mobile-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+          <nav className="nb-mobile" id="nb-mobile" aria-label="Mobile">
+            {MAIN_LINKS.map(({ to, label }) => (
+              <NavLink key={to} to={to} className={(s) => linkClass(s, to)}>
+                {label}
+              </NavLink>
+            ))}
 
-            <div className="nb-drawer__body">
+            <div className="nb-mobile__section">
               {user ? (
-                <Link to="/account" className="nb-drawer__user">
-                  <span className="nb-avatar">{initial}</span>
-                  <span className="nb-drawer__user-text">
-                    <strong>Hi, {firstName}</strong>
-                    {user.email && <small>{user.email}</small>}
-                  </span>
-                  <ChevronRightIcon fontSize="small" />
-                </Link>
-              ) : (
-                <div className="nb-drawer__welcome">
-                  <strong>Welcome to MegaTech</strong>
-                  <span>Sign in to track orders, save a wishlist and check out faster.</span>
-                  <div className="nb-drawer__auth">
-                    <Link to="/login" className="mt-btn mt-btn--primary mt-btn--sm">
-                      Sign in
-                    </Link>
-                    <Link to="/login?mode=register" className="mt-btn mt-btn--secondary mt-btn--sm">
-                      Create account
-                    </Link>
+                <>
+                  <div className="nb-mobile__user">
+                    <span className="nb-avatar">{initial}</span>
+                    <div>
+                      <strong>{user.name}</strong>
+                      {user.email && <span>{user.email}</span>}
+                    </div>
                   </div>
-                </div>
-              )}
-
-              <ul className="nb-drawer__list">
-                {MAIN_LINKS.map(({ to, label, icon: Icon }) => (
-                  <li key={to}>
-                    <NavLink to={to} className={(st) => `nb-drawer__link ${st.isActive || (to === "/home" && isHome) ? "is-active" : ""}`}>
-                      <Icon fontSize="small" />
-                      <span>{label}</span>
-                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-
-              {categories.length > 0 && (
-                <>
-                  <p className="nb-drawer__label">Shop by category</p>
-                  <ul className="nb-drawer__list nb-drawer__list--plain">
-                    {categories.map((c) => (
-                      <li key={c.id}>
-                        <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__link">
-                          <span>{c.name}</span>
-                          <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                  <NavLink to="/account" className={(s) => linkClass(s, "/account")}>
+                    My account
+                  </NavLink>
+                  <NavLink to="/my-orders" className={(s) => linkClass(s, "/my-orders")}>
+                    My orders
+                  </NavLink>
+                  <NavLink to="/wishlist" className={(s) => linkClass(s, "/wishlist")}>
+                    Wishlist{wishlist.length > 0 ? ` (${wishlist.length})` : ""}
+                  </NavLink>
+                  <button type="button" className="nb-link" onClick={logoutUser}>
+                    Sign out
+                  </button>
                 </>
-              )}
-
-              {user && (
-                <>
-                  <p className="nb-drawer__label">My account</p>
-                  <ul className="nb-drawer__list">
-                    <li>
-                      <NavLink to="/my-orders" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
-                        <ReceiptLongOutlinedIcon fontSize="small" />
-                        <span>My orders</span>
-                        <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
-                        <FavoriteBorderIcon fontSize="small" />
-                        <span>Wishlist</span>
-                        {wishlist.length > 0 && <span className="nb-drawer__count">{wishlist.length}</span>}
-                        <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink to="/account" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
-                        <ManageAccountsOutlinedIcon fontSize="small" />
-                        <span>Account settings</span>
-                        <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                      </NavLink>
-                    </li>
-                  </ul>
-                </>
-              )}
-
-              {!user && (
-                <ul className="nb-drawer__list">
-                  <li>
-                    <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
-                      <FavoriteBorderIcon fontSize="small" />
-                      <span>Wishlist</span>
-                      {wishlist.length > 0 && <span className="nb-drawer__count">{wishlist.length}</span>}
-                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                    </NavLink>
-                  </li>
-                </ul>
-              )}
-
-              {isAdmin && (
-                <>
-                  <p className="nb-drawer__label">Admin</p>
-                  <ul className="nb-drawer__list">
-                    {ADMIN_LINKS.map(({ to, label, icon: Icon }) => (
-                      <li key={to}>
-                        <NavLink to={to} className="nb-drawer__link">
-                          <Icon fontSize="small" />
-                          <span>{label}</span>
-                          <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                        </NavLink>
-                      </li>
-                    ))}
-                    <li>
-                      <button type="button" className="nb-drawer__link" onClick={logoutAdmin}>
-                        <LogoutIcon fontSize="small" />
-                        <span>Admin sign out</span>
-                      </button>
-                    </li>
-                  </ul>
-                </>
-              )}
-
-              <div className="nb-drawer__help">
-                <p className="nb-drawer__label">Need help?</p>
-                <a href={`tel:${SHOP_INFO.phoneLink}`}>
-                  <PhoneOutlinedIcon fontSize="small" /> {SHOP_INFO.phone}
-                </a>
-                <a href={`mailto:${SHOP_INFO.email}`}>
-                  <MailOutlineIcon fontSize="small" /> {SHOP_INFO.email}
-                </a>
-              </div>
-
-              {user && (
-                <button type="button" className="nb-drawer__signout" onClick={logoutUser}>
-                  <LogoutIcon fontSize="small" /> Sign out
-                </button>
+              ) : (
+                <Link to="/login" className="mt-btn mt-btn--primary mt-btn--block">
+                  Sign in
+                </Link>
               )}
             </div>
+
+            {isAdmin && (
+              <div className="nb-mobile__section">
+                <span className="nb-mobile__label">Admin</span>
+                {ADMIN_LINKS.map(({ to, label }) => (
+                  <NavLink key={to} to={to} className={(s) => linkClass(s, to)}>
+                    {label}
+                  </NavLink>
+                ))}
+                <button type="button" className="nb-link" onClick={logoutAdmin}>
+                  Admin sign out
+                </button>
+              </div>
+            )}
           </nav>
         </>
       )}
