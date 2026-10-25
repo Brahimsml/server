@@ -451,3 +451,17 @@
     scroll-snap-align: start;
   }
 }
+
+/* Footer: the arrow on "Get in touch" matches the others (it was picking up the gold icon color) */
+.ft-col .ft-toggle .ft-toggle__icon {
+  color: var(--mt-muted);
+}
+
+/* Policy tabs on phones: the edge fades out, so it's clear the tabs scroll sideways */
+@media (max-width: 860px) {
+  .pol-nav {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+    padding-right: 28px;
+  }
+}

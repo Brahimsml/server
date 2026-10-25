@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 // "Continue with Google" using Google's own sign-in button.
 // Hidden until REACT_APP_GOOGLE_CLIENT_ID is set in frontend/.env.
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-const SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+const SCRIPT_SRC = "https://accounts.google.com/gsi/client?hl=en"; // English even for Arabic browsers
 
 let scriptPromise;
 const loadGoogleScript = () => {
