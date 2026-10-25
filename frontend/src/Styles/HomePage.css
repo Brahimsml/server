@@ -1230,3 +1230,30 @@
 .hp-catrow.mt-section {
   margin-top: 56px;
 }
+
+/* ===================== CLEANER CARDS ===================== */
+/* One button per card ("Buy now" is on the product page), like big shops */
+.pc-actions {
+  grid-template-columns: 1fr;
+}
+
+/* Inside a category row every card is that category: no need to repeat it */
+.hp-catrow .pc-cat {
+  display: none;
+}
+
+.hp-catrow .pc-name {
+  margin-top: 0;
+}
+
+/* Wide screens: 5 cards across in the sideways rows */
+@media (min-width: 1280px) {
+  .pc-grid.pc-grid--row:not(.pc-grid--few) {
+    grid-auto-columns: calc((100% - 4 * 18px) / 5);
+  }
+
+  .pc--row .pc-grid:not(.pc-grid--few) .pc-media {
+    height: 180px;
+    padding: 18px;
+  }
+}

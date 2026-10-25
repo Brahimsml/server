@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import TuneIcon from "@mui/icons-material/Tune";
 import CloseIcon from "@mui/icons-material/Close";
@@ -44,6 +44,7 @@ const ProductsItem = ({
   emptyText = "Try another category, or clear the search.",
   initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
   row = false, // one sideways-scrolling row instead of a grid (home, related products)
+  rank, // optional: products where rank(p) is true come first (keeps the rest in order)
 }) => {
   const [query, setQuery] = useState(initialQuery);
 
@@ -62,7 +63,6 @@ const ProductsItem = ({
   const [rowEnds, setRowEnds] = useState({ start: true, end: true });
 
   const { addToCart } = useContext(CartContext);
-  const navigate = useNavigate();
 
   useEffect(() => () => clearTimeout(addedTimer.current), []);
 
@@ -124,8 +124,9 @@ const ProductsItem = ({
         if (sort === "price-desc") return pb - pa;
         if (sort === "name") return String(a.name || "").localeCompare(String(b.name || ""));
         return Number(b.id || 0) - Number(a.id || 0);
-      });
-  }, [products, filter, category, query, sort, inStockOnly]);
+      })
+      .sort((a, b) => (rank ? Number(rank(b)) - Number(rank(a)) : 0));
+  }, [products, filter, category, query, sort, inStockOnly, rank]);
 
   // Row mode: show the arrows only when there is more to scroll that way
   const updateRowEnds = () => {
@@ -148,8 +149,6 @@ const ProductsItem = ({
     if (el) el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
   };
 
-  const gridClass = row ? "pc-grid pc-grid--row" : "pc-grid";
-
   const totalPages = showPagination ? Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)) : 1;
 
   const visibleProducts = useMemo(() => {
@@ -157,6 +156,11 @@ const ProductsItem = ({
     const start = (page - 1) * PAGE_SIZE;
     return filtered.slice(start, start + PAGE_SIZE);
   }, [filtered, page, limit, showPagination]);
+
+  // rows with only a few products keep 4 across, so wide screens don't show an empty slot
+  const gridClass = row
+    ? `pc-grid pc-grid--row ${!loading && visibleProducts.length <= 4 ? "pc-grid--few" : ""}`
+    : "pc-grid";
 
   const pageButtons = useMemo(() => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -182,11 +186,6 @@ const ProductsItem = ({
       clearTimeout(addedTimer.current);
       addedTimer.current = setTimeout(() => setAddedId(null), 1600);
     }
-  };
-
-  const handleBuyNow = (product) => {
-    if (isSoldOut(product)) return;
-    if (addToCart(toCartProduct(product))) navigate("/cart");
   };
 
   const resetFilters = () => {
@@ -319,13 +318,12 @@ const ProductsItem = ({
 
                     <div className="pc-price-row">
                       <span className="pc-price">{formatMoney(product.price)}</span>
+                      {/* stock only when it matters, like big shops */}
                       {soldOut ? (
                         <span className="pc-stock pc-stock--out">Out of stock</span>
                       ) : isLowStock(stock) ? (
                         <span className="pc-stock pc-stock--low">Only {stock} left</span>
-                      ) : (
-                        <span className="pc-stock pc-stock--in">In stock</span>
-                      )}
+                      ) : null}
                     </div>
 
                     <div className="pc-actions">
@@ -338,22 +336,13 @@ const ProductsItem = ({
                       >
                         {justAdded ? (
                           <>
-                            <CheckIcon /> Added
+                            <CheckIcon /> <span className="pc-add__text">Added</span>
                           </>
                         ) : (
                           <>
-                            <AddShoppingCartIcon /> Add to cart
+                            <AddShoppingCartIcon /> <span className="pc-add__text">Add to cart</span>
                           </>
                         )}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="mt-btn mt-btn--primary mt-btn--sm pc-buy"
-                        disabled={soldOut}
-                        onClick={() => handleBuyNow(product)}
-                      >
-                        Buy now
                       </button>
                     </div>
                   </div>

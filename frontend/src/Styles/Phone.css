@@ -465,3 +465,64 @@
     padding-right: 28px;
   }
 }
+
+/* ===== Compact phone cards: round cart button beside the price ===== */
+@media (max-width: 640px) {
+  .pc-cat {
+    display: none;
+  }
+
+  .pc-media {
+    height: 130px;
+  }
+
+  .pc-body {
+    position: relative;
+    padding: 10px 12px 12px;
+  }
+
+  .pc-name {
+    margin: 0 0 6px;
+  }
+
+  .pc-price-row {
+    min-height: 38px;
+    padding-right: 46px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .pc-actions {
+    position: absolute;
+    right: 10px;
+    bottom: 12px;
+    display: block;
+    margin: 0;
+  }
+
+  .pc-actions .pc-add {
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+  }
+
+  .pc-actions .pc-add svg {
+    display: block !important;
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  .pc-add__text {
+    display: none;
+  }
+
+  .pc-skeleton {
+    height: 230px;
+  }
+}

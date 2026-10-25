@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -135,6 +135,19 @@ const Home = () => {
     });
     return new Set(picks.slice(0, ROW_SIZE).map((p) => p.id));
   }, [products]);
+
+  // Category rows show products that aren't already in Best sellers / New arrivals
+  // first, so the home page doesn't keep repeating the same ones
+  const shownAbove = useMemo(() => {
+    const best = [...products]
+      .filter(isBestSeller)
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .slice(0, ROW_SIZE)
+      .map((p) => p.id);
+    return new Set([...best, ...newArrivalIds]);
+  }, [products, newArrivalIds]);
+
+  const notShownAbove = useCallback((p) => !shownAbove.has(p.id), [shownAbove]);
 
   // Old links (/home?category=Monitors) now open the shop page
   const { search } = useLocation();
@@ -390,6 +403,7 @@ const Home = () => {
                 <ProductsItem
                   products={products}
                   category={cat.name}
+                  rank={notShownAbove}
                   limit={ROW_SIZE}
                   row
                   showToolbar={false}
