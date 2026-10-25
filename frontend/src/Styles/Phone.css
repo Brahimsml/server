@@ -607,3 +607,138 @@
     width: 100%;
   }
 }
+
+/* ===== Wishlist on laptops: same compact 4-across cards as the Shop page ===== */
+@media (min-width: 1280px) {
+  .wl-head ~ .pc .pc-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .wl-head ~ .pc .pc-media {
+    height: 170px;
+    padding: 18px;
+  }
+
+  .wl-head ~ .pc .pc-body {
+    padding: 14px;
+  }
+
+  .wl-head ~ .pc .pc-desc {
+    -webkit-line-clamp: 1;
+    min-height: 1.5em;
+    margin-bottom: 12px;
+  }
+
+  .wl-head ~ .pc .pc-price {
+    font-size: 1.15rem;
+  }
+}
+
+/* ===== My orders on phones: compact filters and order cards ===== */
+@media (max-width: 640px) {
+  /* search on its own line, the three dropdowns side by side in one swipeable row */
+  .mo-toolbar {
+    gap: 10px;
+  }
+
+  .mo-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -18px;
+    padding: 0 18px 2px;
+  }
+
+  .mo-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mo-filters .mt-input {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 9px 30px 9px 12px;
+    background-position: right 10px center;
+    font-size: 0.86rem;
+  }
+
+  /* each order: number + total on top, date + status underneath; tap anywhere to open */
+  .mo-table tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+    padding: 14px 18px;
+  }
+
+  .mo-table td {
+    display: block;
+    padding: 0;
+    text-align: left;
+  }
+
+  .mo-table td::before {
+    content: none;
+  }
+
+  .mo-table td[data-label="Order"] {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 1rem;
+  }
+
+  .mo-table td[data-label="Total"] {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .mo-table td[data-label="Placed on"] {
+    grid-column: 1;
+    grid-row: 2;
+    color: var(--mt-muted);
+    font-size: 0.86rem;
+  }
+
+  .mo-table td[data-label="Status"] {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+  }
+
+  .mo-table td small {
+    margin-left: 4px;
+  }
+
+  .mo-table td small::before {
+    content: "· ";
+  }
+
+  /* the View link covers the whole card (still works with the keyboard) */
+  .mo-table .mo-action {
+    position: static;
+    width: auto;
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .mo-table .mo-action .mt-btn {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 0;
+    opacity: 0;
+  }
+
+  .mo-table .mo-action .mt-btn:focus-visible {
+    opacity: 1;
+    background: transparent;
+    outline: 2px solid var(--mt-accent-bright);
+    outline-offset: -2px;
+  }
+
+  .mo-table .mo-action .mt-btn:focus-visible * {
+    visibility: hidden;
+  }
+}

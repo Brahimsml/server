@@ -201,6 +201,8 @@ function MyOrders() {
                   />
                 </label>
 
+                {/* phones: these three sit in one row you can swipe */}
+                <div className="mo-filters">
                 <select
                   className="mt-input"
                   value={filters.status}
@@ -238,6 +240,7 @@ function MyOrders() {
                   <option value="total-high">Total: high to low</option>
                   <option value="total-low">Total: low to high</option>
                 </select>
+                </div>
               </div>
 
               <div className="mo-meta">
