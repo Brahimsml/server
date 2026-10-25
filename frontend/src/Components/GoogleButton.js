@@ -49,6 +49,7 @@ const GoogleButton = ({ onCredential, onError, text = "continue_with" }) => {
           size: "large",
           shape: "pill",
           text,
+          locale: "en", // match the site's language, not the visitor's browser
           width: Math.min(400, holder.current.offsetWidth || 320),
         });
       })

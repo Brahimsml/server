@@ -101,16 +101,23 @@ const Home = () => {
 
   const current = featured[featureIndex % (featured.length || 1)];
 
+  // Category tiles: photo of the category's flagship (most expensive) product that isn't
+  // already in the Best sellers row, so tiles show real hero products and don't repeat that row
   const categories = useMemo(() => {
     const map = new Map();
     products.forEach((p) => {
       const name = p.category_name || "Other";
-      if (!map.has(name)) map.set(name, { name, count: 0, image: "" });
+      if (!map.has(name)) map.set(name, { name, count: 0, image: "", pick: null });
       const entry = map.get(name);
       entry.count += 1;
-      if (p.image && (!entry.image || (entry.featured && !isBestSeller(p)))) {
+      if (!p.image) return;
+      const better =
+        !entry.pick ||
+        (isBestSeller(entry.pick) && !isBestSeller(p)) ||
+        (isBestSeller(entry.pick) === isBestSeller(p) && Number(p.price) > Number(entry.pick.price));
+      if (better) {
+        entry.pick = p;
         entry.image = p.image;
-        entry.featured = isBestSeller(p);
       }
     });
     return Array.from(map.values()).sort((a, b) => b.count - a.count);

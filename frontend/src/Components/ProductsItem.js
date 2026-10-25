@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
+import TuneIcon from "@mui/icons-material/Tune";
+import CloseIcon from "@mui/icons-material/Close";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -50,6 +52,7 @@ const ProductsItem = ({
   }, [initialQuery]);
   const [sort, setSort] = useState("newest");
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
   const [page, setPage] = useState(1);
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
@@ -67,6 +70,18 @@ const ProductsItem = ({
     if (!list || !active || list.scrollWidth <= list.clientWidth) return;
     list.scrollLeft = active.offsetLeft - list.offsetLeft - (list.clientWidth - active.offsetWidth) / 2;
   }, [category, products.length]);
+
+  // Phones: the filters panel locks page scrolling and closes with Escape
+  useEffect(() => {
+    if (!filtersOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && setFiltersOpen(false);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filtersOpen]);
 
   // Back to page 1 whenever what's shown changes
   useEffect(() => {
@@ -159,6 +174,18 @@ const ProductsItem = ({
     setPage(p);
   };
 
+  const sortSelect = (className) => (
+    <select className={`mt-input ${className}`} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort products">
+      <option value="newest">Newest first</option>
+      <option value="price-asc">Price: low to high</option>
+      <option value="price-desc">Price: high to low</option>
+      <option value="name">Name: A to Z</option>
+    </select>
+  );
+
+  // How many filters differ from the default (shown on the phone "Filters" button)
+  const activeFilters = (category !== "All" ? 1 : 0) + (inStockOnly ? 1 : 0) + (sort !== "newest" ? 1 : 0);
+
   const firstShown = filtered.length ? (showPagination ? (page - 1) * PAGE_SIZE + 1 : 1) : 0;
   const lastShown = firstShown ? firstShown + visibleProducts.length - 1 : 0;
 
@@ -177,17 +204,20 @@ const ProductsItem = ({
             />
           </label>
 
-          <select
-            className="mt-input pc-sort"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            aria-label="Sort products"
-          >
-            <option value="newest">Newest first</option>
-            <option value="price-asc">Price: low to high</option>
-            <option value="price-desc">Price: high to low</option>
-            <option value="name">Name: A to Z</option>
-          </select>
+          {sortSelect("pc-sort")}
+
+          {showCategories && (
+            <button
+              type="button"
+              className="pc-filters-btn"
+              onClick={() => setFiltersOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={filtersOpen}
+            >
+              <TuneIcon fontSize="small" /> Filters
+              {activeFilters > 0 && <span className="pc-filters-btn__count">{activeFilters}</span>}
+            </button>
+          )}
         </div>
       )}
 
@@ -271,7 +301,7 @@ const ProductsItem = ({
                     <div className="pc-actions">
                       <button
                         type="button"
-                        className={`mt-btn mt-btn--secondary mt-btn--sm ${justAdded ? "pc-added" : ""}`}
+                        className={`mt-btn mt-btn--secondary mt-btn--sm pc-add ${justAdded ? "pc-added" : ""}`}
                         disabled={soldOut}
                         onClick={() => handleAdd(product)}
                         aria-label={`Add ${product.name} to cart`}
@@ -289,7 +319,7 @@ const ProductsItem = ({
 
                       <button
                         type="button"
-                        className="mt-btn mt-btn--primary mt-btn--sm"
+                        className="mt-btn mt-btn--primary mt-btn--sm pc-buy"
                         disabled={soldOut}
                         onClick={() => handleBuyNow(product)}
                       >
@@ -348,13 +378,32 @@ const ProductsItem = ({
 
   if (!showCategories) return <div className="pc">{content}</div>;
 
-  // Shop layout: filters in a sidebar (a tab strip on phones) next to the products
+  // Shop layout: filters in a sidebar next to the products;
+  // on phones the sidebar becomes a panel that slides up ("Filters" button)
   const totalCount = products.filter((p) => !filter || filter(p)).length;
   const sideItems = [{ name: "All", label: "All products", count: totalCount }, ...categories];
 
   return (
-    <div className="pc pc--shop">
-      <aside className="pc-side" aria-label="Filters">
+    <div className={`pc pc--shop ${filtersOpen ? "is-filters-open" : ""}`}>
+      <div className="pc-sheet-overlay" onClick={() => setFiltersOpen(false)} aria-hidden="true" />
+      <aside
+        className="pc-side"
+        aria-label="Filters"
+        role={filtersOpen ? "dialog" : undefined}
+        aria-modal={filtersOpen ? "true" : undefined}
+      >
+        <div className="pc-sheet-head">
+          <strong>Filters &amp; sort</strong>
+          <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Close filters">
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="pc-sheet-sort">
+          <h2 className="pc-side__title">Sort by</h2>
+          {sortSelect("pc-sort-sheet")}
+        </div>
+
         <h2 className="pc-side__title">Categories</h2>
         <nav className="pc-side__list" aria-label="Categories" ref={sideList}>
           {sideItems.map((cat) => (
@@ -380,6 +429,25 @@ const ProductsItem = ({
           />
           <span>In stock only</span>
         </label>
+
+        <div className="pc-sheet-foot">
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              className="mt-btn mt-btn--secondary"
+              onClick={() => {
+                setCategory("All");
+                setInStockOnly(false);
+                setSort("newest");
+              }}
+            >
+              Clear all
+            </button>
+          )}
+          <button type="button" className="mt-btn mt-btn--primary" onClick={() => setFiltersOpen(false)}>
+            Show {filtered.length} {filtered.length === 1 ? "product" : "products"}
+          </button>
+        </div>
       </aside>
 
       <div className="pc-main">{content}</div>

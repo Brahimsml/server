@@ -591,8 +591,19 @@
 /* ===== Phones: full screen ===== */
 @media (max-width: 640px) {
   .cb-launch {
-    right: 16px;
-    bottom: 16px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  /* smaller on phones so it covers less of the page */
+  .chatbot-float {
+    width: 48px;
+    height: 48px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(201, 162, 77, 0.14);
+  }
+
+  .chatbot-float svg {
+    font-size: 22px;
   }
 
   .chatbot-box {

@@ -497,7 +497,7 @@ select.mt-input option {
 /* ===== Responsive ===== */
 @media (max-width: 640px) {
   .mt-page {
-    padding: 28px 16px 64px;
+    padding: 28px 16px 96px; /* bottom: room so the chat button never hides the last buttons */
   }
 
   .mt-section {

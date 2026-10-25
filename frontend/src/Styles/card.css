@@ -609,3 +609,10 @@
   margin: 0;
   accent-color: var(--c-accent);
 }
+
+/* Empty cart: popular products underneath */
+.cart-popular {
+  max-width: 1200px;
+  margin: 56px auto 0;
+  color: var(--mt-text);
+}

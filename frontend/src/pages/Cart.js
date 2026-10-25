@@ -11,8 +11,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import "../Styles/card.css";
+import "../Styles/theme.css";
+import "../Styles/HomePage.css";
+import ProductsItem from "../Components/ProductsItem";
+import api from "../api";
 import { API_URL } from "../api";
-import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isLowStock } from "../utils/shop";
+import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut } from "../utils/shop";
 import { clearUserSession, getUser, getUserToken } from "../utils/auth";
 import usePageTitle from "../utils/usePageTitle";
 
@@ -53,6 +57,21 @@ const Cart = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [saveDetails, setSaveDetails] = useState(true);
+
+  // Empty cart: show a few popular products instead of a blank page
+  const [popular, setPopular] = useState(null);
+  const cartIsEmpty = cart.length === 0;
+  useEffect(() => {
+    if (!cartIsEmpty || popular) return;
+    api
+      .get("/products")
+      .then((res) => {
+        const all = (Array.isArray(res.data) ? res.data : []).filter((p) => !isSoldOut(p) && p.image);
+        const best = all.filter(isBestSeller);
+        setPopular((best.length >= 4 ? best : [...best, ...all.filter((p) => !isBestSeller(p))]).slice(0, 4));
+      })
+      .catch(() => setPopular([]));
+  }, [cartIsEmpty, popular]);
 
   // Fill in the phone and address saved on the account (My account, or the last order)
   useEffect(() => {
@@ -241,6 +260,23 @@ const Cart = () => {
             Start shopping
           </button>
         </div>
+
+        {popular && popular.length > 0 && (
+          <div className="mt-scope cart-popular">
+            <div className="mt-section-head">
+              <div>
+                <h2>Popular right now</h2>
+                <p>What other MegaTech customers are buying.</p>
+              </div>
+            </div>
+            <ProductsItem
+              products={popular}
+              showToolbar={false}
+              showCategories={false}
+              showPagination={false}
+            />
+          </div>
+        )}
       </section>
     );
   }
