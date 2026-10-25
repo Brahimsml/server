@@ -1,0 +1,329 @@
+/* =========================================================
+   PHONES (premium layer)
+   Loaded after every other stylesheet. Only changes phones and
+   small tablets; computers look exactly as before.
+========================================================= */
+
+/* Product page buy bar: phones only */
+.pd-buybar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* ===== Section headings: title left, "See all" on the same line ===== */
+  .mt-section {
+    margin-top: 44px;
+  }
+
+  .hp-catrow.mt-section {
+    margin-top: 40px;
+  }
+
+  .mt-section-head {
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .mt-section-head > div {
+    min-width: 0;
+  }
+
+  .mt-section-head h2 {
+    font-size: 1.28rem;
+    line-height: 1.2;
+  }
+
+  .mt-section-head p {
+    margin-top: 4px;
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .mt-section-head .mt-link {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border: 1px solid var(--mt-border);
+    border-radius: 999px;
+    background: rgba(201, 162, 77, 0.06);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .mt-section-head .mt-link:hover {
+    text-decoration: none;
+  }
+
+  /* ===== Hero banner: tighter, buttons side by side ===== */
+  .hp-slider {
+    border-radius: 22px;
+  }
+
+  .hp-slide__media {
+    height: 210px;
+  }
+
+  .hp-slide__copy {
+    padding: 20px 20px 22px;
+  }
+
+  .hp-slide__title {
+    font-size: 1.6rem;
+  }
+
+  .hp-slide__desc {
+    font-size: 0.9rem;
+  }
+
+  .hp-slide__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .hp-slide__actions .mt-btn {
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 0.88rem;
+  }
+
+  .hp-slide__actions .mt-btn--secondary svg {
+    display: none;
+  }
+
+  .hp-slider__controls {
+    margin-top: 18px;
+  }
+
+  /* ===== Trust bar: compact 2 x 2 ===== */
+  .hp-trust {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 16px;
+  }
+
+  .hp-trust__item {
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .hp-trust__item + .hp-trust__item {
+    border-top: none;
+  }
+
+  .hp-trust__item:nth-child(even) {
+    border-left: 1px solid var(--mt-border);
+  }
+
+  .hp-trust__item:nth-child(n + 3) {
+    border-top: 1px solid var(--mt-border);
+  }
+
+  .hp-trust__icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .hp-trust__icon svg {
+    font-size: 1.15rem;
+  }
+
+  .hp-trust__item h3 {
+    font-size: 0.84rem;
+  }
+
+  .hp-trust__item p {
+    display: none;
+  }
+
+  /* ===== Categories: one row of tiles you swipe ===== */
+  .hp-cats {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 40%;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px;
+    scroll-padding-inline: 16px;
+  }
+
+  .hp-cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-cat {
+    scroll-snap-align: start;
+  }
+
+  .hp-cat__media {
+    height: 104px;
+    padding: 14px;
+  }
+
+  .hp-cat__body {
+    padding: 12px 12px 14px;
+  }
+
+  .hp-cat__body h3 {
+    font-size: 0.95rem;
+  }
+
+  .hp-cat__meta {
+    font-size: 0.78rem;
+  }
+
+  /* ===== Product cards ===== */
+  .pc-card {
+    border-radius: 16px;
+  }
+
+  .pc-media {
+    height: 140px;
+    padding: 12px;
+  }
+
+  .pc-label {
+    top: 9px;
+    left: 9px;
+    padding: 3px 8px;
+    font-size: 0.62rem;
+    max-width: calc(100% - 52px);
+  }
+
+  .pc-label--out {
+    right: 46px;
+  }
+
+  .pc-wish {
+    top: 7px !important;
+    right: 7px !important;
+  }
+
+  .pc-cat {
+    font-size: 0.64rem;
+  }
+
+  .pc-name {
+    min-height: 2.7em; /* two lines, so prices line up across a row */
+    margin: 4px 0 6px;
+  }
+
+  .pc-price {
+    font-size: 1.05rem;
+  }
+
+  .pc-stock {
+    font-size: 0.72rem;
+  }
+
+  .pc-actions {
+    margin-top: 10px;
+  }
+
+  .pc-actions .mt-btn {
+    min-height: 38px;
+    border-radius: 11px;
+    font-size: 0.82rem;
+  }
+
+  .pc-skeleton {
+    height: 290px;
+  }
+
+  /* ===== Product page: buy bar pinned to the bottom ===== */
+  .pd-buybar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9990;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px))
+      max(16px, env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--mt-border-strong);
+    background: rgba(14, 12, 9, 0.94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.45);
+    transform: translateY(110%);
+    transition: transform 0.25s ease;
+  }
+
+  .pd-buybar.is-shown {
+    transform: none;
+  }
+
+  .pd-buybar__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pd-buybar__info strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mt-muted);
+  }
+
+  .pd-buybar__info span {
+    font-family: var(--mt-font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--mt-text);
+  }
+
+  .pd-buybar .mt-btn {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  .pd-buybar .mt-btn--secondary {
+    width: 46px;
+    padding: 0;
+  }
+
+  /* the chat button moves up while the buy bar is shown */
+  body.has-buybar .cb-launch {
+    transform: translateY(-70px);
+  }
+
+  .cb-launch {
+    transition: transform 0.25s ease;
+  }
+}
+
+/* Small phones (iPhone SE, older Android) */
+@media (max-width: 380px) {
+  .hp-cats {
+    grid-auto-columns: 46%;
+  }
+
+  .hp-trust__item {
+    padding: 12px 10px;
+  }
+
+  .hp-trust__icon {
+    display: none;
+  }
+
+  .hp-slide__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-buybar__info strong {
+    display: none;
+  }
+}

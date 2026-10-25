@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -60,6 +60,8 @@ const Product = () => {
   const [qty, setQty] = useState(1);
   const [photo, setPhoto] = useState(0); // which photo is shown large
   const [allSpecs, setAllSpecs] = useState(false);
+  const actionsRef = useRef(null);
+  const [showBuyBar, setShowBuyBar] = useState(false); // phones: price + buttons pinned to the bottom
 
   useEffect(() => {
     let alive = true;
@@ -96,6 +98,25 @@ const Product = () => {
       document.title = "MegaTech | PC Components & Gaming Gear";
     };
   }, [productId]);
+
+  // Phones: once the Add to cart buttons scroll out of view, a bar with them stays at the bottom
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (status !== "ready" || !el || !window.IntersectionObserver) return undefined;
+    const observer = new IntersectionObserver(([entry]) =>
+      setShowBuyBar(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      setShowBuyBar(false);
+    };
+  }, [status, productId]);
+
+  useEffect(() => {
+    document.body.classList.toggle("has-buybar", showBuyBar);
+    return () => document.body.classList.remove("has-buybar");
+  }, [showBuyBar]);
 
   // Old or short links (/product/12) get the current name added: /product/12-nvidia-rtx-4090
   useEffect(() => {
@@ -299,7 +320,7 @@ const Product = () => {
               </div>
             )}
 
-            <div className="pd-actions">
+            <div className="pd-actions" ref={actionsRef}>
               <button type="button" className="mt-btn mt-btn--secondary" onClick={handleAdd} disabled={soldOut}>
                 <AddShoppingCartIcon /> Add to cart
               </button>
@@ -350,7 +371,8 @@ const Product = () => {
             <ProductsItem
               products={related}
               filter={sameCategory}
-              limit={4}
+              limit={8}
+              row
               showToolbar={false}
               showCategories={false}
               showPagination={false}
@@ -358,6 +380,21 @@ const Product = () => {
           </section>
         )}
       </div>
+
+      {!soldOut && (
+        <div className={`pd-buybar ${showBuyBar ? "is-shown" : ""}`} aria-hidden={!showBuyBar}>
+          <div className="pd-buybar__info">
+            <strong>{product.name}</strong>
+            <span>{formatMoney(product.price)}</span>
+          </div>
+          <button type="button" className="mt-btn mt-btn--secondary" onClick={handleAdd} tabIndex={showBuyBar ? 0 : -1} aria-label="Add to cart">
+            <AddShoppingCartIcon />
+          </button>
+          <button type="button" className="mt-btn mt-btn--primary" onClick={handleBuy} tabIndex={showBuyBar ? 0 : -1}>
+            Buy now
+          </button>
+        </div>
+      )}
     </div>
   );
 };
