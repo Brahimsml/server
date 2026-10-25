@@ -1114,6 +1114,9 @@ app.get("/products/search/:id", (req, res) => {
 });
 
 // Specs: one per line ("Memory: 24 GB"), blank lines dropped, kept short
+// Brand (NVIDIA, ASUS, Logitech...): used by the shop's brand filter
+const cleanBrand = (text) => String(text || "").trim().replace(/\s+/g, " ").slice(0, 60) || null;
+
 const cleanSpecs = (text) =>
   String(text || "")
     .split(/\r?\n/)
@@ -1151,14 +1154,14 @@ const PRODUCT_FIELDS = [
 
 // processProductUploads: every product photo gets the same size and margin
 app.post("/products", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), processProductUploads, async (req, res) => {
-  const { category_id, name, price, label, description, stock_quantity, specs } = req.body;
+  const { category_id, name, price, label, description, stock_quantity, specs, brand } = req.body;
   const image = req.file ? req.file.filename : null;
 
   try {
     const result = await runQuery(
       db,
-      "INSERT INTO products (category_id,name,price,image,label,description,stock_quantity,specs) VALUES (?,?,?,?,?,?,?,?)",
-      [category_id, name, price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs)]
+      "INSERT INTO products (category_id,name,brand,price,image,label,description,stock_quantity,specs) VALUES (?,?,?,?,?,?,?,?,?)",
+      [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs)]
     );
     await addGalleryImages(db, result.insertId, req.files?.gallery);
     res.json({ message: "Product added ✅", id: result.insertId });
@@ -1184,7 +1187,7 @@ app.delete("/products/:id", verifyAdmin, async (req, res) => {
 });
 
 app.post("/products/modify/:id", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), processProductUploads, async (req, res) => {
-  const { category_id, name, price, label, description, existingImage, stock_quantity, specs } = req.body;
+  const { category_id, name, price, label, description, existingImage, stock_quantity, specs, brand } = req.body;
   const image = req.file ? req.file.filename : existingImage;
   const productId = req.params.id;
   const removeIds = parseIdList(req.body.removeGallery);
@@ -1201,9 +1204,9 @@ app.post("/products/modify/:id", verifyAdmin, productUpload.fields(PRODUCT_FIELD
       await runQuery(
         conn,
         `UPDATE products
-         SET category_id=?, name=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?
+         SET category_id=?, name=?, brand=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?
          WHERE id=?`,
-        [category_id, name, price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), productId]
+        [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), productId]
       );
 
       if (removeIds.length) {

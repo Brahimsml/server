@@ -20,7 +20,7 @@ const cleanLabel = (label) => {
   return l;
 };
 
-const EMPTY = { name: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "" };
+const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "" };
 
 /*
   Shared form for "Add product" and "Edit product".
@@ -35,6 +35,7 @@ const ProductForm = ({ productId }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]); // brands already used, suggested while typing
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(isEdit);
@@ -59,6 +60,7 @@ const ProductForm = ({ productId }) => {
         const p = res.data;
         setValues({
           name: p.name || "",
+          brand: p.brand || "",
           category_id: String(p.category_id || ""),
           description: p.description || "",
           specs: p.specs || "",
@@ -76,6 +78,16 @@ const ProductForm = ({ productId }) => {
       )
       .finally(() => setLoading(false));
   }, [isEdit, productId]);
+
+  useEffect(() => {
+    api
+      .get("/products")
+      .then((res) => {
+        const names = (Array.isArray(res.data) ? res.data : []).map((p) => (p.brand || "").trim()).filter(Boolean);
+        setBrands([...new Set(names)].sort((a, b) => a.localeCompare(b)));
+      })
+      .catch(() => {});
+  }, []);
 
   // Free the preview URLs when they change / on leave
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
@@ -154,6 +166,7 @@ const ProductForm = ({ productId }) => {
     const formData = new FormData();
     formData.append("category_id", values.category_id);
     formData.append("name", values.name.trim());
+    formData.append("brand", values.brand.trim());
     formData.append("price", values.price);
     formData.append("label", values.label);
     formData.append("description", values.description.trim());
@@ -212,6 +225,23 @@ const ProductForm = ({ productId }) => {
                     <span>Name</span>
                     <input value={values.name} onChange={set("name")} placeholder="e.g. NVIDIA RTX 4090" />
                     {errors.name && <small className="mt-field__error">{errors.name}</small>}
+                  </label>
+
+                  <label className="mt-field">
+                    <span>Brand</span>
+                    <input
+                      value={values.brand}
+                      onChange={set("brand")}
+                      list="product-brands"
+                      placeholder="e.g. NVIDIA, ASUS, Logitech"
+                      maxLength={60}
+                    />
+                    <datalist id="product-brands">
+                      {brands.map((b) => (
+                        <option key={b} value={b} />
+                      ))}
+                    </datalist>
+                    <small className="ad-hint">Customers can filter the shop by brand. Leave empty if it has none.</small>
                   </label>
 
                   <label className={fieldClass("category_id")}>
