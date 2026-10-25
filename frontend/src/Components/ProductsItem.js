@@ -13,6 +13,7 @@ import WishlistButton from "./WishlistButton";
 import {
   formatMoney,
   imageUrl,
+  isBestSeller,
   isLowStock,
   isSoldOut,
   normalizeLabel,
@@ -22,7 +23,25 @@ import {
   FALLBACK_IMG,
 } from "../utils/shop";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12; // fills full rows of 2, 3 or 4
+
+// Shop price filter
+const PRICE_RANGES = [
+  { key: "all", label: "Any price" },
+  { key: "u100", label: "Under $100", min: 0, max: 100 },
+  { key: "100-500", label: "$100 – $500", min: 100, max: 500 },
+  { key: "500-1000", label: "$500 – $1,000", min: 500, max: 1000 },
+  { key: "o1000", label: "Over $1,000", min: 1000, max: Infinity },
+];
+
+const inPriceRange = (product, key) => {
+  const range = PRICE_RANGES.find((r) => r.key === key);
+  if (!range || range.key === "all") return true;
+  const price = Number(product.price || 0);
+  return price >= range.min && price < range.max;
+};
+
+const brandOf = (product) => String(product.brand || "").trim();
 
 /*
   Product grid.
@@ -54,8 +73,10 @@ const ProductsItem = ({
   }, [initialQuery]);
   const [sort, setSort] = useState("newest");
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [priceRange, setPriceRange] = useState("all");
+  const [brands, setBrands] = useState([]); // chosen brands (any of them)
   const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
-  const [page, setPage] = useState(1);
+  const [shown, setShown] = useState(PAGE_SIZE); // "Show more" adds the next 12
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
   const sideList = useRef(null);
@@ -86,10 +107,10 @@ const ProductsItem = ({
     };
   }, [filtersOpen]);
 
-  // Back to page 1 whenever what's shown changes
+  // Back to the first 12 whenever what's shown changes
   useEffect(() => {
-    setPage(1);
-  }, [category, query, sort, inStockOnly]);
+    setShown(PAGE_SIZE);
+  }, [category, query, sort, inStockOnly, priceRange, brands]);
 
   const categories = useMemo(() => {
     const map = new Map();
@@ -109,6 +130,8 @@ const ProductsItem = ({
       .filter((p) => {
         if (filter && !filter(p)) return false;
         if (inStockOnly && isSoldOut(p)) return false;
+        if (!inPriceRange(p, priceRange)) return false;
+        if (brands.length && !brands.includes(brandOf(p))) return false;
 
         const catName = p.category_name || "Other";
         if (category !== "All" && catName !== category) return false;
@@ -123,10 +146,36 @@ const ProductsItem = ({
         if (sort === "price-asc") return pa - pb;
         if (sort === "price-desc") return pb - pa;
         if (sort === "name") return String(a.name || "").localeCompare(String(b.name || ""));
+        if (sort === "best") {
+          const diff = Number(isBestSeller(b)) - Number(isBestSeller(a));
+          if (diff) return diff;
+        }
         return Number(b.id || 0) - Number(a.id || 0);
       })
       .sort((a, b) => (rank ? Number(rank(b)) - Number(rank(a)) : 0));
-  }, [products, filter, category, query, sort, inStockOnly, rank]);
+  }, [products, filter, category, query, sort, inStockOnly, priceRange, brands, rank]);
+
+  // Counts next to the price and brand choices: products in the chosen category
+  const inCategory = useMemo(
+    () => products.filter((p) => (!filter || filter(p)) && (category === "All" || (p.category_name || "Other") === category)),
+    [products, filter, category]
+  );
+
+  const brandList = useMemo(() => {
+    const map = new Map();
+    inCategory.forEach((p) => {
+      const b = brandOf(p);
+      if (b) map.set(b, (map.get(b) || 0) + 1);
+    });
+    // keep chosen brands listed even if this category has none
+    brands.forEach((b) => map.has(b) || map.set(b, 0));
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count }));
+  }, [inCategory, brands]);
+
+  const toggleBrand = (name) =>
+    setBrands((list) => (list.includes(name) ? list.filter((b) => b !== name) : [...list, name]));
 
   // Row mode: show the arrows only when there is more to scroll that way
   const updateRowEnds = () => {
@@ -149,31 +198,15 @@ const ProductsItem = ({
     if (el) el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
   };
 
-  const totalPages = showPagination ? Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)) : 1;
-
-  const visibleProducts = useMemo(() => {
-    if (!showPagination) return filtered.slice(0, limit || filtered.length);
-    const start = (page - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, page, limit, showPagination]);
+  const visibleProducts = useMemo(
+    () => filtered.slice(0, showPagination ? shown : limit || filtered.length),
+    [filtered, shown, limit, showPagination]
+  );
 
   // rows with only a few products keep 4 across, so wide screens don't show an empty slot
   const gridClass = row
     ? `pc-grid pc-grid--row ${!loading && visibleProducts.length <= 4 ? "pc-grid--few" : ""}`
     : "pc-grid";
-
-  const pageButtons = useMemo(() => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-
-    const pages = [1];
-    const left = Math.max(2, page - 1);
-    const right = Math.min(totalPages - 1, page + 1);
-    if (left > 2) pages.push("…");
-    for (let i = left; i <= right; i++) pages.push(i);
-    if (right < totalPages - 1) pages.push("…");
-    pages.push(totalPages);
-    return pages;
-  }, [page, totalPages]);
 
   const setCategory = (name) => {
     if (onCategoryChange) onCategoryChange(name);
@@ -188,20 +221,23 @@ const ProductsItem = ({
     }
   };
 
-  const resetFilters = () => {
-    setQuery("");
+  const clearFilters = () => {
     setSort("newest");
     setInStockOnly(false);
+    setPriceRange("all");
+    setBrands([]);
     setCategory("All");
   };
 
-  const goToPage = (p) => {
-    setPage(p);
+  const resetFilters = () => {
+    setQuery("");
+    clearFilters();
   };
 
   const sortSelect = (className) => (
     <select className={`mt-input ${className}`} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort products">
       <option value="newest">Newest first</option>
+      <option value="best">Best sellers first</option>
       <option value="price-asc">Price: low to high</option>
       <option value="price-desc">Price: high to low</option>
       <option value="name">Name: A to Z</option>
@@ -209,10 +245,25 @@ const ProductsItem = ({
   );
 
   // How many filters differ from the default (shown on the phone "Filters" button)
-  const activeFilters = (category !== "All" ? 1 : 0) + (inStockOnly ? 1 : 0) + (sort !== "newest" ? 1 : 0);
+  const activeFilters =
+    (category !== "All" ? 1 : 0) +
+    (inStockOnly ? 1 : 0) +
+    (sort !== "newest" ? 1 : 0) +
+    (priceRange !== "all" ? 1 : 0) +
+    brands.length;
 
-  const firstShown = filtered.length ? (showPagination ? (page - 1) * PAGE_SIZE + 1 : 1) : 0;
-  const lastShown = firstShown ? firstShown + visibleProducts.length - 1 : 0;
+  // Removable tags for every filter that's on ("Graphics Cards ×")
+  const chips = [
+    query.trim() && { key: "q", label: `“${query.trim()}”`, clear: () => setQuery("") },
+    category !== "All" && { key: "cat", label: category, clear: () => setCategory("All") },
+    priceRange !== "all" && {
+      key: "price",
+      label: PRICE_RANGES.find((r) => r.key === priceRange)?.label,
+      clear: () => setPriceRange("all"),
+    },
+    ...brands.map((b) => ({ key: `brand-${b}`, label: b, clear: () => toggleBrand(b) })),
+    inStockOnly && { key: "stock", label: "In stock", clear: () => setInStockOnly(false) },
+  ].filter(Boolean);
 
   const content = (
     <>
@@ -250,8 +301,23 @@ const ProductsItem = ({
         <p className="pc-results" aria-live="polite">
           {filtered.length === 0
             ? "No products match"
-            : `Showing ${firstShown}–${lastShown} of ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
+            : `Showing ${visibleProducts.length} of ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
         </p>
+      )}
+
+      {showCategories && chips.length > 0 && (
+        <div className="pc-chips" aria-label="Filters in use">
+          {chips.map((c) => (
+            <button key={c.key} type="button" className="pc-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+              {c.label} <CloseIcon />
+            </button>
+          ))}
+          {chips.length > 1 && (
+            <button type="button" className="pc-chip-clear" onClick={resetFilters}>
+              Clear all
+            </button>
+          )}
+        </div>
       )}
 
       {loading ? (
@@ -362,44 +428,18 @@ const ProductsItem = ({
             </div>
           )}
 
-          {showPagination && totalPages > 1 && (
-            <nav className="pc-pagination" aria-label="Product pages">
-              <button
-                type="button"
-                onClick={() => goToPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                aria-label="Previous page"
-              >
-                <ChevronLeftIcon fontSize="small" />
+          {showPagination && filtered.length > visibleProducts.length && (
+            <div className="pc-more">
+              <span className="pc-more__count">
+                You've seen {visibleProducts.length} of {filtered.length} products
+              </span>
+              <span className="pc-more__bar" aria-hidden="true">
+                <span style={{ width: `${(visibleProducts.length / filtered.length) * 100}%` }} />
+              </span>
+              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+                Show more products
               </button>
-
-              {pageButtons.map((p, idx) =>
-                p === "…" ? (
-                  <span key={`dots-${idx}`} className="pc-pagination__dots">
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    type="button"
-                    className={page === p ? "is-active" : ""}
-                    aria-current={page === p ? "page" : undefined}
-                    onClick={() => goToPage(p)}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-
-              <button
-                type="button"
-                onClick={() => goToPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                aria-label="Next page"
-              >
-                <ChevronRightIcon fontSize="small" />
-              </button>
-            </nav>
+            </div>
           )}
         </>
       )}
@@ -450,6 +490,42 @@ const ProductsItem = ({
           ))}
         </nav>
 
+        <h2 className="pc-side__title pc-side__title--gap">Price</h2>
+        <div className="pc-side__list" role="radiogroup" aria-label="Price">
+          {PRICE_RANGES.map((r) => {
+            const count = r.key === "all" ? inCategory.length : inCategory.filter((p) => inPriceRange(p, r.key)).length;
+            if (r.key !== "all" && !count && priceRange !== r.key) return null;
+            return (
+              <button
+                key={r.key}
+                type="button"
+                role="radio"
+                aria-checked={priceRange === r.key}
+                className={`pc-side__item ${priceRange === r.key ? "is-active" : ""}`}
+                onClick={() => setPriceRange(r.key)}
+              >
+                <span>{r.label}</span>
+                <span className="pc-side__count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {brandList.length > 1 && (
+          <>
+            <h2 className="pc-side__title pc-side__title--gap">Brand</h2>
+            <div className="pc-brands">
+              {brandList.map((b) => (
+                <label key={b.name} className="pc-check">
+                  <input type="checkbox" checked={brands.includes(b.name)} onChange={() => toggleBrand(b.name)} />
+                  <span>{b.name}</span>
+                  <span className="pc-side__count">{b.count}</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+
         <h2 className="pc-side__title pc-side__title--gap">Availability</h2>
         <label className="pc-check">
           <input
@@ -465,11 +541,7 @@ const ProductsItem = ({
             <button
               type="button"
               className="mt-btn mt-btn--secondary"
-              onClick={() => {
-                setCategory("All");
-                setInStockOnly(false);
-                setSort("newest");
-              }}
+              onClick={clearFilters}
             >
               Clear all
             </button>

@@ -550,3 +550,60 @@
     pointer-events: none;
   }
 }
+
+/* ===== Shop on phones and tablets: search + Filters bar stays at the top while you scroll ===== */
+@media (max-width: 900px) {
+  .pc--shop .pc-toolbar {
+    position: sticky;
+    top: calc(61px + env(safe-area-inset-top, 0px));
+    z-index: 20;
+    margin: 0 -24px 14px;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--mt-border);
+    background: rgba(18, 15, 10, 0.96);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .pc--shop .pc-toolbar .pc-search,
+  .pc--shop .pc-toolbar .pc-filters-btn {
+    min-height: 44px;
+  }
+
+  .pc-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 0 24px;
+  }
+
+  .pc-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pc-chip,
+  .pc-chip-clear {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .pc--shop .pc-toolbar {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .pc-chips {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 0 16px;
+  }
+
+  .pc-more .mt-btn {
+    width: 100%;
+  }
+}
