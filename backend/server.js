@@ -37,6 +37,12 @@ const allowedOrigins = String(process.env.SITE_URL || "http://localhost:3000")
   .map((o) => o.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
+// While developing (not in production), also allow the shop opened from a phone on the
+// same Wi-Fi, e.g. http://192.168.0.16:3000, whatever address the router gives the computer
+const isHomeWifiTest = (origin) =>
+  process.env.NODE_ENV !== "production" &&
+  /^http:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}):3000$/.test(origin);
+
 // Main website address, used for links in emails
 const SITE_URL = allowedOrigins[0];
 
@@ -49,7 +55,8 @@ app.use(compression());
 
 app.use(
   cors({
-    origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)),
+    origin: (origin, callback) =>
+      callback(null, !origin || allowedOrigins.includes(origin) || isHomeWifiTest(origin)),
   })
 );
 app.use(express.json());

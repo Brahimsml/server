@@ -1,7 +1,23 @@
 import axios from "axios";
 
-// Backend URL comes from frontend/.env (REACT_APP_API_URL)
-export const API_URL = process.env.REACT_APP_API_URL;
+// Backend URL comes from frontend/.env (REACT_APP_API_URL).
+// Testing from a phone on the same Wi-Fi (http://192.168.x.x:3000)? Then "localhost"
+// would mean the phone itself, so use the computer the page came from instead.
+// This keeps working when the router gives the computer a new address.
+const LOCAL_HOSTS = ["localhost", "127.0.0.1"];
+const sameComputer = (url) => {
+  try {
+    const api = new URL(url);
+    const here = window.location.hostname;
+    if (LOCAL_HOSTS.includes(api.hostname) && !LOCAL_HOSTS.includes(here)) {
+      api.hostname = here;
+      return api.toString().replace(/\/$/, "");
+    }
+  } catch {}
+  return url;
+};
+
+export const API_URL = sameComputer(process.env.REACT_APP_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
