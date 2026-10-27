@@ -10,6 +10,7 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ProductsItem from "../Components/ProductsItem";
+import { addRecentlyViewed } from "../utils/recentlyViewed";
 import WishlistButton from "../Components/WishlistButton";
 import { CartContext } from "../Context/CartContext";
 import api from "../api";
@@ -81,6 +82,7 @@ const Product = () => {
         if (!alive) return;
         setProduct(res.data);
         setStatus("ready");
+        addRecentlyViewed(res.data.id);
         document.title = `${res.data.name} | MegaTech`;
       })
       .catch((err) => {

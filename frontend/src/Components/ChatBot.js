@@ -49,6 +49,13 @@ const ChatBot = () => {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  // Other parts of the site open the chat with: window.dispatchEvent(new Event("megatech:open-chat"))
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener("megatech:open-chat", openChat);
+    return () => window.removeEventListener("megatech:open-chat", openChat);
+  }, []);
+
   const [scrolling, setScrolling] = useState(false); // phones: the chat button steps aside while you scroll
   const scrollTimer = useRef(null);
 

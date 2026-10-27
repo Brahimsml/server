@@ -7,7 +7,12 @@ import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ProductsItem from "../Components/ProductsItem";
+import SHOP_INFO from "../utils/shopInfo";
+import { clearRecentlyViewed, getRecentlyViewed } from "../utils/recentlyViewed";
 import api from "../api";
 import {
   imageUrl,
@@ -16,6 +21,7 @@ import {
   normalizeLabel,
   onImageError,
   productPath,
+  whatsappLink,
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
@@ -65,6 +71,17 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+
+  // Products this visitor opened lately (newest first), saved in this browser
+  const [recentIds, setRecentIds] = useState(getRecentlyViewed);
+  const recentRank = useMemo(() => {
+    const order = new Map(recentIds.map((id, i) => [id, recentIds.length - i]));
+    return (p) => order.get(p.id) || 0;
+  }, [recentIds]);
+  const isRecent = useCallback((p) => recentIds.includes(p.id), [recentIds]);
+  const hasRecent = !loading && products.some(isRecent);
+
+  const helpWhatsapp = whatsappLink(SHOP_INFO.phone, "Hi MegaTech, I need help choosing a product.");
 
   const [featureIndex, setFeatureIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -270,6 +287,39 @@ const Home = () => {
           ))}
         </section>
 
+        {/* ===== RECENTLY VIEWED (only for visitors who opened products before) ===== */}
+        {hasRecent && (
+          <section className="mt-section hp-recent" id="recently-viewed">
+            <div className="mt-section-head">
+              <div>
+                <h2>Recently viewed</h2>
+                <p>Pick up where you left off.</p>
+              </div>
+              <button
+                type="button"
+                className="mt-link hp-recent__clear"
+                onClick={() => {
+                  clearRecentlyViewed();
+                  setRecentIds([]);
+                }}
+              >
+                Clear history
+              </button>
+            </div>
+
+            <ProductsItem
+              products={products}
+              filter={isRecent}
+              rank={recentRank}
+              limit={12}
+              row
+              showToolbar={false}
+              showCategories={false}
+              showPagination={false}
+            />
+          </section>
+        )}
+
         {loadError && (
           <div className="mt-alert mt-alert--error hp-error" role="alert">
             We couldn't load products right now. Please refresh the page in a moment.
@@ -359,6 +409,54 @@ const Home = () => {
             />
           </section>
         )}
+
+        {/* ===== NEED HELP CHOOSING? ===== */}
+        <section className="mt-section hp-help" aria-labelledby="hp-help-title">
+          <div className="hp-help__intro">
+            <span className="mt-eyebrow">We're here to help</span>
+            <h2 id="hp-help-title">Need help choosing?</h2>
+            <p>Not sure which part fits your build or budget? Ask us before you buy, it's free.</p>
+          </div>
+
+          <div className="hp-help__options">
+            {helpWhatsapp && (
+              <a className="hp-help__option" href={helpWhatsapp} target="_blank" rel="noopener noreferrer">
+                <span className="hp-help__icon hp-help__icon--wa">
+                  <WhatsAppIcon />
+                </span>
+                <span>
+                  <strong>WhatsApp us</strong>
+                  <small>Quick answers from our team</small>
+                </span>
+                <ArrowForwardIcon className="hp-help__arrow" />
+              </a>
+            )}
+            <button
+              type="button"
+              className="hp-help__option"
+              onClick={() => window.dispatchEvent(new Event("megatech:open-chat"))}
+            >
+              <span className="hp-help__icon">
+                <ChatBubbleOutlineIcon />
+              </span>
+              <span>
+                <strong>Chat with our assistant</strong>
+                <small>Instant answers, any time</small>
+              </span>
+              <ArrowForwardIcon className="hp-help__arrow" />
+            </button>
+            <Link className="hp-help__option" to="/menu">
+              <span className="hp-help__icon">
+                <StorefrontOutlinedIcon />
+              </span>
+              <span>
+                <strong>Visit a store</strong>
+                <small>See the gear and get advice in person</small>
+              </span>
+              <ArrowForwardIcon className="hp-help__arrow" />
+            </Link>
+          </div>
+        </section>
 
         {/* ===== ONE ROW PER CATEGORY ===== */}
         {!loading &&
