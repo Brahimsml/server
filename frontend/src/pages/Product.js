@@ -129,7 +129,7 @@ const Product = () => {
 
   if (status === "loading") {
     return (
-      <div className="mt-page hp">
+      <div className="mt-page hp hp-wide">
         <div className="mt-container">
           <div className="pd">
             <div className="mt-skeleton pd-skeleton" />
@@ -142,7 +142,7 @@ const Product = () => {
 
   if (status !== "ready") {
     return (
-      <div className="mt-page hp">
+      <div className="mt-page hp hp-wide">
         <div className="mt-container">
           <div className="mt-panel mt-empty pd-missing">
             <div className="mt-empty__icon">
@@ -185,7 +185,7 @@ const Product = () => {
   const shownSpecs = allSpecs ? specs : specs.slice(0, KEY_SPECS);
 
   return (
-    <div className="mt-page hp">
+    <div className="mt-page hp hp-wide">
       <div className="mt-container">
         <nav className="sh-crumbs" aria-label="Breadcrumb">
           <Link to="/home">Home</Link>

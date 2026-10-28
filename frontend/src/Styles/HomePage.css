@@ -1691,10 +1691,27 @@
   }
 }
 
-/* keep the top menu bar lined up with the wider home and shop pages */
+/* Product page and Wishlist too (same width as Home and Shop on big screens):
+   6 in "You may also like", 5 per row in the wishlist */
 @media (min-width: 1500px) {
-  body:has(.hp-home, .hp-shop) .nb-inner,
-  body:has(.hp-home, .hp-shop) .nb-mega__inner {
+  .hp-wide > .mt-container {
+    max-width: 1400px;
+  }
+
+  .hp-wide .pc-grid.pc-grid--row {
+    grid-auto-columns: calc((100% - 5 * 18px) / 6);
+  }
+
+  .hp-wishlist .wl-head ~ .pc .pc-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* keep the top menu bar lined up with the wider pages */
+@media (min-width: 1500px) {
+  body:has(.hp-home, .hp-shop, .hp-wide) .nb-inner,
+  body:has(.hp-home, .hp-shop, .hp-wide) .nb-mega__inner,
+  body:has(.hp-home, .hp-shop, .hp-wide) .ft-inner {
     max-width: 1448px; /* 1400 + its 24px side padding */
   }
 }

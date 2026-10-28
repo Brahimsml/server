@@ -43,7 +43,7 @@ const Wishlist = () => {
   const ids = useMemo(() => new Set(items.map((p) => p.id)), [items]);
 
   return (
-    <section className="mt-page hp">
+    <section className="mt-page hp hp-wide hp-wishlist">
       <div className="mt-container">
         <header className="wl-head">
           <div>
