@@ -181,32 +181,25 @@ const BANNER_WIDTH = 1600;
 const BANNER_HEIGHT = 600;
 const DARK = { r: 11, g: 9, b: 7, alpha: 1 };
 
-// Optional phone version of a banner: taller (4:3), so the product looks bigger on phones
-const BANNER_PHONE_WIDTH = 1200;
-const BANNER_PHONE_HEIGHT = 900;
-
-async function standardizeBannerImage(filePath, width = BANNER_WIDTH, height = BANNER_HEIGHT) {
+async function standardizeBannerImage(filePath) {
   const encode = encoders[path.extname(filePath).toLowerCase()];
   if (!encode) return false;
   const out = await encode(
-    sharp(filePath).rotate().flatten({ background: DARK }).resize(width, height, { fit: "cover", position: sharp.strategy.attention })
+    sharp(filePath).rotate().flatten({ background: DARK }).resize(BANNER_WIDTH, BANNER_HEIGHT, { fit: "cover", position: sharp.strategy.attention })
   ).toBuffer();
   await fs.promises.writeFile(filePath, out);
   return true;
 }
 
-// Middleware for the banner form: "image" (computers) and "image_mobile" (phones), both optional here.
-// Afterwards req.file is the main picture and req.mobileFile the phone one.
+// Middleware for the banner form (one optional "image")
 const processBannerUpload = async (req, res, next) => {
-  req.file = req.files?.image?.[0];
-  req.mobileFile = req.files?.image_mobile?.[0];
+  if (!req.file) return next();
   try {
-    if (req.file) await standardizeBannerImage(req.file.path);
-    if (req.mobileFile) await standardizeBannerImage(req.mobileFile.path, BANNER_PHONE_WIDTH, BANNER_PHONE_HEIGHT);
+    await standardizeBannerImage(req.file.path);
     next();
   } catch (err) {
     console.error("❌ Could not process banner image:", err.message);
-    [req.file, req.mobileFile].forEach((f) => f && fs.unlink(f.path, () => {}));
+    fs.unlink(req.file.path, () => {});
     res.status(400).json({ message: "That image couldn't be read. Please try another file." });
   }
 };

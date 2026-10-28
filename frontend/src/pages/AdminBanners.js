@@ -7,7 +7,6 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import ViewCarouselOutlinedIcon from "@mui/icons-material/ViewCarouselOutlined";
-import SmartphoneOutlinedIcon from "@mui/icons-material/SmartphoneOutlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
@@ -37,11 +36,6 @@ function AdminBanners() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [existingImage, setExistingImage] = useState("");
-  // optional phone picture (taller, 1200 x 900)
-  const [mobileFile, setMobileFile] = useState(null);
-  const [mobilePreview, setMobilePreview] = useState("");
-  const [existingMobile, setExistingMobile] = useState("");
-  const [removeMobile, setRemoveMobile] = useState(false);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,14 +53,6 @@ function AdminBanners() {
   }, []);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
-  useEffect(() => () => mobilePreview && URL.revokeObjectURL(mobilePreview), [mobilePreview]);
-
-  const resetMobile = (existing = "") => {
-    setMobileFile(null);
-    setMobilePreview("");
-    setExistingMobile(existing);
-    setRemoveMobile(false);
-  };
 
   // The link picker: shop, a category, or a custom address
   const linkOptions = useMemo(
@@ -86,7 +72,6 @@ function AdminBanners() {
     setFile(null);
     setPreview("");
     setExistingImage("");
-    resetMobile();
     setFormError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -104,7 +89,6 @@ function AdminBanners() {
     setFile(null);
     setPreview("");
     setExistingImage(b.image);
-    resetMobile(b.image_mobile || "");
     setFormError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -124,20 +108,6 @@ function AdminBanners() {
     setFormError("");
   };
 
-  const pickMobile = (e) => {
-    const picked = e.target.files?.[0];
-    e.target.value = "";
-    if (!picked) return;
-    if (!IMAGE_TYPES.includes(picked.type) || picked.size > MAX_IMAGE_MB * 1024 * 1024) {
-      setFormError(`Use a JPG, PNG or WEBP image up to ${MAX_IMAGE_MB} MB.`);
-      return;
-    }
-    setMobileFile(picked);
-    setMobilePreview(URL.createObjectURL(picked));
-    setRemoveMobile(false);
-    setFormError("");
-  };
-
   const save = async (e) => {
     e.preventDefault();
     if (editing === "new" && !file) return setFormError("Choose a banner image (1600 x 600 works best).");
@@ -147,8 +117,6 @@ function AdminBanners() {
     const form = new FormData();
     Object.entries(values).forEach(([k, v]) => form.append(k, k === "active" ? (v ? "1" : "0") : String(v).trim()));
     if (file) form.append("image", file);
-    if (mobileFile) form.append("image_mobile", mobileFile);
-    else if (removeMobile) form.append("remove_mobile", "1");
 
     try {
       setSaving(true);
@@ -211,7 +179,6 @@ function AdminBanners() {
   };
 
   const shownImage = preview || (existingImage ? imageUrl(existingImage) : "");
-  const shownMobile = mobilePreview || (existingMobile && !removeMobile ? imageUrl(existingMobile) : "");
   const liveCount = banners.filter((b) => b.active).length;
 
   return (
@@ -326,39 +293,6 @@ function AdminBanners() {
               </label>
             )}
 
-            {/* optional phone picture */}
-            <div className="ad-banner-phone">
-              <div className="ad-banner-phone__preview">
-                {shownMobile ? <img src={shownMobile} alt="" /> : <SmartphoneOutlinedIcon />}
-              </div>
-              <div className="ad-banner-phone__text">
-                <strong>Phone picture (optional)</strong>
-                <small>
-                  A taller version for phones, about 1200 x 900. Put the product big in the middle. Without one, phones show
-                  the main picture.
-                </small>
-                <div className="ad-banner-phone__actions">
-                  <label className="mt-btn mt-btn--secondary mt-btn--sm">
-                    <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickMobile} hidden />
-                    <AddPhotoAlternateOutlinedIcon /> {shownMobile ? "Replace" : "Add phone picture"}
-                  </label>
-                  {shownMobile && (
-                    <button
-                      type="button"
-                      className="mt-link"
-                      onClick={() => {
-                        setMobileFile(null);
-                        setMobilePreview("");
-                        setRemoveMobile(true);
-                      }}
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
             <label className="ad-switch">
               <input type="checkbox" checked={values.active} onChange={(e) => setValues((v) => ({ ...v, active: e.target.checked }))} />
               <span>Show on the home page</span>
@@ -428,7 +362,6 @@ function AdminBanners() {
                   <strong>{b.title}</strong>
                   <small>
                     {b.button_text} → {b.link}
-                    {b.image_mobile && " · has phone picture"}
                   </small>
                 </div>
                 <label className="ad-switch ad-banner-row__switch" title={b.active ? "Live on the home page" : "Hidden"}>
