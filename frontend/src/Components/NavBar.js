@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../Context/CartContext";
 import MiniCart from "./MiniCart";
 import NavSearch from "./NavSearch";
+import ShopMegaMenu from "./ShopMegaMenu";
 import { useWishlist } from "../Context/WishlistContext";
 
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -181,11 +182,15 @@ const NavBar = () => {
         </Link>
 
         <nav className="nb-links" aria-label="Main">
-          {MAIN_LINKS.map(({ to, label }) => (
-            <NavLink key={to} to={to} className={(s) => linkClass(s, to)}>
-              {label}
-            </NavLink>
-          ))}
+          {MAIN_LINKS.map(({ to, label }) =>
+            to === "/shop" ? (
+              <ShopMegaMenu key={to} linkClass={linkClass} />
+            ) : (
+              <NavLink key={to} to={to} className={(s) => linkClass(s, to)}>
+                {label}
+              </NavLink>
+            )
+          )}
         </nav>
 
         <div className="nb-actions">
