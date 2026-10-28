@@ -776,11 +776,13 @@
     aspect-ratio: auto;
   }
 
+  /* the whole banner picture, nothing cropped (it's 1600 x 600) */
   .hp-slide--banner .hp-banner__img {
     position: relative;
     display: block;
     height: auto;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 8 / 3;
+    object-position: center;
   }
 
   .hp-slide--banner::after {
