@@ -1652,3 +1652,92 @@
     opacity: 1;
   }
 }
+
+/* ===================== PERKS STRIP (under the banner) ===================== */
+/* One slim line: icon + a few words each, clickable */
+.hp-perks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--mt-border);
+  background: var(--mt-surface);
+  overflow: hidden;
+}
+
+.hp-perk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
+  color: var(--mt-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hp-perk + .hp-perk {
+  border-left: 1px solid var(--mt-border);
+}
+
+.hp-perk svg {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--mt-accent-bright);
+}
+
+.hp-perk:hover {
+  background: rgba(201, 162, 77, 0.07);
+  color: var(--mt-accent-bright);
+}
+
+/* Smaller laptops and tablets: a bit tighter */
+@media (max-width: 1100px) {
+  .hp-perk {
+    gap: 8px;
+    padding: 10px;
+    font-size: 0.84rem;
+  }
+}
+
+/* Phones: one slim row you can swipe sideways */
+@media (max-width: 760px) {
+  .hp-perks {
+    display: flex;
+    margin: 14px -16px 0;
+    padding: 0 16px;
+    gap: 8px;
+    border: none;
+    border-radius: 0;
+    background: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .hp-perks::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-perk {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 1px solid var(--mt-border);
+    border-radius: 999px;
+    background: var(--mt-surface);
+    font-size: 0.82rem;
+  }
+
+  .hp-perk + .hp-perk {
+    border-left: 1px solid var(--mt-border);
+  }
+
+  .hp-perk svg {
+    font-size: 1rem;
+  }
+}
