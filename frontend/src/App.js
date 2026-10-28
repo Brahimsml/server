@@ -45,6 +45,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 // Admin Categories + Settings
 import AdminCategories from "./pages/AdminCategories";
+import AdminBanners from "./pages/AdminBanners";
 import AdminSettings from "./pages/AdminSettings";
 import AdminCustomers from "./pages/AdminCustomers";
 import AdminCustomer from "./pages/AdminCustomer";
@@ -58,7 +59,7 @@ import MyOrderDetails from "./pages/MyOrderDetails"
 
 // Admin pages have their own layout (sidebar), so the shop navbar/footer/chat are hidden there
 const isAdminPath = (path) =>
-  path.startsWith("/admin") || /^\/(products|categories|places|orders|contacts|customers)(\/|$)/.test(path);
+  path.startsWith("/admin") || /^\/(products|categories|banners|places|orders|contacts|customers)(\/|$)/.test(path);
 
 const SiteChrome = ({ children }) => {
   const { pathname } = useLocation();
@@ -248,6 +249,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminCategories />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/banners/admin"
+              element={
+                <AdminRoute>
+                  <AdminBanners />
                 </AdminRoute>
               }
             />

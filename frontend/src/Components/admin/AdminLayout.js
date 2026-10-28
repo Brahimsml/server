@@ -6,6 +6,7 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ViewCarouselOutlinedIcon from "@mui/icons-material/ViewCarouselOutlined";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -24,6 +25,7 @@ const NAV = [
   { to: "/admin/dashboard", label: "Dashboard", icon: DashboardOutlinedIcon, match: "/admin/dashboard" },
   { to: "/products/admin", label: "Products", icon: Inventory2OutlinedIcon, match: "/products" },
   { to: "/categories/admin", label: "Categories", icon: CategoryOutlinedIcon, match: "/categories" },
+  { to: "/banners/admin", label: "Banners", icon: ViewCarouselOutlinedIcon, match: "/banners" },
   { to: "/places/admin", label: "Stores", icon: StorefrontOutlinedIcon, match: "/places" },
   { to: "/orders/admin", label: "Orders", icon: ReceiptLongOutlinedIcon, match: "/orders", count: "pendingOrders" },
   { to: "/customers/admin", label: "Customers", icon: PeopleOutlineIcon, match: "/customers" },
@@ -75,6 +77,7 @@ const ADMIN_TITLES = [
   [/^\/customers\/\d+/, () => "Customer"], // the page swaps in the customer's name once loaded
   [/^\/contacts\/admin/, () => "Messages"],
   [/^\/categories\/admin/, () => "Categories"],
+  [/^\/banners\/admin/, () => "Banners"],
   [/^\/admin\/settings/, () => "Settings"],
 ];
 

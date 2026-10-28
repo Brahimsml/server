@@ -14,7 +14,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
-const { processProductUploads } = require("./productImages");
+const { processProductUploads, processBannerUpload } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -110,8 +110,8 @@ const removeImageIfUnused = (image) => {
 
   db.query(
     `SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?)
-          + (SELECT COUNT(*) FROM product_images WHERE image=?) AS n`,
-    [file, file, file],
+          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=?) AS n`,
+    [file, file, file, file],
     (err, rows) => {
       if (err || rows[0].n > 0) return;
       fs.unlink(path.join(imagesDir, file), (unlinkErr) => {
@@ -1090,6 +1090,134 @@ app.delete("/places/:id", verifyAdmin, (req, res) => {
       res.json({ message: "Place deleted ✅" });
     });
   });
+});
+
+/*
+   HOME PAGE BANNERS (Admin → Banners)
+*/
+const cleanText = (value, max) => String(value || "").trim().replace(/\s+/g, " ").slice(0, max);
+
+// Button link: a page on this site ("/shop?category=Monitors", "/product/12") or a full https:// address
+const cleanLink = (value) => {
+  const link = String(value || "").trim();
+  if (/^\/(?!\/)\S*$/.test(link) || /^https?:\/\/\S+$/i.test(link)) return link.slice(0, 255);
+  return null;
+};
+
+const bannerFields = (body) => ({
+  eyebrow: cleanText(body.eyebrow, 60) || null,
+  title: cleanText(body.title, 120),
+  subtitle: cleanText(body.subtitle, 220) || null,
+  button_text: cleanText(body.button_text, 40) || "Shop now",
+  link: cleanLink(body.link),
+  active: body.active === "0" || body.active === "false" || body.active === false ? 0 : 1,
+});
+
+const bannerError = (fields) =>
+  !fields.title ? "Enter a headline." : !fields.link ? "Enter where the button goes: a page like /shop or a full https:// link." : "";
+
+// Shown on the home page, in the admin's order
+app.get("/banners", (req, res) => {
+  db.query(
+    "SELECT id, image, eyebrow, title, subtitle, button_text, link FROM banners WHERE active=1 ORDER BY sort_order, id",
+    (err, rows) => {
+      if (err) return serverError(res, err);
+      res.json(rows);
+    }
+  );
+});
+
+app.get("/admin/banners", verifyAdmin, (req, res) => {
+  db.query("SELECT * FROM banners ORDER BY sort_order, id", (err, rows) => {
+    if (err) return serverError(res, err);
+    res.json(rows);
+  });
+});
+
+app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+  const fields = bannerFields(req.body);
+  const problem = !req.file ? "Choose a banner image." : bannerError(fields);
+  if (problem) {
+    discardUpload(req);
+    return res.status(400).json({ message: problem });
+  }
+  try {
+    const result = await runQuery(
+      db,
+      `INSERT INTO banners (image, eyebrow, title, subtitle, button_text, link, active, sort_order)
+       SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
+      [req.file.filename, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active]
+    );
+    res.json({ message: "Banner added", id: result.insertId });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
+});
+
+// New order: { ids: [3, 1, 2] } top to bottom (declared before /banners/:id)
+app.put("/banners/order", verifyAdmin, async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number) : [];
+  if (!ids.length || ids.some((id) => !Number.isInteger(id) || id < 1) || new Set(ids).size !== ids.length) {
+    return res.status(400).json({ message: "Send the banner ids in their new order" });
+  }
+  try {
+    await withTransaction(async (conn) => {
+      for (const [i, id] of ids.entries()) await runQuery(conn, "UPDATE banners SET sort_order=? WHERE id=?", [i + 1, id]);
+    });
+    res.json({ message: "Banner order saved" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// Show or hide a banner without deleting it
+app.put("/banners/:id/active", verifyAdmin, (req, res) => {
+  const active = req.body.active ? 1 : 0;
+  db.query("UPDATE banners SET active=? WHERE id=?", [active, req.params.id], (err, result) => {
+    if (err) return serverError(res, err);
+    if (!result.affectedRows) return res.status(404).json({ message: "Banner not found" });
+    res.json({ message: active ? "Banner is live" : "Banner hidden", active });
+  });
+});
+
+app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+  const fields = bannerFields(req.body);
+  const problem = bannerError(fields);
+  if (problem) {
+    discardUpload(req);
+    return res.status(400).json({ message: problem });
+  }
+  try {
+    const [current] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    if (!current) {
+      discardUpload(req);
+      return res.status(404).json({ message: "Banner not found" });
+    }
+    const image = req.file ? req.file.filename : current.image;
+    await runQuery(
+      db,
+      "UPDATE banners SET image=?, eyebrow=?, title=?, subtitle=?, button_text=?, link=?, active=? WHERE id=?",
+      [image, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active, req.params.id]
+    );
+    if (req.file && current.image !== image) removeImageIfUnused(current.image);
+    res.json({ message: "Banner updated" });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
+});
+
+app.delete("/banners/:id", verifyAdmin, async (req, res) => {
+  try {
+    const [banner] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    if (!banner) return res.status(404).json({ message: "Banner not found" });
+    await runQuery(db, "DELETE FROM banners WHERE id=?", [req.params.id]);
+    removeImageIfUnused(banner.image);
+    res.json({ message: "Banner deleted" });
+  } catch (err) {
+    serverError(res, err);
+  }
 });
 
 /*

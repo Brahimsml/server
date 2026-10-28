@@ -768,3 +768,52 @@
     font-size: 0.84rem;
   }
 }
+
+/* Admin banners on tablets and phones: picture on top (product side), text below */
+@media (max-width: 860px) {
+  .hp-slide.hp-slide--banner {
+    display: block;
+    aspect-ratio: auto;
+  }
+
+  .hp-slide--banner .hp-banner__img {
+    position: relative;
+    display: block;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .hp-slide--banner::after {
+    bottom: auto;
+    height: 0;
+  }
+
+  .hp-slide--banner .hp-slide__copy {
+    max-width: none;
+    padding: 20px 20px 22px;
+  }
+}
+
+/* Phones held sideways: picture beside the text, like the other slides */
+@media (max-height: 520px) and (orientation: landscape) and (max-width: 1000px) {
+  .hp-slide.hp-slide--banner {
+    display: flex;
+    aspect-ratio: 8 / 3;
+    min-height: 0;
+  }
+
+  .hp-slide--banner .hp-banner__img {
+    position: absolute;
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  .hp-slide--banner::after {
+    height: auto;
+    bottom: 0;
+  }
+
+  .hp-slide--banner .hp-slide__copy {
+    max-width: 52%;
+  }
+}

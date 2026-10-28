@@ -82,4 +82,35 @@ const processProductUploads = async (req, res, next) => {
   }
 };
 
-module.exports = { standardizeProductImage, processProductUpload, processProductUploads };
+/*
+  Home page banners: every banner becomes 1600 x 600 (cropped to fill, centred), on the
+  site's dark colour if the image has see-through parts. Same file name and format.
+*/
+const BANNER_WIDTH = 1600;
+const BANNER_HEIGHT = 600;
+const DARK = { r: 11, g: 9, b: 7, alpha: 1 };
+
+async function standardizeBannerImage(filePath) {
+  const encode = encoders[path.extname(filePath).toLowerCase()];
+  if (!encode) return false;
+  const out = await encode(
+    sharp(filePath).rotate().flatten({ background: DARK }).resize(BANNER_WIDTH, BANNER_HEIGHT, { fit: "cover", position: "centre" })
+  ).toBuffer();
+  await fs.promises.writeFile(filePath, out);
+  return true;
+}
+
+// Middleware for the banner form (one optional "image")
+const processBannerUpload = async (req, res, next) => {
+  if (!req.file) return next();
+  try {
+    await standardizeBannerImage(req.file.path);
+    next();
+  } catch (err) {
+    console.error("❌ Could not process banner image:", err.message);
+    fs.unlink(req.file.path, () => {});
+    res.status(400).json({ message: "That image couldn't be read. Please try another file." });
+  }
+};
+
+module.exports = { standardizeProductImage, processProductUpload, processProductUploads, processBannerUpload };

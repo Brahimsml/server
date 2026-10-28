@@ -94,6 +94,15 @@ const Home = () => {
 
   const helpWhatsapp = whatsappLink(SHOP_INFO.phone, "Hi MegaTech, I need help choosing a product.");
 
+  // Banners made in Admin → Banners. While any are live they replace the category slides.
+  const [banners, setBanners] = useState([]);
+  useEffect(() => {
+    api
+      .get("/banners")
+      .then((res) => setBanners(Array.isArray(res.data) ? res.data : []))
+      .catch(() => {});
+  }, []);
+
   const [featureIndex, setFeatureIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -131,18 +140,21 @@ const Home = () => {
       .slice(0, 6);
   }, [products]);
 
+  const slideCount = banners.length || featured.length;
+
   // Next slide after a few seconds. Restarts on every change, so a click or a
   // pause always gives the new slide its full time (matching the progress bar).
   useEffect(() => {
-    if (featured.length < 2 || paused) return;
+    if (slideCount < 2 || paused) return;
     const timer = setTimeout(
-      () => setFeatureIndex((i) => (i + 1) % featured.length),
+      () => setFeatureIndex((i) => (i + 1) % slideCount),
       FEATURE_INTERVAL_MS
     );
     return () => clearTimeout(timer);
-  }, [featured.length, paused, featureIndex]);
+  }, [slideCount, paused, featureIndex]);
 
   const current = featured[featureIndex % (featured.length || 1)];
+  const currentBanner = banners.length ? banners[featureIndex % banners.length] : null;
 
   // Category tiles: photo of the category's flagship (most expensive) product that isn't
   // already in the Best sellers row, so tiles show real hero products and don't repeat that row
@@ -198,9 +210,58 @@ const Home = () => {
   }, [search, navigate]);
 
   const step = (dir) => {
-    if (!featured.length) return;
-    setFeatureIndex((i) => (i + dir + featured.length) % featured.length);
+    if (!slideCount) return;
+    setFeatureIndex((i) => (i + dir + slideCount) % slideCount);
   };
+
+  const controls =
+    slideCount > 1 && (
+      <div className="hp-slider__controls">
+        <button
+          type="button"
+          className="hp-slider__arrow"
+          onClick={() => step(-1)}
+          aria-label="Previous banner"
+        >
+          <ChevronLeftIcon />
+        </button>
+        <div className="hp-slider__dots" role="tablist" aria-label="Banners">
+          {(banners.length ? banners : featured).map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={i === featureIndex}
+              aria-label={`Show ${p.title || p.category_name}`}
+              className={i === featureIndex ? "is-active" : ""}
+              onClick={() => setFeatureIndex(i)}
+            >
+              <span />
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="hp-slider__arrow"
+          onClick={() => step(1)}
+          aria-label="Next banner"
+        >
+          <ChevronRightIcon />
+        </button>
+      </div>
+    );
+
+  // A banner's button: a page on this site, or an outside link in a new tab
+  const bannerButton = (b) =>
+    /^https?:/i.test(b.link) ? (
+      <a href={b.link} className="mt-btn mt-btn--primary" target="_blank" rel="noopener noreferrer">
+        {b.button_text} <ArrowForwardIcon />
+      </a>
+    ) : (
+      <Link to={b.link} className="mt-btn mt-btn--primary">
+        {b.button_text} <ArrowForwardIcon />
+      </Link>
+    );
 
   return (
     <div className="mt-page hp">
@@ -217,7 +278,18 @@ const Home = () => {
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
         >
-          {loading ? (
+          {currentBanner ? (
+            <div className="hp-slide hp-slide--banner" key={`banner-${currentBanner.id}`}>
+              <img className="hp-banner__img" src={imageUrl(currentBanner.image)} alt="" />
+              <div className="hp-slide__copy">
+                {currentBanner.eyebrow && <span className="hp-slide__cat">{currentBanner.eyebrow}</span>}
+                <h2 className="hp-slide__title">{currentBanner.title}</h2>
+                {currentBanner.subtitle && <p className="hp-slide__desc">{currentBanner.subtitle}</p>}
+                <div className="hp-slide__actions">{bannerButton(currentBanner)}</div>
+                {controls}
+              </div>
+            </div>
+          ) : loading ? (
             <div className="mt-skeleton hp-slider__skeleton" />
           ) : current ? (
             <div className="hp-slide" key={current.id}>
@@ -236,41 +308,7 @@ const Home = () => {
                   </Link>
                 </div>
 
-                {featured.length > 1 && (
-                  <div className="hp-slider__controls">
-                    <button
-                      type="button"
-                      className="hp-slider__arrow"
-                      onClick={() => step(-1)}
-                      aria-label="Previous banner"
-                    >
-                      <ChevronLeftIcon />
-                    </button>
-                    <div className="hp-slider__dots" role="tablist" aria-label="Banners">
-                      {featured.map((p, i) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          role="tab"
-                          aria-selected={i === featureIndex}
-                          aria-label={`Show ${p.category_name}`}
-                          className={i === featureIndex ? "is-active" : ""}
-                          onClick={() => setFeatureIndex(i)}
-                        >
-                          <span />
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="hp-slider__arrow"
-                      onClick={() => step(1)}
-                      aria-label="Next banner"
-                    >
-                      <ChevronRightIcon />
-                    </button>
-                  </div>
-                )}
+                {controls}
               </div>
 
               <Link to={productPath(current)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
