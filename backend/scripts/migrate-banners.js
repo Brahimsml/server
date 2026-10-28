@@ -3,6 +3,7 @@
 
   Creates the banners table:
     image        1600 x 600 picture (in /images)
+    image_mobile optional 1200 x 900 picture for phones
     eyebrow      small gold line above the headline (optional)
     title        the headline
     subtitle     one short line under it (optional)
@@ -46,6 +47,14 @@ const query = (sql, params) =>
       )
     `);
     console.log("✅ banners table ready");
+
+    // added later: an optional phone picture (1200 x 900)
+    const columns = new Set((await query("SHOW COLUMNS FROM banners")).map((c) => c.Field));
+    if (columns.has("image_mobile")) console.log("• banners.image_mobile already exists");
+    else {
+      await query("ALTER TABLE banners ADD COLUMN image_mobile VARCHAR(255) NULL AFTER image");
+      console.log("✅ added banners.image_mobile");
+    }
     console.log("Done.");
   } catch (err) {
     console.error("❌ Migration failed:", err);

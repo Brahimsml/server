@@ -819,3 +819,10 @@
     max-width: 52%;
   }
 }
+
+/* Banners with a phone picture: show it in its taller 4:3 shape on phones held upright */
+@media (max-width: 860px) and (orientation: portrait) {
+  .hp-slide--banner.has-phone-picture .hp-banner__img {
+    aspect-ratio: 4 / 3;
+  }
+}

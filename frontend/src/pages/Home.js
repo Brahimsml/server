@@ -303,8 +303,17 @@ const Home = () => {
           onBlur={() => setPaused(false)}
         >
           {currentBanner ? (
-            <div className="hp-slide hp-slide--banner" key={`banner-${currentBanner.id}`}>
-              <img className="hp-banner__img" src={imageUrl(currentBanner.image)} alt="" />
+            <div
+              className={`hp-slide hp-slide--banner ${currentBanner.image_mobile ? "has-phone-picture" : ""}`}
+              key={`banner-${currentBanner.id}`}
+            >
+              {/* phones (held upright) get the banner's phone picture when it has one */}
+              <picture>
+                {currentBanner.image_mobile && (
+                  <source media="(max-width: 860px) and (orientation: portrait)" srcSet={imageUrl(currentBanner.image_mobile)} />
+                )}
+                <img className="hp-banner__img" src={imageUrl(currentBanner.image)} alt="" />
+              </picture>
               <div className="hp-slide__copy">
                 {currentBanner.eyebrow && <span className="hp-slide__cat">{currentBanner.eyebrow}</span>}
                 <h2 className="hp-slide__title">{currentBanner.title}</h2>

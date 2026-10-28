@@ -110,9 +110,9 @@ const removeImageIfUnused = (image) => {
 
   db.query(
     `SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?)
-          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=?)
+          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=? OR image_mobile=?)
           + (SELECT COUNT(*) FROM categories WHERE image=?) AS n`,
-    [file, file, file, file, file],
+    [file, file, file, file, file, file],
     (err, rows) => {
       if (err || rows[0].n > 0) return;
       fs.unlink(path.join(imagesDir, file), (unlinkErr) => {
@@ -152,6 +152,16 @@ const upload = multer({
   limits: { fileSize: MAX_UPLOAD_SIZE, files: 1 },
   fileFilter: imageFileFilter,
 });
+
+// Banner form: the picture for computers + an optional phone picture
+const bannerUpload = multer({
+  storage,
+  limits: { fileSize: MAX_UPLOAD_SIZE, files: 2 },
+  fileFilter: imageFileFilter,
+}).fields([
+  { name: "image", maxCount: 1 },
+  { name: "image_mobile", maxCount: 1 },
+]);
 
 // Product form: main photo + up to 8 extra photos
 const MAX_GALLERY = 8;
@@ -1166,7 +1176,7 @@ const bannerError = (fields) =>
 // Shown on the home page, in the admin's order
 app.get("/banners", (req, res) => {
   db.query(
-    "SELECT id, image, eyebrow, title, subtitle, button_text, link FROM banners WHERE active=1 ORDER BY sort_order, id",
+    "SELECT id, image, image_mobile, eyebrow, title, subtitle, button_text, link FROM banners WHERE active=1 ORDER BY sort_order, id",
     (err, rows) => {
       if (err) return serverError(res, err);
       res.json(rows);
@@ -1181,7 +1191,7 @@ app.get("/admin/banners", verifyAdmin, (req, res) => {
   });
 });
 
-app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+app.post("/banners", verifyAdmin, bannerUpload, processBannerUpload, async (req, res) => {
   const fields = bannerFields(req.body);
   const problem = !req.file ? "Choose a banner image." : bannerError(fields);
   if (problem) {
@@ -1191,9 +1201,18 @@ app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, a
   try {
     const result = await runQuery(
       db,
-      `INSERT INTO banners (image, eyebrow, title, subtitle, button_text, link, active, sort_order)
-       SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
-      [req.file.filename, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active]
+      `INSERT INTO banners (image, image_mobile, eyebrow, title, subtitle, button_text, link, active, sort_order)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
+      [
+        req.file.filename,
+        req.mobileFile ? req.mobileFile.filename : null,
+        fields.eyebrow,
+        fields.title,
+        fields.subtitle,
+        fields.button_text,
+        fields.link,
+        fields.active,
+      ]
     );
     res.json({ message: "Banner added", id: result.insertId });
   } catch (err) {
@@ -1228,7 +1247,7 @@ app.put("/banners/:id/active", verifyAdmin, (req, res) => {
   });
 });
 
-app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+app.put("/banners/:id", verifyAdmin, bannerUpload, processBannerUpload, async (req, res) => {
   const fields = bannerFields(req.body);
   const problem = bannerError(fields);
   if (problem) {
@@ -1236,18 +1255,25 @@ app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload
     return res.status(400).json({ message: problem });
   }
   try {
-    const [current] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    const [current] = await runQuery(db, "SELECT image, image_mobile FROM banners WHERE id=?", [req.params.id]);
     if (!current) {
       discardUpload(req);
       return res.status(404).json({ message: "Banner not found" });
     }
     const image = req.file ? req.file.filename : current.image;
+    // phone picture: a new one, removed ("remove_mobile"), or unchanged
+    const imageMobile = req.mobileFile
+      ? req.mobileFile.filename
+      : req.body.remove_mobile === "1"
+      ? null
+      : current.image_mobile;
     await runQuery(
       db,
-      "UPDATE banners SET image=?, eyebrow=?, title=?, subtitle=?, button_text=?, link=?, active=? WHERE id=?",
-      [image, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active, req.params.id]
+      "UPDATE banners SET image=?, image_mobile=?, eyebrow=?, title=?, subtitle=?, button_text=?, link=?, active=? WHERE id=?",
+      [image, imageMobile, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active, req.params.id]
     );
-    if (req.file && current.image !== image) removeImageIfUnused(current.image);
+    if (current.image !== image) removeImageIfUnused(current.image);
+    if (current.image_mobile && current.image_mobile !== imageMobile) removeImageIfUnused(current.image_mobile);
     res.json({ message: "Banner updated" });
   } catch (err) {
     discardUpload(req);
@@ -1257,10 +1283,11 @@ app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload
 
 app.delete("/banners/:id", verifyAdmin, async (req, res) => {
   try {
-    const [banner] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    const [banner] = await runQuery(db, "SELECT image, image_mobile FROM banners WHERE id=?", [req.params.id]);
     if (!banner) return res.status(404).json({ message: "Banner not found" });
     await runQuery(db, "DELETE FROM banners WHERE id=?", [req.params.id]);
     removeImageIfUnused(banner.image);
+    if (banner.image_mobile) removeImageIfUnused(banner.image_mobile);
     res.json({ message: "Banner deleted" });
   } catch (err) {
     serverError(res, err);
