@@ -33,6 +33,7 @@ import "../Styles/Shell.css";
 import { clearUserSession, getUser } from "../utils/auth";
 import api from "../api";
 import SHOP_INFO from "../utils/shopInfo";
+import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
 
 const MAIN_LINKS = [
   { to: "/home", label: "Home", icon: HomeOutlinedIcon },
@@ -67,6 +68,28 @@ const NavBar = () => {
       .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
   }, []);
+
+  // Phone menu: a photo and product count for each category, loaded the first time it opens
+  const [catInfo, setCatInfo] = useState(null);
+  useEffect(() => {
+    if (!mobileOpen || catInfo) return;
+    api
+      .get("/products")
+      .then((res) => {
+        const info = {};
+        (Array.isArray(res.data) ? res.data : []).forEach((p) => {
+          const entry = (info[p.category_id] = info[p.category_id] || { count: 0, pick: null });
+          entry.count += 1;
+          if (!p.image) return;
+          const rank = (x) => [Number(!!normalizeLabel(x.label)), Number(x.price)];
+          const [la, pa] = rank(p);
+          const [lb, pb] = entry.pick ? rank(entry.pick) : [-1, -1];
+          if (la > lb || (la === lb && pa > pb)) entry.pick = p;
+        });
+        setCatInfo(info);
+      })
+      .catch(() => setCatInfo({}));
+  }, [mobileOpen, catInfo]);
 
   const accountRef = useRef(null);
   const adminRef = useRef(null);
@@ -360,10 +383,24 @@ const NavBar = () => {
                 <>
                   <p className="nb-drawer__label">Shop by category</p>
                   <ul className="nb-drawer__list nb-drawer__list--plain">
-                    {categories.map((c) => (
+                    {categories
+                      .filter((c) => !catInfo || catInfo[c.id]?.count) // hide empty categories once counts are known
+                      .map((c) => (
                       <li key={c.id}>
-                        <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__link">
-                          <span>{c.name}</span>
+                        <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__link nb-drawer__cat">
+                          <span className="nb-drawer__thumb" aria-hidden="true">
+                            {catInfo?.[c.id]?.pick && (
+                              <img src={imageUrl(catInfo[c.id].pick.image)} alt="" loading="lazy" onError={onImageError} />
+                            )}
+                          </span>
+                          <span className="nb-drawer__catname">
+                            {c.name}
+                            {catInfo?.[c.id] && (
+                              <small>
+                                {catInfo[c.id].count} {catInfo[c.id].count === 1 ? "product" : "products"}
+                              </small>
+                            )}
+                          </span>
                           <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
                         </Link>
                       </li>
