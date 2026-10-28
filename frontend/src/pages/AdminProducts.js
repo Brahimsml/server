@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import ContentCopyIcon from "@mui/icons-material/ContentCopyOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import api from "../api";
@@ -214,6 +215,14 @@ function AdminProducts() {
                               title="Edit"
                             >
                               <EditOutlinedIcon />
+                            </Link>
+                            <Link
+                              to={`/products/add?copy=${p.id}`}
+                              className="ad-icon-btn"
+                              aria-label={`Duplicate ${p.name}`}
+                              title="Duplicate (e.g. for another color)"
+                            >
+                              <ContentCopyIcon />
                             </Link>
                             <button
                               type="button"

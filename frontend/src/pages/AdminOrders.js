@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
-import { PageHeader, SearchBox, FilterTabs, apiError } from "../Components/admin/AdminUI";
+import { PageHeader, SearchBox, FilterTabs } from "../Components/admin/AdminUI";
 import { OrderStatusSelect, useChangeOrderStatus } from "../Components/admin/OrderStatus";
 import { formatMoney, formatOrderDate, orderStatus, ORDER_STATUS_OPTIONS } from "../utils/shop";
 
@@ -26,6 +25,9 @@ function AdminOrders() {
   const [dateFilter, setDateFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [visible, setVisible] = useState(PAGE_SIZE);
+  const [selected, setSelected] = useState(() => new Set()); // order ids ticked for a bulk change
+  const [bulkStatus, setBulkStatus] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const fetchOrders = () =>
     api
@@ -99,24 +101,65 @@ function AdminOrders() {
     }
   };
 
-  const handleDelete = async (order) => {
-    const open = ["pending", "processing"].includes(orderStatus(order.status).key);
+  // ===== Bulk status change (tick orders, pick a status, Apply) =====
+  // Cancelled orders can't change, so they can't be ticked
+  const canSelect = (o) => orderStatus(o.status).key !== "cancelled";
+  const shown = filtered.slice(0, visible);
+  const selectable = shown.filter(canSelect);
+  const allTicked = selectable.length > 0 && selectable.every((o) => selected.has(o.id));
+
+  // A new filter or search starts a fresh selection
+  useEffect(() => setSelected(new Set()), [tab, search, dateFilter]);
+
+  const toggle = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const toggleAll = () => setSelected(allTicked ? new Set() : new Set(selectable.map((o) => o.id)));
+
+  const applyBulk = async () => {
+    const targets = orders.filter((o) => selected.has(o.id) && orderStatus(o.status).key !== bulkStatus);
+    if (!bulkStatus || !targets.length) {
+      notify("Those orders already have that status.", "error");
+      return;
+    }
+    const label = orderStatus(bulkStatus).label.toLowerCase();
+    const cancelling = bulkStatus === "cancelled";
     const ok = await confirm({
-      title: `Delete order #${order.id}?`,
-      message: `The order will be removed permanently.${open ? " Its items go back into stock." : ""}`,
-      confirmLabel: "Delete order",
-      danger: true,
+      title: `Mark ${targets.length} ${targets.length === 1 ? "order" : "orders"} as ${label}?`,
+      message: cancelling
+        ? "Their items go back into stock, each customer gets an email, and cancelled orders can't be reopened."
+        : "Each customer gets an email about the new status.",
+      confirmLabel: cancelling ? "Cancel orders" : `Mark as ${label}`,
+      cancelLabel: "Go back",
+      danger: cancelling,
     });
     if (!ok) return;
 
-    try {
-      await api.delete(`/orders/${order.id}`);
-      setOrders((list) => list.filter((o) => o.id !== order.id));
-      notify(`Order #${order.id} was deleted`);
-    } catch (err) {
-      console.error(err);
-      notify(apiError(err, "We couldn't delete this order."), "error");
+    setBulkBusy(true);
+    const done = [];
+    for (const o of targets) {
+      try {
+        await api.put(`/orders/${o.id}/status`, { status: bulkStatus });
+        done.push(o.id);
+      } catch (err) {
+        console.error(err);
+      }
     }
+    setOrders((list) => list.map((o) => (done.includes(o.id) ? { ...o, status: bulkStatus } : o)));
+    setSelected(new Set());
+    setBulkStatus("");
+    setBulkBusy(false);
+    const failed = targets.length - done.length;
+    notify(
+      failed
+        ? `${done.length} updated, ${failed} couldn't be changed. Please check them.`
+        : `${done.length} ${done.length === 1 ? "order is" : "orders are"} now ${label}. Customers were emailed.`,
+      failed ? "error" : "success"
+    );
   };
 
   const filtersActive = search || dateFilter !== "all" || tab !== "all";
@@ -191,14 +234,51 @@ function AdminOrders() {
           </div>
         ) : (
           <>
-            <div className="ad-meta">
-              Showing {Math.min(visible, filtered.length)} of {filtered.length}
-              {filtered.length !== orders.length && ` (${orders.length} in total)`}
-            </div>
+            {selected.size > 0 ? (
+              <div className="ad-bulk" role="region" aria-label="Change several orders">
+                <strong>
+                  {selected.size} {selected.size === 1 ? "order" : "orders"} selected
+                </strong>
+                <select
+                  className="mt-input"
+                  value={bulkStatus}
+                  onChange={(e) => setBulkStatus(e.target.value)}
+                  aria-label="New status for the selected orders"
+                >
+                  <option value="">Change status to…</option>
+                  {ORDER_STATUS_OPTIONS.map((st) => (
+                    <option key={st.value} value={st.value}>
+                      {st.label}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="mt-btn mt-btn--primary mt-btn--sm" onClick={applyBulk} disabled={!bulkStatus || bulkBusy}>
+                  {bulkBusy ? "Updating…" : "Apply"}
+                </button>
+                <button type="button" className="mt-link" onClick={() => setSelected(new Set())} disabled={bulkBusy}>
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <div className="ad-meta">
+                Showing {Math.min(visible, filtered.length)} of {filtered.length}
+                {filtered.length !== orders.length && ` (${orders.length} in total)`}
+              </div>
+            )}
             <div className="ad-table-wrap">
-              <table className="ad-table">
+              <table className="ad-table ad-orders">
                 <thead>
                   <tr>
+                    <th className="ad-check-cell">
+                      <input
+                        type="checkbox"
+                        className="ad-check"
+                        checked={allTicked}
+                        onChange={toggleAll}
+                        disabled={!selectable.length}
+                        aria-label="Select all orders shown"
+                      />
+                    </th>
                     <th>Order</th>
                     <th>Customer</th>
                     <th>Status</th>
@@ -207,11 +287,27 @@ function AdminOrders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.slice(0, visible).map((o) => {
+                  {shown.map((o) => {
                     const { date, time: t } = formatOrderDate(o.created_at);
+                    const ticked = selected.has(o.id);
                     return (
-                      <tr key={o.id} className="is-link" onClick={() => navigate(`/orders/${o.id}`)}>
-                        <td data-label="Order">
+                      <tr
+                        key={o.id}
+                        className={`is-link ${ticked ? "is-selected" : ""}`}
+                        onClick={() => navigate(`/orders/${o.id}`)}
+                      >
+                        <td className="ad-check-cell" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="ad-check"
+                            checked={ticked}
+                            onChange={() => toggle(o.id)}
+                            disabled={!canSelect(o)}
+                            aria-label={`Select order #${o.id}`}
+                            title={canSelect(o) ? "Select" : "Cancelled orders can't be changed"}
+                          />
+                        </td>
+                        <td data-label="Order" className="ad-orders__id">
                           <span>
                             <span className="ad-strong">#{o.id}</span>
                             <small>
@@ -219,29 +315,20 @@ function AdminOrders() {
                             </small>
                           </span>
                         </td>
-                        <td data-label="Customer">
+                        <td data-label="Customer" className="ad-orders__customer">
                           <span>
                             {o.customer_name}
                             <small>{o.user_email}</small>
                           </span>
                         </td>
-                        <td data-label="Status">
+                        <td data-label="Status" className="ad-orders__status">
                           <OrderStatusSelect order={o} onChange={(next) => handleStatus(o, next)} />
                         </td>
-                        <td data-label="Total" className="ad-num ad-strong">
+                        <td data-label="Total" className="ad-num ad-strong ad-orders__total">
                           {formatMoney(o.total)}
                         </td>
-                        <td className="ad-actions-cell" onClick={(e) => e.stopPropagation()}>
+                        <td className="ad-actions-cell ad-orders__open" onClick={(e) => e.stopPropagation()}>
                           <div className="ad-row-actions">
-                            <button
-                              type="button"
-                              className="ad-icon-btn ad-icon-btn--danger"
-                              onClick={() => handleDelete(o)}
-                              aria-label={`Delete order #${o.id}`}
-                              title="Delete"
-                            >
-                              <DeleteOutlineIcon />
-                            </button>
                             <Link to={`/orders/${o.id}`} className="ad-icon-btn" aria-label={`Open order #${o.id}`} title="Open">
                               <ChevronRightIcon />
                             </Link>

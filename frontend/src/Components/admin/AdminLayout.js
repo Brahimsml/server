@@ -59,6 +59,33 @@ export const adminSignOut = (navigate) => {
   navigate("/admin/login");
 };
 
+// Browser tab title for each admin page, so several open admin tabs are easy to tell apart
+const ADMIN_TITLES = [
+  [/^\/admin\/dashboard/, () => "Dashboard"],
+  [/^\/products\/admin/, () => "Products"],
+  [/^\/products\/add/, () => "Add product"],
+  [/^\/products\/update\//, () => "Edit product"],
+  [/^\/places\/admin/, () => "Stores"],
+  [/^\/places\/add/, () => "Add store"],
+  [/^\/places\/update\//, () => "Edit store"],
+  [/^\/orders\/admin/, () => "Orders"],
+  [/^\/orders\/(\d+)\/invoice/, (m) => `Invoice #${m[1]}`],
+  [/^\/orders\/(\d+)/, (m) => `Order #${m[1]}`],
+  [/^\/customers\/admin/, () => "Customers"],
+  [/^\/customers\/\d+/, () => "Customer"], // the page swaps in the customer's name once loaded
+  [/^\/contacts\/admin/, () => "Messages"],
+  [/^\/categories\/admin/, () => "Categories"],
+  [/^\/admin\/settings/, () => "Settings"],
+];
+
+const adminTitle = (pathname) => {
+  for (const [re, make] of ADMIN_TITLES) {
+    const m = pathname.match(re);
+    if (m) return `${make(m)} | MegaTech Admin`;
+  }
+  return "MegaTech Admin";
+};
+
 const AdminLayout = ({ children }) => {
   const { pathname, search, state } = useLocation();
   const navigate = useNavigate();
@@ -99,6 +126,10 @@ const AdminLayout = ({ children }) => {
 
   useEffect(() => {
     setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.title = adminTitle(pathname);
   }, [pathname]);
 
   // ===== Session keep-alive =====

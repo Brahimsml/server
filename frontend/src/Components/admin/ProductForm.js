@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import ContentCopyIcon from "@mui/icons-material/ContentCopyOutlined";
 import api from "../../api";
 import { PageHeader, apiError } from "./AdminUI";
 import { imageUrl } from "../../utils/shop";
@@ -26,9 +27,11 @@ const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: ""
   Shared form for "Add product" and "Edit product".
   productId: edit that product; leave empty to create a new one.
 */
-const ProductForm = ({ productId }) => {
+const ProductForm = ({ productId, copyFromId }) => {
   const navigate = useNavigate();
   const isEdit = !!productId;
+  const isCopy = !isEdit && !!copyFromId; // "Duplicate": a new product, filled in from another one
+  const sourceId = productId || copyFromId;
 
   const [values, setValues] = useState(EMPTY);
   const [existingImage, setExistingImage] = useState("");
@@ -38,7 +41,7 @@ const ProductForm = ({ productId }) => {
   const [brands, setBrands] = useState([]); // brands already used, suggested while typing
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(isEdit);
+  const [loading, setLoading] = useState(!!sourceId);
   // extra photos: ones already saved, ones to remove, and new ones picked now
   const [gallery, setGallery] = useState([]);
   const [removeIds, setRemoveIds] = useState([]);
@@ -53,20 +56,20 @@ const ProductForm = ({ productId }) => {
   }, []);
 
   useEffect(() => {
-    if (!isEdit) return;
+    if (!sourceId) return;
     api
-      .get(`/products/${productId}`)
+      .get(`/products/${sourceId}`)
       .then((res) => {
         const p = res.data;
         setValues({
-          name: p.name || "",
+          name: isCopy ? `${p.name || ""} (copy)` : p.name || "",
           brand: p.brand || "",
           category_id: String(p.category_id || ""),
           description: p.description || "",
           specs: p.specs || "",
           price: String(p.price ?? ""),
           stock_quantity: String(p.stock_quantity ?? 0),
-          label: cleanLabel(p.label),
+          label: isCopy ? "" : cleanLabel(p.label), // a copy doesn't inherit "Best Seller"
         });
         setExistingImage(p.image || "");
         setGallery(Array.isArray(p.images) ? p.images : []);
@@ -77,7 +80,7 @@ const ProductForm = ({ productId }) => {
         )
       )
       .finally(() => setLoading(false));
-  }, [isEdit, productId]);
+  }, [sourceId, isCopy]);
 
   useEffect(() => {
     api
@@ -173,7 +176,12 @@ const ProductForm = ({ productId }) => {
     formData.append("stock_quantity", values.stock_quantity);
     formData.append("specs", values.specs);
     if (file) formData.append("image", file);
-    else if (isEdit) formData.append("existingImage", existingImage);
+    else if (isEdit || isCopy) formData.append("existingImage", existingImage);
+    if (isCopy) {
+      // reuse the original's photos (the ones not removed here)
+      formData.append("copyFrom", String(copyFromId));
+      formData.append("copyGallery", JSON.stringify(keptGallery.map((g) => g.id)));
+    }
     newPhotos.forEach((p) => formData.append("gallery", p.file));
     if (removeIds.length) formData.append("removeGallery", JSON.stringify(removeIds));
 
@@ -200,8 +208,21 @@ const ProductForm = ({ productId }) => {
     <>
       <PageHeader
         back={{ to: "/products/admin", label: "Products" }}
-        title={isEdit ? "Edit product" : "Add product"}
-        subtitle={isEdit ? values.name || " " : "Add a new product to the store."}
+        title={isEdit ? "Edit product" : isCopy ? "Duplicate product" : "Add product"}
+        subtitle={
+          isEdit
+            ? values.name || " "
+            : isCopy
+            ? "A copy with the same photos, details and specs. Change what's different (name, color, price, stock), then add it."
+            : "Add a new product to the store."
+        }
+        actions={
+          isEdit ? (
+            <Link to={`/products/add?copy=${productId}`} className="mt-btn mt-btn--secondary">
+              <ContentCopyIcon /> Duplicate
+            </Link>
+          ) : null
+        }
       />
 
       {formError && (

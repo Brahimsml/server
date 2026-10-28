@@ -1142,10 +1142,10 @@ app.get("/products/search/:id", (req, res) => {
   });
 });
 
-// Specs: one per line ("Memory: 24 GB"), blank lines dropped, kept short
 // Brand (NVIDIA, ASUS, Logitech...): used by the shop's brand filter
 const cleanBrand = (text) => String(text || "").trim().replace(/\s+/g, " ").slice(0, 60) || null;
 
+// Specs: one per line ("Memory: 24 GB"), blank lines dropped, kept short
 const cleanSpecs = (text) =>
   String(text || "")
     .split(/\r?\n/)
@@ -1184,14 +1184,36 @@ const PRODUCT_FIELDS = [
 // processProductUploads: every product photo gets the same size and margin
 app.post("/products", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), processProductUploads, async (req, res) => {
   const { category_id, name, price, label, description, stock_quantity, specs, brand } = req.body;
-  const image = req.file ? req.file.filename : null;
+  let image = req.file ? req.file.filename : null;
 
   try {
+    // "Duplicate product": reuse the original's photos, but only ones that really belong to it
+    let copiedGallery = [];
+    const sourceId = Number(req.body.copyFrom);
+    if (Number.isInteger(sourceId) && sourceId > 0) {
+      const [source] = await runQuery(db, "SELECT image FROM products WHERE id=?", [sourceId]);
+      if (source && !image && req.body.existingImage && req.body.existingImage === source.image) image = source.image;
+      const keep = parseIdList(req.body.copyGallery);
+      if (source && keep.length) {
+        const rows = await runQuery(
+          db,
+          "SELECT image FROM product_images WHERE product_id=? AND id IN (?) ORDER BY sort_order, id",
+          [sourceId, keep]
+        );
+        copiedGallery = rows.map((r) => r.image);
+      }
+    }
+
     const result = await runQuery(
       db,
       "INSERT INTO products (category_id,name,brand,price,image,label,description,stock_quantity,specs) VALUES (?,?,?,?,?,?,?,?,?)",
       [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs)]
     );
+    if (copiedGallery.length) {
+      await runQuery(db, "INSERT INTO product_images (product_id, image, sort_order) VALUES ?", [
+        copiedGallery.map((file, i) => [result.insertId, file, i + 1]),
+      ]);
+    }
     await addGalleryImages(db, result.insertId, req.files?.gallery);
     res.json({ message: "Product added ✅", id: result.insertId });
   } catch (err) {
