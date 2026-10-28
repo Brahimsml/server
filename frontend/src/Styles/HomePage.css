@@ -1661,3 +1661,40 @@
 .hp-cats-wrap .pc-row-arrows button {
   top: 56px;
 }
+
+/* ===================== WIDER HOME PAGE ON BIG SCREENS ===================== */
+/* Big monitors use more of the screen: 1400px instead of 1200px, 6 products per row.
+   Normal laptops (up to ~1500px wide) are unchanged. The banner keeps its height. */
+@media (min-width: 1500px) {
+  .hp-home > .mt-container {
+    max-width: 1400px;
+  }
+
+  .hp-home .pc-grid.pc-grid--row {
+    grid-auto-columns: calc((100% - 5 * 18px) / 6);
+  }
+
+  .hp-home .hp-slide.hp-slide--banner {
+    aspect-ratio: auto;
+    height: 450px;
+  }
+}
+
+/* Shop page too: 1400px and 5 products per row on big screens */
+@media (min-width: 1500px) {
+  .hp-shop > .mt-container {
+    max-width: 1400px;
+  }
+
+  .hp-shop .pc--shop .pc-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* keep the top menu bar lined up with the wider home and shop pages */
+@media (min-width: 1500px) {
+  body:has(.hp-home, .hp-shop) .nb-inner,
+  body:has(.hp-home, .hp-shop) .nb-mega__inner {
+    max-width: 1448px; /* 1400 + its 24px side padding */
+  }
+}

@@ -24,7 +24,10 @@ import {
   FALLBACK_IMG,
 } from "../utils/shop";
 
-const PAGE_SIZE = 12; // fills full rows of 2, 3 or 4
+// Products per "Show more": always full rows. 12 fills rows of 2, 3 or 4; big screens
+// show the shop 5 across (HomePage.css, 1500px and wider), so they get 15.
+const WIDE_SHOP = "(min-width: 1500px)";
+const pageSizeNow = () => (typeof window !== "undefined" && window.matchMedia?.(WIDE_SHOP).matches ? 15 : 12);
 
 // Shop price filter
 const PRICE_RANGES = [
@@ -80,7 +83,15 @@ const ProductsItem = ({
   const [priceRange, setPriceRange] = useState("all");
   const [brands, setBrands] = useState([]); // chosen brands (any of them)
   const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
-  const [shown, setShown] = useState(PAGE_SIZE); // "Show more" adds the next 12
+  const [pageSize, setPageSize] = useState(pageSizeNow);
+  useEffect(() => {
+    const mq = window.matchMedia?.(WIDE_SHOP);
+    if (!mq) return undefined;
+    const onChange = () => setPageSize(pageSizeNow());
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  const [shown, setShown] = useState(pageSize); // "Show more" adds the next full rows
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
   const sideList = useRef(null);
@@ -111,10 +122,10 @@ const ProductsItem = ({
     };
   }, [filtersOpen]);
 
-  // Back to the first 12 whenever what's shown changes
+  // Back to the first rows whenever what's shown changes (or the screen size changes)
   useEffect(() => {
-    setShown(PAGE_SIZE);
-  }, [category, query, sort, inStockOnly, priceRange, brands]);
+    setShown(pageSize);
+  }, [category, query, sort, inStockOnly, priceRange, brands, pageSize]);
 
   const categories = useMemo(() => {
     const map = new Map();
@@ -329,7 +340,7 @@ const ProductsItem = ({
 
       {loading ? (
         <div className={gridClass}>
-          {Array.from({ length: limit || PAGE_SIZE }).map((_, i) => (
+          {Array.from({ length: limit || pageSize }).map((_, i) => (
             <div key={i} className="mt-skeleton pc-skeleton" />
           ))}
         </div>
@@ -443,7 +454,7 @@ const ProductsItem = ({
               <span className="pc-more__bar" aria-hidden="true">
                 <span style={{ width: `${(visibleProducts.length / filtered.length) * 100}%` }} />
               </span>
-              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setShown((n) => n + pageSize)}>
                 Show more products
               </button>
             </div>

@@ -46,7 +46,7 @@ const Shop = () => {
   const isAll = category === "All";
 
   return (
-    <div className="mt-page hp">
+    <div className="mt-page hp hp-shop">
       <div className="mt-container">
         <header className="sh-head">
           <nav className="sh-crumbs" aria-label="Breadcrumb">

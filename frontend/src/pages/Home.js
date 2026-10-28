@@ -288,7 +288,7 @@ const Home = () => {
     );
 
   return (
-    <div className="mt-page hp">
+    <div className="mt-page hp hp-home">
       <div className="mt-container">
         {/* ===== HERO: full-width product banner ===== */}
         <h1 className="hp-sr-only">MegaTech: PC components and gaming gear</h1>
