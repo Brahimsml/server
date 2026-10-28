@@ -942,8 +942,9 @@ app.post("/admin/refresh", verifyAdmin, (req, res) => {
 /*
    CATEGORIES
 */
+// In the order the admin set (Categories page arrows)
 app.get("/categories", (req, res) => {
-  db.query("SELECT * FROM categories ORDER BY name", (err, data) => {
+  db.query("SELECT * FROM categories ORDER BY sort_order, name", (err, data) => {
     if (err) return serverError(res, err);
     res.json(data);
   });
@@ -956,13 +957,34 @@ app.post("/categories", verifyAdmin, (req, res) => {
   if (!name) return res.status(400).json({ message: "Enter a category name" });
   if (name.length > 100) return res.status(400).json({ message: "The name is too long (100 characters max)" });
 
-  db.query("INSERT INTO categories (name) VALUES (?)", [name], (err, result) => {
+  // new categories go to the end of the list
+  const q = "INSERT INTO categories (name, sort_order) SELECT ?, COALESCE(MAX(sort_order), 0) + 1 FROM categories";
+  db.query(q, [name], (err, result) => {
     if (err && err.code === "ER_DUP_ENTRY") {
       return res.status(409).json({ message: `A category called "${name}" already exists` });
     }
     if (err) return serverError(res, err);
     res.json({ id: result.insertId, name });
   });
+});
+
+// New order from the admin: { ids: [3, 1, 2, ...] } top to bottom
+// (declared before /categories/:id so "order" isn't read as an id)
+app.put("/categories/order", verifyAdmin, async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? req.body.ids.map(Number) : [];
+  if (!ids.length || ids.some((id) => !Number.isInteger(id) || id < 1) || new Set(ids).size !== ids.length) {
+    return res.status(400).json({ message: "Send the category ids in their new order" });
+  }
+  try {
+    await withTransaction(async (conn) => {
+      for (const [i, id] of ids.entries()) {
+        await runQuery(conn, "UPDATE categories SET sort_order=? WHERE id=?", [i + 1, id]);
+      }
+    });
+    res.json({ message: "Category order saved" });
+  } catch (err) {
+    serverError(res, err);
+  }
 });
 
 app.put("/categories/:id", verifyAdmin, (req, res) => {
@@ -1075,7 +1097,7 @@ app.delete("/places/:id", verifyAdmin, (req, res) => {
 */
 app.get("/products", (req, res) => {
   const q = `
-    SELECT p.*, c.name AS category_name
+    SELECT p.*, c.name AS category_name, c.sort_order AS category_order
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ORDER BY p.id DESC

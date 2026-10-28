@@ -6,6 +6,8 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
@@ -24,6 +26,7 @@ function AdminCategories() {
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editError, setEditError] = useState("");
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     Promise.all([api.get("/categories"), api.get("/products")])
@@ -54,7 +57,7 @@ function AdminCategories() {
     try {
       setAdding(true);
       const res = await api.post("/categories", { name });
-      setCategories((list) => [...list, res.data].sort((a, b) => a.name.localeCompare(b.name)));
+      setCategories((list) => [...list, res.data]); // new categories go to the end
       setNewName("");
       setAddError("");
       notify(`Category "${res.data.name}" was added`);
@@ -84,12 +87,32 @@ function AdminCategories() {
     try {
       const res = await api.put(`/categories/${c.id}`, { name });
       setCategories((list) =>
-        list.map((x) => (x.id === c.id ? { ...x, name: res.data.name } : x)).sort((a, b) => a.name.localeCompare(b.name))
+        list.map((x) => (x.id === c.id ? { ...x, name: res.data.name } : x))
       );
       setEditId(null);
       notify(`Renamed to "${res.data.name}"`);
     } catch (err) {
       setEditError(apiError(err, "We couldn't rename this category."));
+    }
+  };
+
+  // Move a category up or down; the whole site shows categories in this order
+  const move = async (index, dir) => {
+    const to = index + dir;
+    if (to < 0 || to >= categories.length || savingOrder) return;
+    const before = categories;
+    const next = [...categories];
+    [next[index], next[to]] = [next[to], next[index]];
+    setCategories(next);
+    setSavingOrder(true);
+    try {
+      await api.put("/categories/order", { ids: next.map((c) => c.id) });
+      notify(`"${next[to].name}" moved ${dir < 0 ? "up" : "down"}`);
+    } catch (err) {
+      setCategories(before);
+      notify(apiError(err, "We couldn't save the new order."), "error");
+    } finally {
+      setSavingOrder(false);
     }
   };
 
@@ -113,7 +136,10 @@ function AdminCategories() {
 
   return (
     <>
-      <PageHeader title="Categories" subtitle="Group your products. Customers filter the shop by these." />
+      <PageHeader
+        title="Categories"
+        subtitle="Group your products. Use the arrows to set the order they appear in on the home page, shop and menus."
+      />
 
       {error && <div className="mt-alert mt-alert--error">{error}</div>}
 
@@ -159,17 +185,43 @@ function AdminCategories() {
               <table className="ad-table">
                 <thead>
                   <tr>
+                    <th>Order</th>
                     <th>Name</th>
                     <th>Products</th>
                     <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((c) => {
+                  {categories.map((c, i) => {
                     const n = counts[c.id] || 0;
                     const editing = editId === c.id;
                     return (
                       <tr key={c.id}>
+                        <td data-label="Order">
+                          <div className="ad-row-actions ad-order">
+                            <span className="ad-order__pos">{i + 1}</span>
+                            <button
+                              type="button"
+                              className="ad-icon-btn"
+                              onClick={() => move(i, -1)}
+                              disabled={i === 0 || savingOrder}
+                              aria-label={`Move ${c.name} up`}
+                              title="Move up"
+                            >
+                              <ArrowUpwardIcon />
+                            </button>
+                            <button
+                              type="button"
+                              className="ad-icon-btn"
+                              onClick={() => move(i, 1)}
+                              disabled={i === categories.length - 1 || savingOrder}
+                              aria-label={`Move ${c.name} down`}
+                              title="Move down"
+                            >
+                              <ArrowDownwardIcon />
+                            </button>
+                          </div>
+                        </td>
                         <td className="ad-cell-full">
                           {editing ? (
                             <form

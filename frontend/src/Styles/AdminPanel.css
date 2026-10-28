@@ -2024,3 +2024,17 @@ a.ad-kpi:hover {
 .ad-content {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Categories: position number + up/down arrows */
+.ad-order {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+}
+
+.ad-order__pos {
+  min-width: 22px;
+  color: var(--mt-accent-bright);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

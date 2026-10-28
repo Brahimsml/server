@@ -10,6 +10,7 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import apo from "../Assets/apo.jpeg";
 import api from "../api";
+import { byCategoryOrder } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/AboutPage.css";
 import usePageTitle from "../utils/usePageTitle";
@@ -42,11 +43,10 @@ const About = () => {
     const map = new Map();
     (products || []).forEach((p) => {
       const name = p.category_name || "Other";
-      map.set(name, (map.get(name) || 0) + 1);
+      if (!map.has(name)) map.set(name, { name, order: p.category_order, count: 0 });
+      map.get(name).count += 1;
     });
-    return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
+    return Array.from(map.values()).sort(byCategoryOrder);
   }, [products]);
 
   const brands = useMemo(

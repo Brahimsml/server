@@ -20,6 +20,7 @@ import {
   onImageError,
   productPath,
   toCartProduct,
+  byCategoryOrder,
   FALLBACK_IMG,
 } from "../utils/shop";
 
@@ -116,11 +117,10 @@ const ProductsItem = ({
     const map = new Map();
     products.forEach((p) => {
       const name = p.category_name || "Other";
-      map.set(name, (map.get(name) || 0) + 1);
+      if (!map.has(name)) map.set(name, { name, order: p.category_order, count: 0 });
+      map.get(name).count += 1;
     });
-    return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
+    return Array.from(map.values()).sort(byCategoryOrder);
   }, [products]);
 
   const filtered = useMemo(() => {

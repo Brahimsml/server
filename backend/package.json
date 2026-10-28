@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "hash-admin-passwords": "node scripts/hash-admin-passwords.js",
-    "migrate": "node scripts/migrate-email-verification.js && node scripts/migrate-order-payment.js && node scripts/migrate-product-gallery.js && node scripts/migrate-account-details.js && node scripts/migrate-wishlist.js && node scripts/migrate-product-brand.js",
+    "migrate": "node scripts/migrate-email-verification.js && node scripts/migrate-order-payment.js && node scripts/migrate-product-gallery.js && node scripts/migrate-account-details.js && node scripts/migrate-wishlist.js && node scripts/migrate-product-brand.js && node scripts/migrate-category-order.js",
     "standardize-images": "node scripts/standardize-product-images.js",
     "backup": "node scripts/backup.js",
     "restore": "node scripts/restore.js"

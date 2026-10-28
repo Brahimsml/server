@@ -138,3 +138,8 @@ export const telLink = (phone) => {
   const number = internationalPhone(phone);
   return number ? `tel:+${number}` : null;
 };
+
+// Categories in the order the admin set (Categories page arrows); ties: most products first
+export const byCategoryOrder = (a, b) =>
+  (a.order ?? Infinity) - (b.order ?? Infinity) || (b.count || 0) - (a.count || 0) || String(a.name).localeCompare(String(b.name));
+

@@ -22,6 +22,7 @@ import {
   onImageError,
   productPath,
   whatsappLink,
+  byCategoryOrder,
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
@@ -125,7 +126,9 @@ const Home = () => {
         const name = p.category_name || "Other";
         if (!byCategory.has(name)) byCategory.set(name, p);
       });
-    return Array.from(byCategory.values()).slice(0, 6);
+    return Array.from(byCategory.values())
+      .sort((a, b) => byCategoryOrder({ ...a, name: a.category_name, order: a.category_order }, { ...b, name: b.category_name, order: b.category_order }))
+      .slice(0, 6);
   }, [products]);
 
   // Next slide after a few seconds. Restarts on every change, so a click or a
@@ -147,7 +150,7 @@ const Home = () => {
     const map = new Map();
     products.forEach((p) => {
       const name = p.category_name || "Other";
-      if (!map.has(name)) map.set(name, { name, count: 0, image: "", pick: null });
+      if (!map.has(name)) map.set(name, { name, order: p.category_order, count: 0, image: "", pick: null });
       const entry = map.get(name);
       entry.count += 1;
       if (!p.image) return;
@@ -160,7 +163,7 @@ const Home = () => {
         entry.image = p.image;
       }
     });
-    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+    return Array.from(map.values()).sort(byCategoryOrder);
   }, [products]);
 
   // New arrivals: products labelled "New", topped up with the newest products
