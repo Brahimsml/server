@@ -273,10 +273,27 @@
 }
 
 /* ===== CATEGORIES ===== */
+/* All categories in one row with equal tiles (scrolls sideways if there are many) */
 .hp-cats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(190px, 1fr);
   gap: 18px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* room for the tile lift on hover */
+  padding: 4px 0 10px;
+  margin: -4px 0 -10px;
+}
+
+.hp-cats::-webkit-scrollbar {
+  display: none;
+}
+
+.hp-cats > .hp-cat {
+  scroll-snap-align: start;
 }
 
 .hp-cat {
@@ -1248,11 +1265,11 @@
 
 /* Wide screens: 5 cards across in the sideways rows */
 @media (min-width: 1280px) {
-  .pc-grid.pc-grid--row:not(.pc-grid--few) {
+  .pc-grid.pc-grid--row {
     grid-auto-columns: calc((100% - 4 * 18px) / 5);
   }
 
-  .pc--row .pc-grid:not(.pc-grid--few) .pc-media {
+  .pc--row .pc-media {
     height: 180px;
     padding: 18px;
   }

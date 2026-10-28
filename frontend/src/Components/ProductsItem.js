@@ -203,10 +203,7 @@ const ProductsItem = ({
     [filtered, shown, limit, showPagination]
   );
 
-  // rows with only a few products keep 4 across, so wide screens don't show an empty slot
-  const gridClass = row
-    ? `pc-grid pc-grid--row ${!loading && visibleProducts.length <= 4 ? "pc-grid--few" : ""}`
-    : "pc-grid";
+  const gridClass = row ? "pc-grid pc-grid--row" : "pc-grid";
 
   const setCategory = (name) => {
     if (onCategoryChange) onCategoryChange(name);

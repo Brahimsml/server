@@ -32,6 +32,7 @@ const CATEGORY_BLURBS = [
   [/gpu|graphic/i, "Graphics power for serious builds"],
   [/laptop/i, "Portable performance for work and play"],
   [/monitor/i, "Sharper visuals for every setup"],
+  [/mouse|mice/i, "Gaming mice for every grip"],
   [/peripheral|keyboard|mouse|headset|audio/i, "Keyboards, mice and headsets"],
 ];
 
@@ -40,6 +41,7 @@ const CATEGORY_HEADLINES = [
   [/gpu|graphic/i, "Next-gen graphics power", "The latest GPUs for smooth 4K gaming and faster creative work."],
   [/laptop/i, "Performance that travels", "Gaming and creator laptops, ready wherever you are."],
   [/monitor/i, "See every frame", "Fast, sharp gaming monitors for every setup."],
+  [/mouse|mice/i, "Precision in every click", "Gaming mice built for speed, accuracy and long sessions."],
   [/peripheral|keyboard|mouse|headset|audio/i, "Gear up your setup", "Keyboards, mice and headsets built for play."],
 ];
 
