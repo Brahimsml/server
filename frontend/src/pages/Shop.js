@@ -67,7 +67,7 @@ const Shop = () => {
             {query
               ? "Change the words in the search box, or pick a category to narrow it down."
               : isAll
-              ? "Graphics cards, monitors, laptops and peripherals. Search, filter and sort the full catalog."
+              ? "PC components, gaming gear, consoles and more. Search, filter and sort the full catalog."
               : `Browse our ${category.toLowerCase()}. Search or sort to find the right one.`}
           </p>
         </header>

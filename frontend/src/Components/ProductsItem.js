@@ -72,7 +72,10 @@ const ProductsItem = ({
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
-  const [sort, setSort] = useState("newest");
+  // The shop opens on "Featured" (categories in the admin's order, best sellers and new
+  // first); rows elsewhere (home, related) keep newest first
+  const defaultSort = showCategories ? "featured" : "newest";
+  const [sort, setSort] = useState(defaultSort);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [priceRange, setPriceRange] = useState("all");
   const [brands, setBrands] = useState([]); // chosen brands (any of them)
@@ -150,6 +153,12 @@ const ProductsItem = ({
           const diff = Number(isBestSeller(b)) - Number(isBestSeller(a));
           if (diff) return diff;
         }
+        if (sort === "featured") {
+          const byCategory = (a.category_order ?? Infinity) - (b.category_order ?? Infinity);
+          if (byCategory) return byCategory;
+          const labelled = Number(!!normalizeLabel(b.label)) - Number(!!normalizeLabel(a.label));
+          if (labelled) return labelled;
+        }
         return Number(b.id || 0) - Number(a.id || 0);
       })
       .sort((a, b) => (rank ? Number(rank(b)) - Number(rank(a)) : 0));
@@ -219,7 +228,7 @@ const ProductsItem = ({
   };
 
   const clearFilters = () => {
-    setSort("newest");
+    setSort(defaultSort);
     setInStockOnly(false);
     setPriceRange("all");
     setBrands([]);
@@ -233,6 +242,7 @@ const ProductsItem = ({
 
   const sortSelect = (className) => (
     <select className={`mt-input ${className}`} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort products">
+      {showCategories && <option value="featured">Featured</option>}
       <option value="newest">Newest first</option>
       <option value="best">Best sellers first</option>
       <option value="price-asc">Price: low to high</option>
@@ -245,7 +255,7 @@ const ProductsItem = ({
   const activeFilters =
     (category !== "All" ? 1 : 0) +
     (inStockOnly ? 1 : 0) +
-    (sort !== "newest" ? 1 : 0) +
+    (sort !== defaultSort ? 1 : 0) +
     (priceRange !== "all" ? 1 : 0) +
     brands.length;
 
