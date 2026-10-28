@@ -1698,3 +1698,295 @@
     max-width: 1448px; /* 1400 + its 24px side padding */
   }
 }
+
+/* ===================== SHOP FILTERS (pro layout) ===================== */
+/* Computers: one panel with a title + Clear all, foldable sections, tidy controls */
+.pc-side__head {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .pc-side {
+    padding: 4px 16px 8px;
+    border-radius: 16px;
+    border: 1px solid var(--mt-border);
+    background: var(--mt-surface);
+  }
+
+  .pc-side__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 12px;
+    border-bottom: 1px solid var(--mt-border);
+  }
+
+  .pc-side__head strong {
+    font-family: var(--mt-font-display);
+    font-size: 1.05rem;
+  }
+}
+
+.pc-side__clear {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--mt-accent-bright);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pc-side__clear:hover {
+  text-decoration: underline;
+}
+
+/* a foldable section */
+.pc-fs + .pc-fs {
+  border-top: 1px solid var(--mt-border);
+}
+
+.pc-fs__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  color: var(--mt-text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pc-fs__head > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-fs__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mt-accent-bright);
+}
+
+.pc-fs__chev {
+  color: var(--mt-muted);
+  transition: transform 0.2s ease;
+}
+
+.pc-fs.is-open .pc-fs__chev {
+  transform: rotate(180deg);
+}
+
+.pc-fs__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 14px;
+}
+
+.pc-fs__body > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* one option row: radio dot / tick box, label, count */
+.pc-opt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 7px 8px;
+  margin: 0 -8px;
+  width: calc(100% + 16px);
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--mt-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pc-opt:hover {
+  background: rgba(246, 241, 231, 0.05);
+  color: var(--mt-text);
+}
+
+.pc-opt.is-on {
+  color: var(--mt-text);
+  font-weight: 600;
+}
+
+.pc-opt__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pc-opt__count {
+  min-width: 26px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.06);
+  color: var(--mt-faint);
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pc-opt.is-on .pc-opt__count {
+  background: rgba(201, 162, 77, 0.16);
+  color: var(--mt-accent-bright);
+}
+
+/* radio dot (pick one) */
+.pc-opt__radio {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mt-border-strong);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pc-opt.is-on .pc-opt__radio {
+  border-color: var(--mt-accent-bright);
+  box-shadow: inset 0 0 0 4px var(--mt-surface), inset 0 0 0 9px var(--mt-accent-bright);
+}
+
+/* tick box (pick several) */
+.pc-opt__box {
+  appearance: none;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border-radius: 5px;
+  border: 1.5px solid var(--mt-border-strong);
+  background: none;
+  cursor: pointer;
+}
+
+.pc-opt__box::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  margin-top: -2px;
+  border: solid #1c1408;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.15s ease;
+}
+
+.pc-opt__box:checked {
+  border-color: var(--mt-accent);
+  background: var(--mt-accent-bright);
+}
+
+.pc-opt__box:checked::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.pc-opt__box:focus-visible,
+.pc-opt:focus-visible {
+  outline: 2px solid var(--mt-accent-bright);
+  outline-offset: 2px;
+}
+
+.pc-fs__more {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--mt-accent-bright);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pc-fs__more:hover {
+  text-decoration: underline;
+}
+
+/* In stock only: a switch */
+.pc-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.pc-switch input {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 23px;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.16);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pc-switch input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #f6f1e7;
+  transition: transform 0.2s ease;
+}
+
+.pc-switch input:checked {
+  background: var(--mt-accent);
+}
+
+.pc-switch input:checked::after {
+  transform: translateX(17px);
+}
+
+.pc-switch input:focus-visible {
+  outline: 2px solid var(--mt-accent-bright);
+  outline-offset: 2px;
+}
+
+/* Phone filter panel: same sections, a little roomier for fingers */
+@media (max-width: 900px) {
+  .pc-opt {
+    padding: 10px 8px;
+    font-size: 0.95rem;
+  }
+
+  .pc-fs__head {
+    padding: 16px 0;
+    font-size: 0.98rem;
+  }
+
+  .pc-sheet-sort + .pc-fs {
+    border-top: 1px solid var(--mt-border);
+  }
+}

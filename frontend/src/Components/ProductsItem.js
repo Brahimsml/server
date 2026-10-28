@@ -8,6 +8,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { CartContext } from "../Context/CartContext";
 import WishlistButton from "./WishlistButton";
 import {
@@ -83,6 +84,10 @@ const ProductsItem = ({
   const [priceRange, setPriceRange] = useState("all");
   const [brands, setBrands] = useState([]); // chosen brands (any of them)
   const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
+  // Filter panel: which sections are unfolded, and whether long lists show everything
+  const [openSections, setOpenSections] = useState({ category: true, price: true, brand: true, stock: true });
+  const [showAllCats, setShowAllCats] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(false);
   const [pageSize, setPageSize] = useState(pageSizeNow);
   useEffect(() => {
     const mq = window.matchMedia?.(WIDE_SHOP);
@@ -471,6 +476,44 @@ const ProductsItem = ({
   const totalCount = products.filter((p) => !filter || filter(p)).length;
   const sideItems = [{ name: "All", label: "All products", count: totalCount }, ...categories];
 
+  // Long lists show the first few, plus whatever is selected, until "Show all"
+  const CAT_LIMIT = 7; // "All products" + 6 categories
+  const BRAND_LIMIT = 5;
+  const shownCats = showAllCats
+    ? sideItems
+    : sideItems.filter((c, i) => i < CAT_LIMIT || c.name === category);
+  const shownBrands = showAllBrands
+    ? brandList
+    : brandList.filter((b, i) => i < BRAND_LIMIT || brands.includes(b.name));
+  const filterCount = activeFilters - (sort !== defaultSort ? 1 : 0); // sort isn't a filter
+
+  // One foldable section: title (with a dot when it's in use) and its options
+  const section = (id, title, inUse, body) => (
+    <section className={`pc-fs ${openSections[id] ? "is-open" : ""}`} key={id}>
+      <button
+        type="button"
+        className="pc-fs__head"
+        aria-expanded={!!openSections[id]}
+        onClick={() => setOpenSections((s) => ({ ...s, [id]: !s[id] }))}
+      >
+        <span>
+          {title}
+          {inUse && <i className="pc-fs__dot" aria-label="(in use)" />}
+        </span>
+        <ExpandMoreIcon className="pc-fs__chev" />
+      </button>
+      {openSections[id] && <div className="pc-fs__body">{body}</div>}
+    </section>
+  );
+
+  const radio = (key, label, count, on, onClick) => (
+    <button key={key} type="button" role="radio" aria-checked={on} className={`pc-opt ${on ? "is-on" : ""}`} onClick={onClick}>
+      <span className="pc-opt__radio" aria-hidden="true" />
+      <span className="pc-opt__label">{label}</span>
+      <span className="pc-opt__count">{count}</span>
+    </button>
+  );
+
   return (
     <div className={`pc pc--shop ${filtersOpen ? "is-filters-open" : ""}`}>
       <div className="pc-sheet-overlay" onClick={() => setFiltersOpen(false)} aria-hidden="true" />
@@ -487,80 +530,89 @@ const ProductsItem = ({
           </button>
         </div>
 
+        {/* computers: panel title + Clear all */}
+        <div className="pc-side__head">
+          <strong>Filters</strong>
+          {filterCount > 0 && (
+            <button type="button" className="pc-side__clear" onClick={clearFilters}>
+              Clear all
+            </button>
+          )}
+        </div>
+
         <div className="pc-sheet-sort">
           <h2 className="pc-side__title">Sort by</h2>
           {sortSelect("pc-sort-sheet")}
         </div>
 
-        <h2 className="pc-side__title">Categories</h2>
-        <nav className="pc-side__list" aria-label="Categories" ref={sideList}>
-          {sideItems.map((cat) => (
-            <button
-              key={cat.name}
-              type="button"
-              aria-current={category === cat.name ? "true" : undefined}
-              className={`pc-side__item ${category === cat.name ? "is-active" : ""}`}
-              onClick={() => setCategory(cat.name)}
-            >
-              <span>{cat.label || cat.name}</span>
-              <span className="pc-side__count">{cat.count}</span>
-            </button>
-          ))}
-        </nav>
-
-        <h2 className="pc-side__title pc-side__title--gap">Price</h2>
-        <div className="pc-side__list" role="radiogroup" aria-label="Price">
-          {PRICE_RANGES.map((r) => {
-            const count = r.key === "all" ? inCategory.length : inCategory.filter((p) => inPriceRange(p, r.key)).length;
-            if (r.key !== "all" && !count && priceRange !== r.key) return null;
-            return (
-              <button
-                key={r.key}
-                type="button"
-                role="radio"
-                aria-checked={priceRange === r.key}
-                className={`pc-side__item ${priceRange === r.key ? "is-active" : ""}`}
-                onClick={() => setPriceRange(r.key)}
-              >
-                <span>{r.label}</span>
-                <span className="pc-side__count">{count}</span>
+        {section(
+          "category",
+          "Category",
+          category !== "All",
+          <div role="radiogroup" aria-label="Category" ref={sideList}>
+            {shownCats.map((cat) =>
+              radio(cat.name, cat.label || cat.name, cat.count, category === cat.name, () => setCategory(cat.name))
+            )}
+            {sideItems.length > CAT_LIMIT && (
+              <button type="button" className="pc-fs__more" onClick={() => setShowAllCats((v) => !v)}>
+                {showAllCats ? "Show less" : `Show all ${sideItems.length - 1} categories`}
               </button>
-            );
-          })}
-        </div>
-
-        {brandList.length > 1 && (
-          <>
-            <h2 className="pc-side__title pc-side__title--gap">Brand</h2>
-            <div className="pc-brands">
-              {brandList.map((b) => (
-                <label key={b.name} className="pc-check">
-                  <input type="checkbox" checked={brands.includes(b.name)} onChange={() => toggleBrand(b.name)} />
-                  <span>{b.name}</span>
-                  <span className="pc-side__count">{b.count}</span>
-                </label>
-              ))}
-            </div>
-          </>
+            )}
+          </div>
         )}
 
-        <h2 className="pc-side__title pc-side__title--gap">Availability</h2>
-        <label className="pc-check">
-          <input
-            type="checkbox"
-            checked={inStockOnly}
-            onChange={(e) => setInStockOnly(e.target.checked)}
-          />
-          <span>In stock only</span>
-        </label>
+        {section(
+          "price",
+          "Price",
+          priceRange !== "all",
+          <div role="radiogroup" aria-label="Price">
+            {PRICE_RANGES.map((r) => {
+              const count = r.key === "all" ? inCategory.length : inCategory.filter((p) => inPriceRange(p, r.key)).length;
+              if (r.key !== "all" && !count && priceRange !== r.key) return null;
+              return radio(r.key, r.label, count, priceRange === r.key, () => setPriceRange(r.key));
+            })}
+          </div>
+        )}
+
+        {brandList.length > 1 &&
+          section(
+            "brand",
+            "Brand",
+            brands.length > 0,
+            <div>
+              {shownBrands.map((b) => (
+                <label key={b.name} className={`pc-opt ${brands.includes(b.name) ? "is-on" : ""}`}>
+                  <input
+                    type="checkbox"
+                    className="pc-opt__box"
+                    checked={brands.includes(b.name)}
+                    onChange={() => toggleBrand(b.name)}
+                  />
+                  <span className="pc-opt__label">{b.name}</span>
+                  <span className="pc-opt__count">{b.count}</span>
+                </label>
+              ))}
+              {brandList.length > BRAND_LIMIT && (
+                <button type="button" className="pc-fs__more" onClick={() => setShowAllBrands((v) => !v)}>
+                  {showAllBrands ? "Show less" : `Show all ${brandList.length} brands`}
+                </button>
+              )}
+            </div>
+          )}
+
+        {section(
+          "stock",
+          "Availability",
+          inStockOnly,
+          <label className="pc-switch">
+            <span>In stock only</span>
+            <input type="checkbox" role="switch" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
+          </label>
+        )}
 
         <div className="pc-sheet-foot">
           {activeFilters > 0 && (
-            <button
-              type="button"
-              className="mt-btn mt-btn--secondary"
-              onClick={clearFilters}
-            >
+            <button type="button" className="mt-btn mt-btn--secondary" onClick={clearFilters}>
               Clear all
             </button>
           )}
