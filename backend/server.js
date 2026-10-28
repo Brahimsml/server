@@ -14,7 +14,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
-const { processProductUploads, processBannerUpload } = require("./productImages");
+const { processProductUpload, processProductUploads, processBannerUpload } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -110,8 +110,9 @@ const removeImageIfUnused = (image) => {
 
   db.query(
     `SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?)
-          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=?) AS n`,
-    [file, file, file, file],
+          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=?)
+          + (SELECT COUNT(*) FROM categories WHERE image=?) AS n`,
+    [file, file, file, file, file],
     (err, rows) => {
       if (err || rows[0].n > 0) return;
       fs.unlink(path.join(imagesDir, file), (unlinkErr) => {
@@ -987,6 +988,52 @@ app.put("/categories/order", verifyAdmin, async (req, res) => {
   }
 });
 
+// Category picture (home tiles, menus). Either upload one ("image"), or reuse a photo of
+// one of the category's own products ({ fromProduct: "<image file>" }). Empty = automatic.
+app.put("/categories/:id/image", verifyAdmin, upload.single("image"), processProductUpload, async (req, res) => {
+  try {
+    const [category] = await runQuery(db, "SELECT image FROM categories WHERE id=?", [req.params.id]);
+    if (!category) {
+      discardUpload(req);
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    let image = req.file ? req.file.filename : null;
+    if (!image && req.body.fromProduct) {
+      const file = path.basename(String(req.body.fromProduct));
+      const [owned] = await runQuery(
+        db,
+        `SELECT 1 FROM products p WHERE p.category_id=? AND (p.image=? OR EXISTS
+           (SELECT 1 FROM product_images g WHERE g.product_id=p.id AND g.image=?)) LIMIT 1`,
+        [req.params.id, file, file]
+      );
+      if (!owned) return res.status(400).json({ message: "Pick a photo of one of this category's products." });
+      image = file;
+    }
+    if (!image) return res.status(400).json({ message: "Choose a picture." });
+
+    await runQuery(db, "UPDATE categories SET image=? WHERE id=?", [image, req.params.id]);
+    if (category.image && category.image !== image) removeImageIfUnused(category.image);
+    res.json({ message: "Category picture saved", image });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
+});
+
+// Back to the automatic picture
+app.delete("/categories/:id/image", verifyAdmin, async (req, res) => {
+  try {
+    const [category] = await runQuery(db, "SELECT image FROM categories WHERE id=?", [req.params.id]);
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    await runQuery(db, "UPDATE categories SET image=NULL WHERE id=?", [req.params.id]);
+    if (category.image) removeImageIfUnused(category.image);
+    res.json({ message: "The picture is automatic again" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
 app.put("/categories/:id", verifyAdmin, (req, res) => {
   const name = cleanCategoryName(req.body.name);
   if (!name) return res.status(400).json({ message: "Enter a category name" });
@@ -1225,7 +1272,7 @@ app.delete("/banners/:id", verifyAdmin, async (req, res) => {
 */
 app.get("/products", (req, res) => {
   const q = `
-    SELECT p.*, c.name AS category_name, c.sort_order AS category_order
+    SELECT p.*, c.name AS category_name, c.sort_order AS category_order, c.image AS category_image
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ORDER BY p.id DESC

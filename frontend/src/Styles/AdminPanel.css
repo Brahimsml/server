@@ -2482,3 +2482,137 @@ a.ad-kpi:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===================== CATEGORY PICTURES ===================== */
+.ad-cat-photo {
+  position: relative;
+  width: 64px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--mt-border);
+  background: #f3f0ea;
+  color: #6b6253;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ad-cat-photo:hover {
+  border-color: var(--mt-accent);
+  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.2);
+}
+
+.ad-cat-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.ad-cat-photo__auto {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--mt-surface-2);
+  border: 1px solid var(--mt-border-strong);
+  color: var(--mt-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.ad-picture-dialog {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.ad-picture-dialog h2 {
+  margin: 0;
+  font-family: var(--mt-font-display);
+  font-size: 1.2rem;
+}
+
+.ad-picture-current {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.ad-picture-current img {
+  width: 120px;
+  height: 90px;
+  padding: 8px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #f3f0ea;
+}
+
+.ad-picture-upload {
+  cursor: pointer;
+}
+
+.ad-picture-upload.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ad-picture-label {
+  margin: 20px 0 10px;
+  color: var(--mt-faint);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ad-picture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.ad-picture-option {
+  aspect-ratio: 4 / 3;
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: #f3f0ea;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ad-picture-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.ad-picture-option:hover:not(:disabled) {
+  border-color: var(--mt-accent-bright);
+  transform: translateY(-2px);
+}
+
+.ad-picture-option.is-current {
+  border-color: var(--mt-accent-bright);
+}
+
+.ad-picture-option:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ad-picture-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}

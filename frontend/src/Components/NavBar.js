@@ -389,8 +389,8 @@ const NavBar = () => {
                       <li key={c.id}>
                         <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__link nb-drawer__cat">
                           <span className="nb-drawer__thumb" aria-hidden="true">
-                            {catInfo?.[c.id]?.pick && (
-                              <img src={imageUrl(catInfo[c.id].pick.image)} alt="" loading="lazy" onError={onImageError} />
+                            {(c.image || catInfo?.[c.id]?.pick) && (
+                              <img src={imageUrl(c.image || catInfo[c.id].pick.image)} alt="" loading="lazy" onError={onImageError} />
                             )}
                           </span>
                           <span className="nb-drawer__catname">

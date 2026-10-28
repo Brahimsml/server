@@ -59,7 +59,7 @@ const ShopMegaMenu = ({ linkClass }) => {
         const pick = [...items]
           .filter((p) => p.image)
           .sort((a, b) => Number(!!normalizeLabel(b.label)) - Number(!!normalizeLabel(a.label)) || Number(b.price) - Number(a.price))[0];
-        return { ...c, count: items.length, image: pick?.image };
+        return { ...c, count: items.length, image: c.image || pick?.image }; // chosen picture first
       })
       .filter((c) => c.count > 0);
   }, [categories, products]);

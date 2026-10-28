@@ -162,7 +162,7 @@ const Home = () => {
     const map = new Map();
     products.forEach((p) => {
       const name = p.category_name || "Other";
-      if (!map.has(name)) map.set(name, { name, order: p.category_order, count: 0, image: "", pick: null });
+      if (!map.has(name)) map.set(name, { name, order: p.category_order, chosen: p.category_image, count: 0, image: "", pick: null });
       const entry = map.get(name);
       entry.count += 1;
       if (!p.image) return;
@@ -175,7 +175,10 @@ const Home = () => {
         entry.image = p.image;
       }
     });
-    return Array.from(map.values()).sort(byCategoryOrder);
+    // a picture chosen in Admin → Categories wins over the automatic one
+    return Array.from(map.values())
+      .map((c) => (c.chosen ? { ...c, image: c.chosen } : c))
+      .sort(byCategoryOrder);
   }, [products]);
 
   // New arrivals: products labelled "New", topped up with the newest products

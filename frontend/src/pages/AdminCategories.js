@@ -8,9 +8,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
+import { imageUrl, normalizeLabel, onImageError, FALLBACK_IMG } from "../utils/shop";
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_MB = 5;
 
 function AdminCategories() {
   const { notify, confirm } = useAdmin();
@@ -27,6 +33,9 @@ function AdminCategories() {
   const [editName, setEditName] = useState("");
   const [editError, setEditError] = useState("");
   const [savingOrder, setSavingOrder] = useState(false);
+  const [picking, setPicking] = useState(null); // the category whose picture is being chosen
+  const [pictureBusy, setPictureBusy] = useState(false);
+  const [pictureError, setPictureError] = useState("");
 
   useEffect(() => {
     Promise.all([api.get("/categories"), api.get("/products")])
@@ -94,6 +103,53 @@ function AdminCategories() {
     } catch (err) {
       setEditError(apiError(err, "We couldn't rename this category."));
     }
+  };
+
+  // Each category's own product photos, and the one the site picks automatically
+  // (its priciest labelled product, else its priciest) when no picture is chosen
+  const photosOf = (categoryId) =>
+    products
+      .filter((p) => p.category_id === categoryId && p.image)
+      .sort((a, b) => Number(!!normalizeLabel(b.label)) - Number(!!normalizeLabel(a.label)) || Number(b.price) - Number(a.price));
+  const autoPicture = (categoryId) => photosOf(categoryId)[0]?.image || "";
+
+  const openPicker = (c) => {
+    setPicking(c);
+    setPictureError("");
+  };
+
+  const savePicture = async (c, { file, fromProduct, automatic }) => {
+    setPictureBusy(true);
+    setPictureError("");
+    try {
+      let image = null;
+      if (automatic) {
+        await api.delete(`/categories/${c.id}/image`);
+      } else {
+        const form = new FormData();
+        if (file) form.append("image", file);
+        if (fromProduct) form.append("fromProduct", fromProduct);
+        image = (await api.put(`/categories/${c.id}/image`, form)).data.image;
+      }
+      setCategories((list) => list.map((x) => (x.id === c.id ? { ...x, image } : x)));
+      setPicking(null);
+      notify(automatic ? `"${c.name}" uses an automatic picture again` : `New picture for "${c.name}" saved`);
+    } catch (err) {
+      setPictureError(apiError(err, "We couldn't save this picture."));
+    } finally {
+      setPictureBusy(false);
+    }
+  };
+
+  const pickFile = (c) => (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!IMAGE_TYPES.includes(file.type) || file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      setPictureError(`Use a JPG, PNG or WEBP image up to ${MAX_IMAGE_MB} MB.`);
+      return;
+    }
+    savePicture(c, { file });
   };
 
   // Move a category up or down; the whole site shows categories in this order
@@ -186,6 +242,7 @@ function AdminCategories() {
                 <thead>
                   <tr>
                     <th>Order</th>
+                    <th>Photo</th>
                     <th>Name</th>
                     <th>Products</th>
                     <th aria-label="Actions" />
@@ -221,6 +278,22 @@ function AdminCategories() {
                               <ArrowDownwardIcon />
                             </button>
                           </div>
+                        </td>
+                        <td data-label="Photo">
+                          <button
+                            type="button"
+                            className="ad-cat-photo"
+                            onClick={() => openPicker(c)}
+                            aria-label={`Change the picture for ${c.name}`}
+                            title="Change picture"
+                          >
+                            {c.image || autoPicture(c.id) ? (
+                              <img src={imageUrl(c.image || autoPicture(c.id))} alt="" onError={onImageError} />
+                            ) : (
+                              <AddPhotoAlternateOutlinedIcon />
+                            )}
+                            {!c.image && <span className="ad-cat-photo__auto">Auto</span>}
+                          </button>
                         </td>
                         <td className="ad-cell-full">
                           {editing ? (
@@ -305,6 +378,77 @@ function AdminCategories() {
           )}
         </section>
       </div>
+
+      {/* ===== Picture picker ===== */}
+      {picking && (
+        <div className="ad-dialog-backdrop" onClick={() => !pictureBusy && setPicking(null)}>
+          <div
+            className="ad-dialog ad-picture-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ad-picture-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="ad-picture-title">Picture for {picking.name}</h2>
+            <p className="ad-hint" style={{ marginTop: 4 }}>
+              Shown on the home page tiles and in the shop menus. A clean product photo on white looks best.
+            </p>
+
+            <div className="ad-picture-current">
+              <img src={imageUrl(picking.image || autoPicture(picking.id)) || FALLBACK_IMG} alt="" onError={onImageError} />
+              <span>{picking.image ? "Chosen picture" : "Automatic (its top product)"}</span>
+            </div>
+
+            <label className={`mt-btn mt-btn--primary ad-picture-upload ${pictureBusy ? "is-disabled" : ""}`}>
+              <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile(picking)} hidden disabled={pictureBusy} />
+              <AddPhotoAlternateOutlinedIcon /> {pictureBusy ? "Saving…" : "Upload a picture"}
+            </label>
+
+            {photosOf(picking.id).length > 0 && (
+              <>
+                <p className="ad-picture-label">Or use one of its product photos</p>
+                <div className="ad-picture-grid">
+                  {photosOf(picking.id).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`ad-picture-option ${picking.image === p.image ? "is-current" : ""}`}
+                      onClick={() => savePicture(picking, { fromProduct: p.image })}
+                      disabled={pictureBusy}
+                      title={p.name}
+                      aria-label={`Use the photo of ${p.name}`}
+                    >
+                      <img src={imageUrl(p.image)} alt="" onError={onImageError} />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {pictureError && (
+              <div className="mt-alert mt-alert--error" role="alert" style={{ marginTop: 14 }}>
+                {pictureError}
+              </div>
+            )}
+
+            <div className="ad-picture-actions">
+              {picking.image && (
+                <button
+                  type="button"
+                  className="mt-btn mt-btn--secondary"
+                  onClick={() => savePicture(picking, { automatic: true })}
+                  disabled={pictureBusy}
+                >
+                  <AutoAwesomeOutlinedIcon /> Use automatic
+                </button>
+              )}
+              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setPicking(null)} disabled={pictureBusy}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
