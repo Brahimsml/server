@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -61,12 +62,11 @@ const categoryHeadline = (name) => {
 const categoryBlurb = (name) =>
   (CATEGORY_BLURBS.find(([re]) => re.test(name)) || [null, "Explore the range"])[1];
 
-// Slim strip under the banner: what customers can count on (all true for this shop)
-const PERKS = [
-  { icon: LocalShippingOutlinedIcon, text: "Delivery all over Lebanon", to: "/shipping" },
-  { icon: PaymentsOutlinedIcon, text: "Cash on delivery", to: "/shipping" },
-  { icon: AssignmentReturnOutlinedIcon, text: "7-day returns", to: "/returns" },
-  { icon: StorefrontOutlinedIcon, text: "Visit our stores", to: "/menu" },
+const TRUST_ITEMS = [
+  { icon: LockOutlinedIcon, title: "Secure checkout", text: "Safe, account-based ordering" },
+  { icon: LocalShippingOutlinedIcon, title: "Fast delivery", text: "Quick, tracked shipping" },
+  { icon: VerifiedUserOutlinedIcon, title: "Warranty", text: "Manufacturer backed" },
+  { icon: SupportAgentOutlinedIcon, title: "Support", text: "Real help, fast replies" },
 ];
 
 const shopLink = (category) =>
@@ -326,15 +326,20 @@ const Home = () => {
           )}
         </section>
 
-        {/* ===== PERKS STRIP ===== */}
-        <nav className="hp-perks" aria-label="Why shop with MegaTech">
-          {PERKS.map(({ icon: Icon, text, to }) => (
-            <Link key={text} to={to} className="hp-perk">
-              <Icon />
-              <span>{text}</span>
-            </Link>
+        {/* ===== TRUST BAR ===== */}
+        <section className="hp-trust mt-panel" aria-label="Why shop with us">
+          {TRUST_ITEMS.map(({ icon: Icon, title, text }) => (
+            <div className="hp-trust__item" key={title}>
+              <span className="hp-trust__icon">
+                <Icon />
+              </span>
+              <div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            </div>
           ))}
-        </nav>
+        </section>
 
         {/* ===== RECENTLY VIEWED (only for visitors who opened products before) ===== */}
         {hasRecent && (
