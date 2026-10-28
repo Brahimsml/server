@@ -33,6 +33,10 @@ const CATEGORY_BLURBS = [
   [/laptop/i, "Portable performance for work and play"],
   [/monitor/i, "Sharper visuals for every setup"],
   [/mouse|mice/i, "Gaming mice for every grip"],
+  [/headset|headphone/i, "Hear every footstep"],
+  [/keyboard/i, "Mechanical and low-profile keyboards"],
+  [/console|playstation|xbox/i, "Next-gen consoles, ready to play"],
+  [/chair/i, "Comfort for long sessions"],
   [/peripheral|keyboard|mouse|headset|audio/i, "Keyboards, mice and headsets"],
 ];
 
@@ -42,6 +46,10 @@ const CATEGORY_HEADLINES = [
   [/laptop/i, "Performance that travels", "Gaming and creator laptops, ready wherever you are."],
   [/monitor/i, "See every frame", "Fast, sharp gaming monitors for every setup."],
   [/mouse|mice/i, "Precision in every click", "Gaming mice built for speed, accuracy and long sessions."],
+  [/headset|headphone/i, "Hear every footstep", "Wireless and wired gaming headsets for PC and console."],
+  [/keyboard/i, "Every keystroke counts", "Mechanical keyboards built for gaming and everyday work."],
+  [/console|playstation|xbox/i, "Next-gen gaming starts here", "The latest consoles with 4K, 120 FPS and fast SSD loading."],
+  [/chair/i, "Built for long sessions", "Gaming chairs with real support for work and play."],
   [/peripheral|keyboard|mouse|headset|audio/i, "Gear up your setup", "Keyboards, mice and headsets built for play."],
 ];
 
