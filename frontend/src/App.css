@@ -94,3 +94,29 @@ html {
     transform: none !important;
   }
 }
+
+/* ===== Full photos (a desk, a room, a coloured backdrop) =====
+   The server marks them with "__full" in the file name. They fill their box edge to edge,
+   instead of floating on the white "studio" box like product cut-outs. */
+img[src*="__full"] {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  mix-blend-mode: normal !important;
+}
+
+.pc-media:has(img[src*="__full"]),
+.hp-cat__media:has(img[src*="__full"]),
+.nb-mega__thumb:has(img[src*="__full"]),
+.nb-mega__spot-img:has(img[src*="__full"]),
+.nb-drawer__thumb:has(img[src*="__full"]),
+.pd-media:has(img[src*="__full"]),
+.ad-cat-photo:has(img[src*="__full"]),
+.ad-picture-option:has(img[src*="__full"]) {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.ad-picture-current img[src*="__full"] {
+  padding: 0;
+}
