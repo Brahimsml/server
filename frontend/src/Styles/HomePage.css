@@ -1652,3 +1652,12 @@
     opacity: 1;
   }
 }
+
+/* "Shop by category": arrows (shared look with the product rows) sit on the tiles' photo */
+.hp-cats-wrap {
+  position: relative;
+}
+
+.hp-cats-wrap .pc-row-arrows button {
+  top: 56px;
+}

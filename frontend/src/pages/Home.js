@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -84,6 +84,27 @@ const Home = () => {
   const [loadError, setLoadError] = useState(false);
 
   // Products this visitor opened lately (newest first), saved in this browser
+  // "Shop by category" row: arrows on computers when there are more tiles to see
+  const catsRef = useRef(null);
+  const [catEnds, setCatEnds] = useState({ start: true, end: true });
+  const updateCatEnds = useCallback(() => {
+    const el = catsRef.current;
+    if (!el) return;
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setCatEnds((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+  }, []);
+  useEffect(() => {
+    updateCatEnds();
+    window.addEventListener("resize", updateCatEnds);
+    return () => window.removeEventListener("resize", updateCatEnds);
+  }, [updateCatEnds, products]);
+
+  const scrollCats = (dir) => {
+    const el = catsRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+  };
+
   const [recentIds, setRecentIds] = useState(getRecentlyViewed);
   const recentRank = useMemo(() => {
     const order = new Map(recentIds.map((id, i) => [id, recentIds.length - i]));
@@ -390,7 +411,8 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="hp-cats">
+            <div className="hp-cats-wrap">
+            <div className="hp-cats" ref={catsRef} onScroll={updateCatEnds}>
               {categories.map((cat) => (
                 <Link key={cat.name} to={shopLink(cat.name)} className="hp-cat">
                   <div className="hp-cat__media">
@@ -408,6 +430,17 @@ const Home = () => {
                   </div>
                 </Link>
               ))}
+            </div>
+            {!(catEnds.start && catEnds.end) && (
+              <div className="pc-row-arrows">
+                <button type="button" onClick={() => scrollCats(-1)} disabled={catEnds.start} aria-label="Previous categories">
+                  <ChevronLeftIcon />
+                </button>
+                <button type="button" onClick={() => scrollCats(1)} disabled={catEnds.end} aria-label="More categories">
+                  <ChevronRightIcon />
+                </button>
+              </div>
+            )}
             </div>
           </section>
         )}
