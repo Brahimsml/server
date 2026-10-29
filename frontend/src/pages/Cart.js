@@ -10,13 +10,17 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import "../Styles/card.css";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
 import ProductsItem from "../Components/ProductsItem";
 import api from "../api";
 import { API_URL } from "../api";
-import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut } from "../utils/shop";
+import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut, productPath } from "../utils/shop";
+import { useWishlist } from "../Context/WishlistContext";
 import { clearUserSession, getUser, getUserToken } from "../utils/auth";
 import usePageTitle from "../utils/usePageTitle";
 
@@ -40,6 +44,7 @@ const Cart = () => {
   const { cart, removeFromCart, updateQuantity } = ctx;
   const clearCart = ctx.clearCart || (() => {});
   const navigate = useNavigate();
+  const { items: wishlist, isSaved, toggle: toggleWishlist } = useWishlist();
 
   // Checkout needs a signed-in user; after login they come back here to confirm
   const token = getUserToken();
@@ -58,20 +63,32 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [saveDetails, setSaveDetails] = useState(true);
 
-  // Empty cart: show a few popular products instead of a blank page
-  const [popular, setPopular] = useState(null);
-  const cartIsEmpty = cart.length === 0;
+  // Products to suggest under the cart: popular ones when it's empty,
+  // otherwise more from the same categories as what's in it
+  const [allProducts, setAllProducts] = useState(null);
   useEffect(() => {
-    if (!cartIsEmpty || popular) return;
     api
       .get("/products")
-      .then((res) => {
-        const all = (Array.isArray(res.data) ? res.data : []).filter((p) => !isSoldOut(p) && p.image);
-        const best = all.filter(isBestSeller);
-        setPopular((best.length >= 8 ? best : [...best, ...all.filter((p) => !isBestSeller(p))]).slice(0, 8));
-      })
-      .catch(() => setPopular([]));
-  }, [cartIsEmpty, popular]);
+      .then((res) => setAllProducts(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setAllProducts([]));
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!allProducts) return [];
+    const inCart = new Set(cart.map((item) => item.id));
+    const pool = allProducts.filter((p) => !isSoldOut(p) && p.image && !inCart.has(p.id));
+    const cats = new Set(cart.map((item) => item.category_id));
+    const related = pool.filter((p) => cats.has(p.category_id));
+    const best = pool.filter((p) => isBestSeller(p) && !cats.has(p.category_id));
+    const rest = pool.filter((p) => !isBestSeller(p) && !cats.has(p.category_id));
+    return [...related, ...best, ...rest].slice(0, 10);
+  }, [allProducts, cart]);
+
+  // "Save for later": move the item to the wishlist
+  const saveForLater = (item) => {
+    if (!isSaved(item.id)) toggleWishlist(item);
+    removeFromCart(item.id);
+  };
 
   // Fill in the phone and address saved on the account (My account, or the last order)
   useEffect(() => {
@@ -247,52 +264,59 @@ const Cart = () => {
     return <span className="stock-note stock-note--ok">In stock</span>;
   };
 
+  const suggestionRow = (title, lead) =>
+    suggestions.length > 0 && (
+      <div className="mt-scope cart-popular">
+        <div className="mt-section-head">
+          <div>
+            <h2>{title}</h2>
+            <p>{lead}</p>
+          </div>
+        </div>
+        <ProductsItem products={suggestions} row showToolbar={false} showCategories={false} showPagination={false} />
+      </div>
+    );
+
   if (cart.length === 0) {
     return (
-      <section className="cart-page">
-        <div className="cart-empty">
-          <div className="cart-empty__icon">
-            <ShoppingCartOutlinedIcon fontSize="inherit" />
-          </div>
-          <h1>Your cart is empty</h1>
-          <p>Browse our products and add the items you like. They'll show up here.</p>
-          <button type="button" className="cart-btn cart-btn--primary" onClick={() => navigate("/shop")}>
-            Start shopping
-          </button>
-        </div>
-
-        {popular && popular.length > 0 && (
-          <div className="mt-scope cart-popular">
-            <div className="mt-section-head">
-              <div>
-                <h2>Popular right now</h2>
-                <p>What other MegaTech customers are buying.</p>
-              </div>
+      <section className="cart-page hp-wide">
+        <div className="cart-layout">
+          <div className="cart-empty">
+            <div className="cart-empty__icon">
+              <ShoppingCartOutlinedIcon fontSize="inherit" />
             </div>
-            <ProductsItem
-              products={popular}
-              row
-              showToolbar={false}
-              showCategories={false}
-              showPagination={false}
-            />
+            <div className="cart-empty__text">
+              <h1>Your cart is empty</h1>
+              <p>Browse our products and add the items you like. They'll show up here.</p>
+            </div>
+            <div className="cart-empty__actions">
+              <button type="button" className="cart-btn cart-btn--primary" onClick={() => navigate("/shop")}>
+                Start shopping
+              </button>
+              {wishlist.length > 0 && (
+                <Link to="/wishlist" className="mt-btn mt-btn--secondary">
+                  <FavoriteBorderIcon fontSize="small" /> Your wishlist ({wishlist.length})
+                </Link>
+              )}
+            </div>
           </div>
-        )}
+
+          {suggestionRow("Popular right now", "What other MegaTech customers are buying.")}
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="cart-page">
+    <section className="cart-page hp-wide">
       <div className="cart-layout">
         <header className="cart-head">
+          <h1>
+            Shopping Cart <span>({itemCount} {itemCount === 1 ? "item" : "items"})</span>
+          </h1>
           <button type="button" className="cart-back" onClick={() => navigate("/shop")}>
             <ArrowBackIcon fontSize="small" /> Continue shopping
           </button>
-          <h1>Shopping Cart</h1>
-          <p>
-            {itemCount} {itemCount === 1 ? "item" : "items"}
-          </p>
         </header>
 
         {errorMsg && (
@@ -302,148 +326,139 @@ const Cart = () => {
         )}
 
         <div className="cart-grid">
-          {/* ===== Items ===== */}
-          <ul className="cart-list">
-            {cart.map((item) => {
-              const stock = Number(item.stock_quantity) || 0;
-              const qty = item.quantity || 1;
-              const unit = toNumber(item.price);
-
-              return (
-                <li className="cart-row" key={item.id}>
-                  <img
-                    src={getImgSrc(item.image)}
-                    alt={item.name}
-                    className="cart-row__img"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = FALLBACK_IMG;
-                    }}
-                  />
-
-                  <div className="cart-row__info">
-                    <h3>{item.name}</h3>
-                    <span className="cart-row__unit">{formatMoney(unit)} each</span>
-                    {stockNote(stock)}
-                  </div>
-
-                  <div className="cart-qty" aria-label={`Quantity for ${item.name}`}>
-                    <button
-                      type="button"
-                      onClick={() => decQty(item)}
-                      disabled={qty <= 1}
-                      aria-label="Decrease quantity"
-                    >
-                      <RemoveIcon fontSize="small" />
-                    </button>
-                    <span>{qty}</span>
-                    <button
-                      type="button"
-                      onClick={() => incQty(item)}
-                      disabled={qty >= stock}
-                      aria-label="Increase quantity"
-                    >
-                      <AddIcon fontSize="small" />
-                    </button>
-                  </div>
-
-                  <strong className="cart-row__total">{formatMoney(unit * qty)}</strong>
-
-                  <button
-                    type="button"
-                    className="cart-row__remove"
-                    onClick={() => removeFromCart(item.id)}
-                    aria-label={`Remove ${item.name}`}
-                  >
-                    <DeleteOutlineIcon fontSize="small" />
-                    <span>Remove</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* ===== Summary + checkout ===== */}
-          <aside className="cart-summary">
-            <h2>Order Summary</h2>
-
-            <div className="cart-summary__line">
-              <span>
-                Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
-              </span>
-              <span>{formatMoney(subtotal)}</span>
-            </div>
-
-            <div className="cart-summary__line">
-              <span>Delivery</span>
-              <span>{deliveryFee ? formatMoney(deliveryFee) : "Free"}</span>
-            </div>
-
-            <div className="cart-summary__line cart-summary__line--total">
-              <span>Total</span>
-              <span>{formatMoney(total)}</span>
-            </div>
-
-            {!token ? (
-              <div className="cart-signin">
-                <div className="cart-signin__title">
-                  <LockOutlinedIcon fontSize="small" /> Sign in to checkout
-                </div>
-                <p>You need an account to place your order and track its status.</p>
-
-                <button type="button" className="cart-btn cart-btn--primary" onClick={() => goToLogin()}>
-                  Sign in to checkout
-                </button>
-
-                <button type="button" className="cart-textlink" onClick={() => goToLogin("register")}>
-                  New customer? Create an account
-                </button>
+          <div className="cart-main">
+            {/* ===== Items ===== */}
+            <div className="cart-box">
+              <div className="cart-cols" aria-hidden="true">
+                <span>Product</span>
+                <span>Quantity</span>
+                <span>Total</span>
               </div>
-            ) : (
-              <form className="cart-form" onSubmit={handleCheckout} noValidate>
-                <h3>Delivery details</h3>
 
-                <label className="cart-field">
-                  <span>Full name</span>
-                  <input
-                    name="customer_name"
-                    autoComplete="name"
-                    value={customer.customer_name}
-                    onChange={handleCustomerChange}
-                    placeholder="e.g. Ahmad Khalil"
-                  />
-                </label>
+              <ul className="cart-list">
+                {cart.map((item) => {
+                  const stock = Number(item.stock_quantity) || 0;
+                  const qty = item.quantity || 1;
+                  const unit = toNumber(item.price);
 
-                <label className="cart-field">
-                  <span>Phone number</span>
-                  <input
-                    name="customer_phone"
-                    type="tel"
-                    autoComplete="tel"
-                    value={customer.customer_phone}
-                    onChange={handleCustomerChange}
-                    placeholder="e.g. 70 123 456"
-                  />
-                </label>
+                  return (
+                    <li className="cart-row" key={item.id}>
+                      <Link to={productPath(item)} className="cart-row__media">
+                        <img
+                          src={getImgSrc(item.image)}
+                          alt={item.name}
+                          className="cart-row__img"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = FALLBACK_IMG;
+                          }}
+                        />
+                      </Link>
 
-                <label className="cart-field">
-                  <span>Delivery address</span>
-                  <textarea
-                    name="customer_address"
-                    rows={3}
-                    autoComplete="street-address"
-                    value={customer.customer_address}
-                    onChange={handleCustomerChange}
-                    placeholder="City, street, building, floor"
-                  />
-                </label>
+                      <div className="cart-row__info">
+                        {item.category_name && <span className="cart-row__cat">{item.category_name}</span>}
+                        <h3>
+                          <Link to={productPath(item)}>{item.name}</Link>
+                        </h3>
+                        {stockNote(stock)}
+                        <div className="cart-row__links">
+                          <button type="button" onClick={() => saveForLater(item)}>
+                            <FavoriteBorderIcon fontSize="small" /> Save for later
+                          </button>
+                          <button
+                            type="button"
+                            className="cart-row__remove"
+                            onClick={() => removeFromCart(item.id)}
+                            aria-label={`Remove ${item.name}`}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="cart-qty" aria-label={`Quantity for ${item.name}`}>
+                        <button
+                          type="button"
+                          onClick={() => decQty(item)}
+                          disabled={qty <= 1}
+                          aria-label="Decrease quantity"
+                        >
+                          <RemoveIcon fontSize="small" />
+                        </button>
+                        <span>{qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => incQty(item)}
+                          disabled={qty >= stock}
+                          aria-label="Increase quantity"
+                        >
+                          <AddIcon fontSize="small" />
+                        </button>
+                      </div>
+
+                      <div className="cart-row__price">
+                        <strong className="cart-row__total">{formatMoney(unit * qty)}</strong>
+                        {qty > 1 && <span className="cart-row__unit">{formatMoney(unit)} each</span>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* ===== Delivery + payment (signed in): a wide section under the items ===== */}
+            {token && (
+              <form id="checkout-form" className="cart-box cart-checkout" onSubmit={handleCheckout} noValidate>
+                <h2>
+                  <span className="cart-step">1</span> Delivery details
+                </h2>
+
+                <div className="cart-fields">
+                  <label className="cart-field">
+                    <span>Full name</span>
+                    <input
+                      name="customer_name"
+                      autoComplete="name"
+                      value={customer.customer_name}
+                      onChange={handleCustomerChange}
+                      placeholder="e.g. Ahmad Khalil"
+                    />
+                  </label>
+
+                  <label className="cart-field">
+                    <span>Phone number</span>
+                    <input
+                      name="customer_phone"
+                      type="tel"
+                      autoComplete="tel"
+                      value={customer.customer_phone}
+                      onChange={handleCustomerChange}
+                      placeholder="e.g. 70 123 456"
+                    />
+                  </label>
+
+                  <label className="cart-field cart-field--wide">
+                    <span>Delivery address</span>
+                    <textarea
+                      name="customer_address"
+                      rows={2}
+                      autoComplete="street-address"
+                      value={customer.customer_address}
+                      onChange={handleCustomerChange}
+                      placeholder="City, street, building, floor"
+                    />
+                  </label>
+                </div>
 
                 <label className="cart-save">
                   <input type="checkbox" checked={saveDetails} onChange={(e) => setSaveDetails(e.target.checked)} />
                   <span>Save these details for next time</span>
                 </label>
 
-                <h3 className="cart-form__gap">Payment</h3>
+                <h2 className="cart-checkout__gap">
+                  <span className="cart-step">2</span> Payment
+                </h2>
                 <div className="cart-pay" role="radiogroup" aria-label="Payment method">
                   {Object.entries(PAYMENT_METHODS).map(([id, method]) => {
                     const Icon = PAYMENT_ICONS[id];
@@ -473,20 +488,72 @@ const Cart = () => {
                     <Link to="/shipping">Delivery info</Link>
                   </span>
                 </p>
-
-                <button type="submit" className="cart-btn cart-btn--primary" disabled={loading}>
-                  {loading ? "Placing order..." : `Place order · ${formatMoney(total)}`}
-                </button>
-
-                {user?.email && (
-                  <p className="cart-form__note">
-                    A confirmation will be sent to <strong>{user.email}</strong>
-                  </p>
-                )}
               </form>
             )}
+          </div>
+
+          {/* ===== Summary ===== */}
+          <aside className="cart-summary">
+            <h2>Order Summary</h2>
+
+            <div className="cart-summary__line">
+              <span>
+                Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
+              </span>
+              <span>{formatMoney(subtotal)}</span>
+            </div>
+
+            <div className="cart-summary__line">
+              <span>Delivery</span>
+              <span>{deliveryFee ? formatMoney(deliveryFee) : "Free"}</span>
+            </div>
+
+            <div className="cart-summary__line cart-summary__line--total">
+              <span>Total</span>
+              <span>{formatMoney(total)}</span>
+            </div>
+
+            {!token ? (
+              <div className="cart-signin">
+                <button type="button" className="cart-btn cart-btn--primary" onClick={() => goToLogin()}>
+                  <LockOutlinedIcon fontSize="small" /> Sign in to checkout
+                </button>
+                <button type="button" className="cart-btn cart-btn--ghost" onClick={() => goToLogin("register")}>
+                  Create an account
+                </button>
+                <p>You'll need an account to place your order and track it.</p>
+              </div>
+            ) : (
+              <div className="cart-signin">
+                <button type="submit" form="checkout-form" className="cart-btn cart-btn--primary" disabled={loading}>
+                  <LockOutlinedIcon fontSize="small" /> {loading ? "Placing order..." : "Place order"}
+                </button>
+                {user?.email && (
+                  <p className="cart-form__note">
+                    Confirmation goes to <strong>{user.email}</strong>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <ul className="cart-trust">
+              <li>
+                <VerifiedUserOutlinedIcon fontSize="small" /> Secure checkout
+              </li>
+              <li>
+                <PaymentsOutlinedIcon fontSize="small" /> Cash on delivery
+              </li>
+              <li>
+                <AssignmentReturnOutlinedIcon fontSize="small" /> <Link to="/returns">7-day returns</Link>
+              </li>
+              <li>
+                <LocalShippingOutlinedIcon fontSize="small" /> All over Lebanon
+              </li>
+            </ul>
           </aside>
         </div>
+
+        {suggestionRow("You may also like", "More gear that goes well with what's in your cart.")}
       </div>
     </section>
   );

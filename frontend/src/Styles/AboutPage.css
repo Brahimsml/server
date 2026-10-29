@@ -43,7 +43,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(196, 154, 52, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -117,7 +117,7 @@
 .ab-founders {
   padding: 28px;
   background:
-    radial-gradient(120% 90% at 100% 0%, rgba(201, 162, 77, 0.12), transparent 55%),
+    radial-gradient(120% 90% at 100% 0%, rgba(196, 154, 52, 0.12), transparent 55%),
     var(--mt-surface);
 }
 
@@ -134,7 +134,7 @@
   border-radius: 50%;
   border: 2px solid var(--mt-surface);
   background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
-  color: #1c1408;
+  color: #131313;
   font-family: var(--mt-font-display);
   font-size: 1.15rem;
   font-weight: 700;

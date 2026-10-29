@@ -25,10 +25,15 @@ import {
   FALLBACK_IMG,
 } from "../utils/shop";
 
-// Products per "Show more": always full rows. 12 fills rows of 2, 3 or 4; big screens
-// show the shop 5 across (HomePage.css, 1500px and wider), so they get 15.
-const WIDE_SHOP = "(min-width: 1500px)";
-const pageSizeNow = () => (typeof window !== "undefined" && window.matchMedia?.(WIDE_SHOP).matches ? 15 : 12);
+// Products per "Show more": always full rows. 12 fills rows of 2, 3 or 4; the shop shows
+// 5 across from 1440px and 6 from 1800px (HomePage.css), so those get 15 and 18.
+const WIDE_SHOP = "(min-width: 1440px)";
+const HUGE_SHOP = "(min-width: 1800px)";
+const pageSizeNow = () => {
+  if (typeof window === "undefined" || !window.matchMedia) return 12;
+  if (window.matchMedia(HUGE_SHOP).matches) return 18;
+  return window.matchMedia(WIDE_SHOP).matches ? 15 : 12;
+};
 
 // Shop price filter
 const PRICE_RANGES = [
@@ -90,11 +95,11 @@ const ProductsItem = ({
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [pageSize, setPageSize] = useState(pageSizeNow);
   useEffect(() => {
-    const mq = window.matchMedia?.(WIDE_SHOP);
-    if (!mq) return undefined;
+    if (!window.matchMedia) return undefined;
+    const queries = [WIDE_SHOP, HUGE_SHOP].map((q) => window.matchMedia(q));
     const onChange = () => setPageSize(pageSizeNow());
-    mq.addEventListener?.("change", onChange);
-    return () => mq.removeEventListener?.("change", onChange);
+    queries.forEach((mq) => mq.addEventListener?.("change", onChange));
+    return () => queries.forEach((mq) => mq.removeEventListener?.("change", onChange));
   }, []);
   const [shown, setShown] = useState(pageSize); // "Show more" adds the next full rows
   const [addedId, setAddedId] = useState(null);

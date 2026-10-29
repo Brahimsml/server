@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import MenuIcon from "@mui/icons-material/Menu";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api";
 import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, productPath, FALLBACK_IMG } from "../utils/shop";
@@ -8,7 +9,7 @@ import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, prod
 const categoryLink = (name) => `/shop?category=${encodeURIComponent(name)}`;
 
 /*
-  "Shop" in the top bar on computers: hover (or press the arrow) to open a panel with
+  "All categories" in the second menu row on computers: hover (or press the arrow) to open a panel with
   quick links, every category with a photo (in the admin's order) and a best seller.
   Products load the first time it opens.
 */
@@ -77,8 +78,8 @@ const ShopMegaMenu = ({ linkClass }) => {
       onMouseLeave={() => hide()}
       onBlur={(e) => !wrap.current?.contains(e.relatedTarget) && hide(0)}
     >
-      <NavLink to="/shop" className={(s) => linkClass(s, "/shop")}>
-        Shop
+      <NavLink to="/shop" className={(s) => `${linkClass(s, "/shop")} nb-mega__link`}>
+        <MenuIcon fontSize="small" /> All categories
       </NavLink>
       <button
         type="button"

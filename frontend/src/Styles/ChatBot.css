@@ -4,13 +4,13 @@
    them under the phone menu and the phone cart panel.
 ========================================================= */
 .cb-launch {
-  --cb-surface: #17130d;
-  --cb-surface-2: #211b12;
-  --cb-border: rgba(201, 162, 77, 0.2);
-  --cb-text: #f6f1e7;
-  --cb-muted: rgba(246, 241, 231, 0.62);
-  --cb-accent: #c9a24d;
-  --cb-accent-bright: #e6c372;
+  --cb-surface: #121212;
+  --cb-surface-2: #1a1a1a;
+  --cb-border: rgba(196, 154, 52, 0.2);
+  --cb-text: #f5f5f5;
+  --cb-muted: rgba(245, 245, 245, 0.62);
+  --cb-accent: #c49a34;
+  --cb-accent-bright: #e4c15a;
 
   position: fixed;
   right: 24px;
@@ -28,18 +28,18 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border: none;
   border-radius: 50%;
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
-  color: #1c1408;
+  border: 1px solid rgba(196, 154, 52, 0.55);
+  background: #1a1a1a;
+  color: #e4c15a;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 0 6px rgba(201, 162, 77, 0.14);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .chatbot-float:hover {
   transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(196, 154, 52, 0.18);
 }
 
 .cb-teaser {
@@ -78,13 +78,13 @@
 
 /* ===== Panel ===== */
 .chatbot-box {
-  --cb-surface: #17130d;
-  --cb-surface-2: #211b12;
-  --cb-border: rgba(201, 162, 77, 0.2);
-  --cb-text: #f6f1e7;
-  --cb-muted: rgba(246, 241, 231, 0.62);
-  --cb-accent: #c9a24d;
-  --cb-accent-bright: #e6c372;
+  --cb-surface: #121212;
+  --cb-surface-2: #1a1a1a;
+  --cb-border: rgba(196, 154, 52, 0.2);
+  --cb-text: #f5f5f5;
+  --cb-muted: rgba(245, 245, 245, 0.62);
+  --cb-accent: #c49a34;
+  --cb-accent-bright: #e4c15a;
 
   position: fixed;
   right: 24px;
@@ -127,7 +127,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 12px 14px 16px;
-  background: linear-gradient(135deg, #2a2112, #19140c);
+  background: linear-gradient(135deg, #202020, #131313);
   border-bottom: 1px solid var(--cb-border);
 }
 
@@ -137,7 +137,7 @@
   flex-shrink: 0;
   border-radius: 12px;
   object-fit: cover;
-  border: 1px solid rgba(201, 162, 77, 0.4);
+  border: 1px solid rgba(196, 154, 52, 0.4);
 }
 
 .cb-avatar--small {
@@ -188,7 +188,7 @@
 
 .cb-icon:hover {
   color: var(--cb-text);
-  background: rgba(246, 241, 231, 0.07);
+  background: rgba(245, 245, 245, 0.07);
 }
 
 /* Messages */
@@ -242,8 +242,8 @@
 
 .cb-bubble--user {
   border-radius: 14px 14px 4px 14px;
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
-  color: #1c1408;
+  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  color: #131313;
   font-weight: 500;
 }
 
@@ -300,7 +300,7 @@
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .cb-product__img img {
@@ -363,7 +363,7 @@
   gap: 5px;
   padding: 7px 10px;
   border-radius: 9px;
-  border: 1px solid rgba(201, 162, 77, 0.35);
+  border: 1px solid rgba(196, 154, 52, 0.35);
   background: transparent;
   color: var(--cb-text);
   font: inherit;
@@ -376,18 +376,18 @@
 }
 
 .cb-btn:hover:not(:disabled) {
-  background: rgba(201, 162, 77, 0.14);
+  background: rgba(196, 154, 52, 0.14);
 }
 
 .cb-btn--primary {
   border-color: transparent;
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
-  color: #1c1408;
+  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  color: #131313;
 }
 
 .cb-btn--primary:hover:not(:disabled) {
   filter: brightness(1.06);
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
+  background: linear-gradient(180deg, #e4c15a, #c49a34);
 }
 
 .cb-btn.is-added {
@@ -457,7 +457,7 @@
 }
 
 .cb-order:hover {
-  border-color: rgba(201, 162, 77, 0.45);
+  border-color: rgba(196, 154, 52, 0.45);
 }
 
 .cb-status {
@@ -491,8 +491,8 @@
 .cb-chip {
   padding: 7px 11px;
   border-radius: 999px;
-  border: 1px solid rgba(201, 162, 77, 0.4);
-  background: rgba(201, 162, 77, 0.07);
+  border: 1px solid rgba(196, 154, 52, 0.4);
+  background: rgba(196, 154, 52, 0.07);
   color: var(--cb-accent-bright);
   font: inherit;
   font-size: 0.8rem;
@@ -503,7 +503,7 @@
 }
 
 .cb-chip:hover {
-  background: rgba(201, 162, 77, 0.18);
+  background: rgba(196, 154, 52, 0.18);
 }
 
 /* "Added to your cart" strip */
@@ -547,7 +547,7 @@
   gap: 8px;
   padding: 12px;
   border-top: 1px solid var(--cb-border);
-  background: #14100b;
+  background: #0f0f0f;
 }
 
 .cb-input input {
@@ -555,7 +555,7 @@
   min-width: 0;
   padding: 11px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(246, 241, 231, 0.14);
+  border: 1px solid rgba(245, 245, 245, 0.14);
   background: rgba(0, 0, 0, 0.3);
   color: var(--cb-text);
   font: inherit;
@@ -565,11 +565,11 @@
 
 .cb-input input:focus {
   border-color: var(--cb-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
 }
 
 .cb-input input::placeholder {
-  color: rgba(246, 241, 231, 0.38);
+  color: rgba(245, 245, 245, 0.38);
 }
 
 .cb-input button {
@@ -579,8 +579,8 @@
   place-items: center;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
-  color: #1c1408;
+  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  color: #131313;
   cursor: pointer;
 }
 
@@ -600,7 +600,7 @@
   .chatbot-float {
     width: 48px;
     height: 48px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(201, 162, 77, 0.14);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(196, 154, 52, 0.14);
   }
 
   .chatbot-float svg {

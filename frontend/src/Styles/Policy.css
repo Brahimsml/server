@@ -8,7 +8,7 @@
 
 .pol-nav {
   position: sticky;
-  top: 92px;
+  top: calc(var(--nb-h) + 24px);
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--mt-border);

@@ -63,13 +63,6 @@ const Shop = () => {
             )}
           </nav>
           <h1 className="mt-title">{query ? `Results for “${query}”` : isAll ? "All products" : category}</h1>
-          <p className="mt-lead">
-            {query
-              ? "Change the words in the search box, or pick a category to narrow it down."
-              : isAll
-              ? "PC components, gaming gear, consoles and more. Search, filter and sort the full catalog."
-              : `Browse our ${category.toLowerCase()}. Search or sort to find the right one.`}
-          </p>
         </header>
 
         {loadError && (

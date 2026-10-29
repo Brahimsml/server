@@ -123,7 +123,7 @@ function MyOrders() {
   const openOrder = (id) => navigate(`/my-orders/${id}`);
 
   return (
-    <section className="mt-page">
+    <section className="mt-page hp-wide">
       <div className="mt-container">
         <header className="mt-head">
           <div>

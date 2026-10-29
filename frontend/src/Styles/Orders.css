@@ -53,7 +53,7 @@
   gap: 8px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid rgba(246, 241, 231, 0.14);
+  border: 1px solid rgba(245, 245, 245, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--mt-faint);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -61,7 +61,7 @@
 
 .mo-search:focus-within {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
 }
 
 .mo-search input {
@@ -138,7 +138,7 @@
 }
 
 .mo-table tbody tr:hover {
-  background: rgba(201, 162, 77, 0.06);
+  background: rgba(196, 154, 52, 0.06);
 }
 
 .mo-table td small {
@@ -210,7 +210,7 @@
   right: 50%;
   width: 100%;
   height: 2px;
-  background: rgba(246, 241, 231, 0.12);
+  background: rgba(245, 245, 245, 0.12);
   z-index: 0;
 }
 
@@ -227,7 +227,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 2px solid rgba(246, 241, 231, 0.18);
+  border: 2px solid rgba(245, 245, 245, 0.18);
   background: var(--mt-surface);
   font-size: 0.85rem;
 }
@@ -245,7 +245,7 @@
 .mod-steps li.is-current .mod-steps__dot {
   border-color: var(--mt-accent);
   background: var(--mt-accent);
-  color: #1c1408;
+  color: #131313;
 }
 
 .mod-grid {
@@ -297,7 +297,7 @@
   padding: 5px;
   border-radius: 12px;
   object-fit: contain;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .mod-lines__info {

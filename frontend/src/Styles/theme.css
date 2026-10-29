@@ -5,18 +5,29 @@
    and the colors live on .mt-page, so admin pages and older
    styles are not affected.
 ========================================================= */
+/* Height of the sticky menu bar (two rows on computers): sticky panels sit below it */
+:root {
+  --nb-h: 68px;
+}
+
+@media (min-width: 901px) {
+  :root {
+    --nb-h: 118px;
+  }
+}
+
 /* Colors: on every page (.mt-page) and on shared parts like the navbar/footer (.mt-scope) */
 .mt-page,
 .mt-scope {
-  --mt-surface: #1a1610;
-  --mt-surface-2: #231e15;
-  --mt-border: rgba(201, 162, 77, 0.16);
-  --mt-border-strong: rgba(201, 162, 77, 0.38);
-  --mt-text: #f6f1e7;
-  --mt-muted: rgba(246, 241, 231, 0.62);
-  --mt-faint: rgba(246, 241, 231, 0.38);
-  --mt-accent: #c9a24d;
-  --mt-accent-bright: #e6c372;
+  --mt-surface: #171717;
+  --mt-surface-2: #1f1f1f;
+  --mt-border: rgba(196, 154, 52, 0.2);
+  --mt-border-strong: rgba(196, 154, 52, 0.38);
+  --mt-text: #f5f5f5;
+  --mt-muted: rgba(245, 245, 245, 0.62);
+  --mt-faint: rgba(245, 245, 245, 0.38);
+  --mt-accent: #c49a34;
+  --mt-accent-bright: #e4c15a;
   --mt-danger: #f08a8a;
   --mt-success: #6fd59c;
   --mt-warn: #e8b04f;
@@ -32,8 +43,8 @@
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(1100px 480px at 50% -12%, rgba(201, 162, 77, 0.16), transparent 62%),
-    linear-gradient(180deg, #17130c 0%, #0e0c08 100%);
+    radial-gradient(1100px 480px at 50% -12%, rgba(196, 154, 52, 0.16), transparent 62%),
+    linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
 }
 
 .mt-page *,
@@ -106,7 +117,7 @@
 /* ===== Section header (inside a page) ===== */
 .mt-section {
   margin-top: 72px;
-  scroll-margin-top: 100px; /* keep headings clear of the sticky navbar */
+  scroll-margin-top: calc(var(--nb-h) + 32px); /* keep headings clear of the sticky navbar */
 }
 
 .mt-section-head {
@@ -171,7 +182,7 @@
 
 .mt-btn--primary {
   background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
-  color: #1c1408;
+  color: #131313;
 }
 
 .mt-btn--primary:hover:not(:disabled) {
@@ -180,14 +191,15 @@
 }
 
 .mt-btn--secondary {
-  border-color: var(--mt-border-strong);
-  background: rgba(201, 162, 77, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--mt-text);
 }
 
 .mt-btn--secondary:hover:not(:disabled) {
   border-color: var(--mt-accent);
-  background: rgba(201, 162, 77, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--mt-accent-bright);
 }
 
 .mt-btn--ghost {
@@ -197,7 +209,7 @@
 
 .mt-btn--ghost:hover:not(:disabled) {
   color: var(--mt-text);
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 245, 245, 0.06);
 }
 
 .mt-btn--sm {
@@ -278,7 +290,7 @@
   width: 100%;
   padding: 11px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(246, 241, 231, 0.14);
+  border: 1px solid rgba(245, 245, 245, 0.14);
   background: rgba(0, 0, 0, 0.25);
   color: var(--mt-text);
   caret-color: var(--mt-accent-bright);
@@ -304,8 +316,8 @@ select.mt-input,
 }
 
 select.mt-input option {
-  background: #1a1610;
-  color: #f6f1e7;
+  background: #151515;
+  color: #f5f5f5;
 }
 
 .mt-input::placeholder,
@@ -319,7 +331,7 @@ select.mt-input option {
 .mt-field textarea:focus,
 .mt-field select:focus {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.18);
+  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
 }
 
 .mt-field--invalid input,
@@ -405,8 +417,8 @@ select.mt-input option {
 
 .mt-badge--neutral {
   color: var(--mt-muted);
-  background: rgba(246, 241, 231, 0.05);
-  border-color: rgba(246, 241, 231, 0.18);
+  background: rgba(245, 245, 245, 0.05);
+  border-color: rgba(245, 245, 245, 0.18);
 }
 
 /* ===== Empty / loading states ===== */
@@ -422,7 +434,7 @@ select.mt-input option {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(196, 154, 52, 0.12);
   color: var(--mt-accent-bright);
   font-size: 28px;
 }
@@ -443,9 +455,9 @@ select.mt-input option {
   border-radius: var(--mt-radius);
   background: linear-gradient(
     90deg,
-    rgba(246, 241, 231, 0.04) 0%,
-    rgba(246, 241, 231, 0.09) 50%,
-    rgba(246, 241, 231, 0.04) 100%
+    rgba(245, 245, 245, 0.04) 0%,
+    rgba(245, 245, 245, 0.09) 50%,
+    rgba(245, 245, 245, 0.04) 100%
   );
   background-size: 200% 100%;
   animation: mt-shimmer 1.4s ease-in-out infinite;
@@ -472,8 +484,8 @@ select.mt-input option {
   border-radius: 22px;
   border: 1px solid var(--mt-border-strong);
   background:
-    radial-gradient(600px 240px at 0% 0%, rgba(230, 195, 114, 0.18), transparent 70%),
-    linear-gradient(135deg, #2a2112 0%, #19140c 100%);
+    radial-gradient(600px 240px at 0% 0%, rgba(228, 193, 90, 0.18), transparent 70%),
+    linear-gradient(135deg, #202020 0%, #131313 100%);
 }
 
 .mt-cta h2 {

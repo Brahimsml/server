@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../Context/CartContext";
 import MiniCart from "./MiniCart";
@@ -26,6 +26,8 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
+import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
+import NewReleasesOutlinedIcon from "@mui/icons-material/NewReleasesOutlined";
 
 import logo from "../Assets/logo.jpg";
 import "../Styles/theme.css";
@@ -62,12 +64,45 @@ const NavBar = () => {
   const [badgeBump, setBadgeBump] = useState(false);
   const [categories, setCategories] = useState([]); // "Shop by category" in the phone menu
 
+  // Reloaded on every page change, so a category added in the admin shows up straight away.
+  // Product counts come along, so empty categories stay out of the menus.
+  const [catCounts, setCatCounts] = useState(null);
   useEffect(() => {
     api
       .get("/categories")
       .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
-  }, []);
+    api
+      .get("/products")
+      .then((res) => {
+        const counts = {};
+        (Array.isArray(res.data) ? res.data : []).forEach((p) => {
+          counts[p.category_id] = (counts[p.category_id] || 0) + 1;
+        });
+        setCatCounts(counts);
+      })
+      .catch(() => {});
+  }, [location.pathname]);
+  const shownCategories = catCounts ? categories.filter((c) => catCounts[c.id]) : categories;
+
+  // Second row: categories that don't fit go into a "More" menu
+  const catsRef = useRef(null);
+  const [hiddenCats, setHiddenCats] = useState([]);
+  useLayoutEffect(() => {
+    const row = catsRef.current;
+    if (!row) return undefined;
+    const measure = () => {
+      const top = row.getBoundingClientRect().top;
+      const hidden = [...row.children]
+        .filter((a) => a.getBoundingClientRect().top > top + 4)
+        .map((a) => a.dataset.name);
+      setHiddenCats((cur) => (cur.join("|") === hidden.join("|") ? cur : hidden));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [categories, catCounts]);
 
   // Phone menu: a photo and product count for each category, loaded the first time it opens
   const [catInfo, setCatInfo] = useState(null);
@@ -179,6 +214,7 @@ const NavBar = () => {
   };
 
   const isHome = location.pathname === "/" || location.pathname === "/home";
+  const activeCategory = new URLSearchParams(location.search).get("category");
   const linkClass = ({ isActive }, to) =>
     `nb-link ${isActive || (to === "/home" && isHome) ? "is-active" : ""}`;
 
@@ -203,18 +239,6 @@ const NavBar = () => {
           <img src={logo} alt="" />
           <span>MegaTech</span>
         </Link>
-
-        <nav className="nb-links" aria-label="Main">
-          {MAIN_LINKS.map(({ to, label }) =>
-            to === "/shop" ? (
-              <ShopMegaMenu key={to} linkClass={linkClass} />
-            ) : (
-              <NavLink key={to} to={to} className={(s) => linkClass(s, to)}>
-                {label}
-              </NavLink>
-            )
-          )}
-        </nav>
 
         <div className="nb-actions">
           <NavSearch />
@@ -262,7 +286,10 @@ const NavBar = () => {
                 aria-label="Account menu"
               >
                 <span className="nb-avatar">{initial}</span>
-                <span className="nb-account__name">{firstName}</span>
+                <span className="nb-two">
+                  <small>Hi, {firstName}</small>
+                  <span className="nb-account__name">My account</span>
+                </span>
                 <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
               </button>
 
@@ -289,10 +316,36 @@ const NavBar = () => {
               )}
             </div>
           ) : (
-            <Link to="/login" className="nb-pill nb-signin">
-              <PersonOutlineIcon fontSize="small" />
-              <span>Sign in</span>
-            </Link>
+            <div className="nb-dropdown nb-guest">
+              <Link to="/login" className="nb-pill nb-signin">
+                <PersonOutlineIcon />
+                <span className="nb-two">
+                  <small>Hello, sign in</small>
+                  <span>Account</span>
+                </span>
+                <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
+              </Link>
+
+              {/* computers: opens on hover */}
+              <div className="nb-menu nb-guest__menu" role="menu">
+                <Link to="/login" className="mt-btn mt-btn--primary nb-guest__signin" role="menuitem">
+                  Sign in
+                </Link>
+                <p className="nb-guest__new">
+                  New customer? <Link to="/login?mode=register">Create an account</Link>
+                </p>
+                <hr />
+                <Link to="/my-orders" role="menuitem">
+                  <ReceiptLongOutlinedIcon fontSize="small" /> My orders
+                </Link>
+                <Link to="/wishlist" role="menuitem">
+                  <FavoriteBorderIcon fontSize="small" /> Wishlist
+                </Link>
+                <Link to="/contact" role="menuitem">
+                  <ChatBubbleOutlineIcon fontSize="small" /> Help &amp; contact
+                </Link>
+              </div>
+            </div>
           )}
 
           {/* ===== Wishlist ===== */}
@@ -302,6 +355,7 @@ const NavBar = () => {
             aria-label={`Wishlist, ${wishlist.length} ${wishlist.length === 1 ? "item" : "items"}`}
           >
             <FavoriteBorderIcon />
+            <span className="nb-act__label">Wishlist</span>
             {wishlist.length > 0 && <span className="nb-badge">{wishlist.length > 99 ? "99+" : wishlist.length}</span>}
           </Link>
 
@@ -315,6 +369,7 @@ const NavBar = () => {
               aria-expanded={miniCart.open}
             >
               <ShoppingCartOutlinedIcon />
+              <span className="nb-act__label">Cart</span>
               {cartCount > 0 && (
                 <span className={`nb-badge ${badgeBump ? "is-bump" : ""}`}>
                   {cartCount > 99 ? "99+" : cartCount}
@@ -324,6 +379,49 @@ const NavBar = () => {
 
             <MiniCart />
           </div>
+        </div>
+      </div>
+
+      {/* ===== Second row (computers): every category one click away, like big stores ===== */}
+      <div className="nb-sub">
+        <div className="nb-sub__inner">
+          <ShopMegaMenu linkClass={linkClass} />
+          <Link to="/home#best-sellers" className="nb-sublink nb-sublink--hot">
+            <LocalFireDepartmentOutlinedIcon fontSize="small" /> Best sellers
+          </Link>
+          <Link to="/home#new-arrivals" className="nb-sublink nb-sublink--hot">
+            <NewReleasesOutlinedIcon fontSize="small" /> New arrivals
+          </Link>
+          <span className="nb-sub__sep" aria-hidden="true" />
+          <nav className="nb-sub__cats" aria-label="Categories" ref={catsRef}>
+            {shownCategories.map((c) => (
+              <Link
+                key={c.id}
+                data-name={c.name}
+                to={`/shop?category=${encodeURIComponent(c.name)}`}
+                className={`nb-sublink ${location.pathname === "/shop" && activeCategory === c.name ? "is-active" : ""}`}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </nav>
+          {hiddenCats.length > 0 && (
+            <div className="nb-dropdown nb-more">
+              <button type="button" className="nb-sublink" aria-haspopup="menu">
+                More <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
+              </button>
+              <div className="nb-menu nb-more__menu" role="menu">
+                {hiddenCats.map((name) => (
+                  <Link key={name} to={`/shop?category=${encodeURIComponent(name)}`} role="menuitem">
+                    {name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          <NavLink to="/menu" className={(st) => `nb-sublink nb-sub__store ${st.isActive ? "is-active" : ""}`}>
+            <PlaceOutlinedIcon fontSize="small" /> Find a store
+          </NavLink>
         </div>
       </div>
 

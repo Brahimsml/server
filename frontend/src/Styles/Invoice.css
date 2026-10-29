@@ -2,8 +2,8 @@
 .inv-page {
   min-height: 100vh;
   padding: 24px 16px 48px;
-  background: #e9e5dd;
-  color: #1c1a16;
+  background: #e8e8e8;
+  color: #181818;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -23,7 +23,7 @@
   border: 1px solid #cfc7b8;
   border-radius: 10px;
   background: #fff;
-  color: #1c1a16;
+  color: #181818;
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
@@ -33,8 +33,8 @@
 
 .inv-tool--primary {
   border-color: transparent;
-  background: linear-gradient(180deg, #e6c372, #c9a24d);
-  color: #1c1408;
+  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  color: #131313;
 }
 
 .inv {
@@ -53,7 +53,7 @@
   align-items: flex-start;
   gap: 20px;
   padding-bottom: 8mm;
-  border-bottom: 2px solid #c9a24d;
+  border-bottom: 2px solid #c49a34;
 }
 
 .inv-brand {
@@ -94,7 +94,7 @@
 
 .inv-title p {
   margin: 2px 0;
-  color: #3d3830;
+  color: #373737;
 }
 
 .inv-parties {
@@ -126,8 +126,8 @@
 
 .inv-items th {
   padding: 8px 6px;
-  border-bottom: 1.5px solid #1c1a16;
-  color: #3d3830;
+  border-bottom: 1.5px solid #181818;
+  color: #373737;
   font-size: 8.5pt;
   letter-spacing: 0.08em;
   text-align: left;
@@ -136,7 +136,7 @@
 
 .inv-items td {
   padding: 9px 6px;
-  border-bottom: 1px solid #e6e0d4;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .inv-items .num {
@@ -160,7 +160,7 @@
 .inv-totals__grand {
   margin-top: 4px;
   padding-top: 8px !important;
-  border-top: 1.5px solid #1c1a16;
+  border-top: 1.5px solid #181818;
   font-size: 13pt;
   font-weight: 700;
 }
@@ -184,7 +184,7 @@
 .inv-sign span {
   width: 70mm;
   padding-top: 6px;
-  border-top: 1px solid #1c1a16;
+  border-top: 1px solid #181818;
   font-size: 8.5pt;
   text-align: center;
 }

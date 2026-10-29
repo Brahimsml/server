@@ -99,10 +99,23 @@ html {
    The server marks them with "__full" in the file name. They fill their box edge to edge,
    instead of floating on the white "studio" box like product cut-outs. */
 img[src*="__full"] {
-  width: 100% !important;
-  height: 100% !important;
+  padding: 0 !important;
   object-fit: cover !important;
   mix-blend-mode: normal !important;
+}
+
+/* In the big picture frames they also stretch to the whole frame. Small thumbnails
+   (admin list, cart, search suggestions…) keep their own size. */
+.pc-media img[src*="__full"],
+.hp-cat__media img[src*="__full"],
+.nb-mega__thumb img[src*="__full"],
+.nb-mega__spot-img img[src*="__full"],
+.nb-drawer__thumb img[src*="__full"],
+.pd-media img[src*="__full"],
+.ad-cat-photo img[src*="__full"],
+.ad-picture-option img[src*="__full"] {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .pc-media:has(img[src*="__full"]),

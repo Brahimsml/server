@@ -10,7 +10,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(18, 15, 10, 0.97);
+  background: rgba(13, 13, 13, 0.97);
   border-bottom: 1px solid var(--mt-border);
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -77,7 +77,7 @@
 
 .nb-link:hover {
   color: var(--mt-text);
-  background: rgba(246, 241, 231, 0.05);
+  background: rgba(245, 245, 245, 0.05);
 }
 
 .nb-link.is-active {
@@ -124,7 +124,7 @@
 
 .nb-pill:hover,
 .nb-pill.is-open {
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 245, 245, 0.06);
   border-color: var(--mt-border);
 }
 
@@ -149,7 +149,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
-  color: #1c1408;
+  color: #131313;
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -170,7 +170,7 @@
 
 .nb-icon-btn:hover,
 .nb-icon-btn.is-open {
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 245, 245, 0.06);
   border-color: var(--mt-border);
 }
 
@@ -188,9 +188,9 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border: 2px solid #120f0a;
+  border: 2px solid #0d0d0d;
   background: var(--mt-accent-bright);
-  color: #1c1408;
+  color: #131313;
   font-size: 0.68rem;
   font-weight: 800;
   line-height: 1;
@@ -249,7 +249,7 @@
 
 .nb-menu a:hover,
 .nb-menu button:hover {
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(196, 154, 52, 0.12);
 }
 
 .nb-menu svg {
@@ -353,7 +353,7 @@
 
 .mc-close:hover {
   color: var(--mt-text);
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 245, 245, 0.06);
 }
 
 .mc-status {
@@ -404,7 +404,7 @@
 }
 
 @keyframes mc-flash {
-  0%, 30% { background: rgba(201, 162, 77, 0.14); }
+  0%, 30% { background: rgba(196, 154, 52, 0.14); }
   100% { background: transparent; }
 }
 
@@ -415,7 +415,7 @@
   object-fit: contain;
   padding: 4px;
   border-radius: 10px;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .mc-item {
@@ -512,7 +512,7 @@
 /* ===================== FOOTER ===================== */
 .ft {
   border-top: 1px solid var(--mt-border);
-  background: #0c0a07;
+  background: #080808;
   color: var(--mt-muted);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -785,7 +785,7 @@ body.nb-menu-open .chatbot-box {
   padding: 0 12px;
   gap: 8px;
   border-radius: 10px;
-  border: 1px solid rgba(246, 241, 231, 0.12);
+  border: 1px solid rgba(245, 245, 245, 0.12);
   background: rgba(0, 0, 0, 0.25);
   transition: width 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -793,7 +793,7 @@ body.nb-menu-open .chatbot-box {
 .ns-form:focus-within {
   width: 300px;
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.16);
+  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.16);
 }
 
 .ns-icon {
@@ -853,7 +853,7 @@ body.nb-menu-open .chatbot-box {
 
 .ns-item.is-active,
 .ns-all.is-active {
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(196, 154, 52, 0.12);
 }
 
 .ns-item img {
@@ -862,7 +862,7 @@ body.nb-menu-open .chatbot-box {
   height: 40px;
   padding: 3px;
   border-radius: 8px;
-  background: #f3f0ea;
+  background: #ffffff;
   object-fit: contain;
 }
 
@@ -982,12 +982,12 @@ body.nb-menu-open .chatbot-box {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(26, 22, 16, 0.8);
-  color: #f6f1e7;
+  background: rgba(21, 21, 21, 0.8);
+  color: #f5f5f5;
 }
 
 .pc-wish:hover {
-  background: #1a1610;
+  background: #151515;
 }
 
 .pc-wish.is-saved {
@@ -1006,9 +1006,9 @@ body.nb-menu-open .chatbot-box {
   max-width: min(420px, calc(100vw - 48px));
   padding: 12px 12px 12px 16px;
   border-radius: 14px;
-  border: 1px solid var(--mt-border-strong, rgba(201, 162, 77, 0.38));
-  background: #1a1610;
-  color: #f6f1e7;
+  border: 1px solid var(--mt-border-strong, rgba(196, 154, 52, 0.38));
+  background: #151515;
+  color: #f5f5f5;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
   animation: wl-toast-in 0.25s ease;
@@ -1037,7 +1037,7 @@ body.nb-menu-open .chatbot-box {
 }
 
 .wl-toast a {
-  color: #e6c372;
+  color: #e4c15a;
   font-weight: 700;
 }
 
@@ -1051,13 +1051,13 @@ body.nb-menu-open .chatbot-box {
   border: none;
   border-radius: 8px;
   background: none;
-  color: rgba(246, 241, 231, 0.6);
+  color: rgba(245, 245, 245, 0.6);
   cursor: pointer;
 }
 
 .wl-toast button:hover {
-  color: #f6f1e7;
-  background: rgba(246, 241, 231, 0.08);
+  color: #f5f5f5;
+  background: rgba(245, 245, 245, 0.08);
 }
 
 @media (max-width: 640px) {
@@ -1257,7 +1257,7 @@ body.nb-menu-open .chatbot-box {
   padding: 14px;
   border-radius: 14px;
   border: 1px solid var(--mt-border);
-  background: rgba(201, 162, 77, 0.06);
+  background: rgba(196, 154, 52, 0.06);
   color: var(--mt-text);
   text-decoration: none;
 }
@@ -1282,7 +1282,7 @@ body.nb-menu-open .chatbot-box {
   padding: 16px;
   border-radius: 14px;
   border: 1px solid var(--mt-border);
-  background: rgba(201, 162, 77, 0.06);
+  background: rgba(196, 154, 52, 0.06);
 }
 
 .nb-drawer__welcome strong {
@@ -1350,12 +1350,12 @@ body.nb-menu-open .chatbot-box {
 }
 
 .nb-drawer__link.is-active {
-  background: rgba(201, 162, 77, 0.12);
+  background: rgba(196, 154, 52, 0.12);
   color: var(--mt-accent-bright);
 }
 
 .nb-drawer__link:active {
-  background: rgba(246, 241, 231, 0.06);
+  background: rgba(245, 245, 245, 0.06);
 }
 
 .nb-drawer__list--plain .nb-drawer__link {
@@ -1376,7 +1376,7 @@ body.nb-menu-open .chatbot-box {
   padding: 0 7px;
   border-radius: 999px;
   background: var(--mt-accent-bright);
-  color: #1c1408;
+  color: #131313;
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -1551,7 +1551,7 @@ body.nb-menu-open .cb-launch {
   z-index: 50;
   border-top: 1px solid var(--mt-border);
   border-bottom: 1px solid var(--mt-border-strong);
-  background: rgba(18, 15, 10, 0.98);
+  background: rgba(13, 13, 13, 0.98);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
@@ -1645,7 +1645,7 @@ body.nb-menu-open .cb-launch {
 
 .nb-mega__cat:hover {
   border-color: var(--mt-border);
-  background: rgba(201, 162, 77, 0.07);
+  background: rgba(196, 154, 52, 0.07);
 }
 
 .nb-mega__thumb {
@@ -1656,7 +1656,7 @@ body.nb-menu-open .cb-launch {
   place-items: center;
   padding: 5px;
   border-radius: 9px;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .nb-mega__thumb img {
@@ -1702,7 +1702,7 @@ body.nb-menu-open .cb-launch {
   border-radius: 14px;
   border: 1px solid var(--mt-border);
   background:
-    radial-gradient(120% 80% at 100% 0%, rgba(201, 162, 77, 0.14), transparent 60%),
+    radial-gradient(120% 80% at 100% 0%, rgba(196, 154, 52, 0.14), transparent 60%),
     var(--mt-surface);
   color: var(--mt-text);
   text-decoration: none;
@@ -1728,7 +1728,7 @@ body.nb-menu-open .cb-launch {
   overflow: hidden;
   padding: 10px;
   border-radius: 10px;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .nb-mega__spot-img img {
@@ -1783,7 +1783,7 @@ body.nb-menu-open .cb-launch {
   place-items: center;
   padding: 4px;
   border-radius: 8px;
-  background: #f3f0ea;
+  background: #ffffff;
 }
 
 .nb-drawer__thumb img {
@@ -1821,4 +1821,489 @@ body.nb-menu-open .cb-launch {
   height: 100%;
   min-height: 0;
   object-fit: contain;
+}
+
+/* ===================== TWO-ROW MENU BAR (computers) ===================== */
+/* Like Amazon / Noon: row 1 = logo, a big search bar, account, wishlist, cart;
+   row 2 = "All categories" (the mega menu), each category, then the other pages.
+   Phones and tablets keep the one-row bar with the side menu. */
+.nb-sub,
+.ns-submit,
+.nb-act__label {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .nb-inner {
+    height: 72px;
+    gap: 28px;
+  }
+
+  .nb-actions {
+    flex: 1;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  /* the search bar takes the middle of the bar */
+  .ns {
+    flex: 1;
+    min-width: 0;
+    max-width: 820px;
+    margin-right: auto;
+    padding-right: 16px;
+  }
+
+  .ns-toggle {
+    display: none;
+  }
+
+  .ns-form,
+  .ns-form:focus-within {
+    display: flex;
+    width: 100%;
+    height: 44px;
+    padding: 0 0 0 16px;
+    border-radius: 12px;
+    border-color: var(--mt-border-strong);
+    background: rgba(245, 245, 245, 0.05);
+  }
+
+  .ns-form input {
+    font-size: 0.93rem;
+  }
+
+  .ns-submit {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 54px;
+    height: 100%;
+    margin-left: 8px;
+    border: none;
+    border-radius: 0 11px 11px 0;
+    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    color: #131313;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+  }
+
+  .ns-submit:hover {
+    filter: brightness(1.08);
+  }
+
+  .ns-panel {
+    left: 0;
+    width: 100%;
+  }
+
+  /* account: two lines ("Hello, sign in" / "Account") */
+  .nb-pill {
+    height: 48px;
+  }
+
+  .nb-signin {
+    border-color: transparent;
+  }
+
+  .nb-two {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+  }
+
+  .nb-two small {
+    color: var(--mt-muted);
+    font-size: 0.74rem;
+    font-weight: 400;
+  }
+
+  .nb-two > span {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  /* wishlist and cart: icon + word */
+  .nb-wish,
+  .nb-cart__btn {
+    width: auto;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .nb-act__label {
+    display: inline;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .nb-wish .nb-badge,
+  .nb-cart__btn .nb-badge {
+    top: 3px;
+    right: auto;
+    left: 22px;
+  }
+
+  /* ----- second row ----- */
+  .nb-sub {
+    display: block;
+    border-top: 1px solid var(--mt-border);
+    background: var(--mt-surface);
+  }
+
+  .nb-sub__inner {
+    max-width: 1240px;
+    height: 44px;
+    margin: 0 auto;
+    padding: 0 max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px));
+    display: flex;
+    align-items: center;
+  }
+
+  /* categories that don't fit are hidden instead of squeezing */
+  .nb-sub__cats {
+    flex: 0 1 auto; /* hugs the categories, so "More" sits right after them */
+    min-width: 0;
+    height: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: hidden;
+  }
+
+  .nb-sub__pages {
+    display: flex;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 12px;
+    border-left: 1px solid var(--mt-border);
+  }
+
+  .nb-sublink {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 8px;
+    color: var(--mt-muted);
+    font-size: 0.86rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .nb-sublink:hover,
+  .nb-sublink.is-active {
+    color: var(--mt-text);
+  }
+
+  .nb-sublink.is-active::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--mt-accent-bright);
+  }
+
+  /* "All categories": the gold button that opens the mega menu */
+  .nb-mega {
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+
+  .nb-link.nb-mega__link,
+  .nb-link.nb-mega__link:hover {
+    gap: 8px;
+    height: 32px;
+    padding: 0 34px 0 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--mt-text);
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  .nb-link.nb-mega__link:hover,
+  .nb-mega.is-open .nb-mega__link {
+    border-color: var(--mt-border-strong);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .nb-mega__toggle,
+  .nb-mega:hover .nb-mega__toggle,
+  .nb-mega.is-open .nb-mega__toggle {
+    position: relative;
+    margin-left: -30px;
+    color: var(--mt-text);
+  }
+}
+
+/* small laptops: icons only for wishlist and cart */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .nb-act__label {
+    display: none;
+  }
+
+  .nb-wish .nb-badge,
+  .nb-cart__btn .nb-badge {
+    left: auto;
+    right: 0;
+  }
+
+  .nb-wish,
+  .nb-cart__btn {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* ===================== MORE POWERFUL MENU BAR (computers) ===================== */
+/* Category picker at the start of the search bar, and the "/" hint */
+.ns-scope,
+.ns-kbd,
+.nb-guest__menu {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .ns-scope {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    max-width: 170px;
+    height: 100%;
+    margin-left: -16px; /* sits flush with the bar's left edge */
+    padding: 0 10px 0 14px;
+    border-right: 1px solid var(--mt-border-strong);
+    border-radius: 11px 0 0 11px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--mt-text);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .ns-scope:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .ns-scope__label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ns-scope svg {
+    flex-shrink: 0;
+    color: var(--mt-muted);
+  }
+
+  /* the real (invisible) select covers the picker so the native list opens */
+  .ns-scope select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .ns-scope option {
+    background: #171717;
+    color: #f5f5f5;
+  }
+
+  .ns-form .ns-icon {
+    margin-left: 12px;
+  }
+
+  .ns-kbd {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: var(--mt-faint);
+    font: 600 0.75rem/1 "Inter", sans-serif;
+  }
+
+  /* account menus open over the second row */
+  .nb-actions .nb-menu {
+    z-index: 60;
+  }
+
+  /* "Hello, sign in": a menu on hover, like big stores */
+  .nb-guest__menu {
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    width: 250px;
+    padding: 14px 8px 8px;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    animation: none;
+  }
+
+  /* invisible bridge so the menu stays open while the mouse moves down to it */
+  .nb-guest__menu::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -12px;
+    height: 12px;
+  }
+
+  .nb-guest:hover .nb-guest__menu,
+  .nb-guest:has(:focus-visible) .nb-guest__menu {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .nb-guest:hover .nb-chevron {
+    transform: rotate(180deg);
+  }
+
+  .nb-menu a.nb-guest__signin {
+    justify-content: center;
+    width: calc(100% - 8px);
+    margin: 0 4px;
+    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    color: #131313;
+    font-weight: 700;
+  }
+
+  .nb-menu a.nb-guest__signin:hover {
+    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    filter: brightness(1.08);
+  }
+
+  .nb-guest__new {
+    margin: 10px 0 4px;
+    color: var(--mt-muted);
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  .nb-menu .nb-guest__new a {
+    display: inline;
+    width: auto;
+    padding: 0;
+    color: var(--mt-accent-bright);
+    font-weight: 600;
+  }
+
+  .nb-menu .nb-guest__new a:hover {
+    background: none;
+    text-decoration: underline;
+  }
+
+  /* Best sellers / New arrivals: gold icons, then a divider before the categories */
+  .nb-sublink--hot {
+    gap: 6px;
+    flex-shrink: 0;
+    color: var(--mt-text);
+    font-weight: 600;
+  }
+
+  .nb-sublink--hot svg {
+    color: var(--mt-accent-bright);
+  }
+
+  .nb-sub__sep {
+    flex-shrink: 0;
+    width: 1px;
+    height: 20px;
+    margin: 0 8px;
+    background: var(--mt-border-strong);
+  }
+}
+
+/* ===== Phones: the chat button would cover the cart total, so it's hidden on the cart ===== */
+@media (max-width: 640px) {
+  body:has(.cart-page) .cb-launch {
+    display: none;
+  }
+}
+
+/* ===== Second row: "More" holds the categories that don't fit ===== */
+.nb-more {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .nb-more {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .nb-more > .nb-sublink {
+    gap: 2px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--mt-text);
+    cursor: pointer;
+  }
+
+  .nb-more__menu {
+    z-index: 60;
+    left: 0;
+    right: auto;
+    top: 100%;
+    min-width: 200px;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    animation: none;
+  }
+
+  .nb-more:hover .nb-more__menu,
+  .nb-more:has(:focus-visible) .nb-more__menu {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .nb-more:hover .nb-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* "Find a store" at the right end of the second row */
+@media (min-width: 901px) {
+  .nb-sublink.nb-sub__store {
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 14px;
+    border-left: 1px solid var(--mt-border);
+  }
+
+  .nb-sub__store svg {
+    color: var(--mt-accent-bright);
+  }
+
+  .nb-sub__store.is-active::after {
+    left: 14px;
+  }
 }

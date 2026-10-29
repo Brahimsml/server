@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api";
 import { formatMoney, imageUrl, onImageError, productPath, FALLBACK_IMG } from "../utils/shop";
@@ -11,10 +12,12 @@ import { formatMoney, imageUrl, onImageError, productPath, FALLBACK_IMG } from "
   - wide screens: always visible in the bar
   - narrow screens: a search icon opens it under the bar
   Enter (or "See all results") opens the shop filtered by the words typed.
+  On computers a category picker narrows the search, and "/" jumps to the box.
 */
 const MAX_SUGGESTIONS = 6;
 
 let productsCache = null; // loaded once, the first time someone uses the search
+let categoriesCache = null;
 
 const matches = (product, words) => {
   const text = `${product.name || ""} ${product.category_name || ""} ${product.description || ""}`.toLowerCase();
@@ -31,6 +34,8 @@ const NavSearch = () => {
   const [text, setText] = useState("");
   const [products, setProducts] = useState(productsCache || []);
   const [active, setActive] = useState(-1); // highlighted suggestion (keyboard)
+  const [scope, setScope] = useState("All"); // category picked next to the box
+  const [categories, setCategories] = useState(categoriesCache || []);
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -46,13 +51,40 @@ const NavSearch = () => {
       .catch(() => {});
   };
 
-  // Close when the page changes; show the current search on the shop page
+  useEffect(() => {
+    if (categoriesCache) return;
+    api
+      .get("/categories")
+      .then((res) => {
+        categoriesCache = Array.isArray(res.data) ? res.data : [];
+        setCategories(categoriesCache);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Close when the page changes; show the current search (and category) on the shop page
   useEffect(() => {
     setOpen(false);
     setFocused(false);
     setActive(-1);
-    setText(pathname === "/shop" ? new URLSearchParams(search).get("q") || "" : "");
+    const params = new URLSearchParams(search);
+    setText(pathname === "/shop" ? params.get("q") || "" : "");
+    setScope(pathname === "/shop" ? params.get("category") || "All" : "All");
   }, [pathname, search]);
+
+  // "/" anywhere on the page jumps to the search box (like big stores), unless you're typing
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target;
+      if (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (!inputRef.current?.offsetParent) return; // box hidden (phones)
+      e.preventDefault();
+      inputRef.current.focus(); // focusing loads the products
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   // Click outside closes the suggestions
   useEffect(() => {
@@ -68,15 +100,20 @@ const NavSearch = () => {
 
   const words = useMemo(() => text.trim().toLowerCase().split(/\s+/).filter(Boolean), [text]);
   const results = useMemo(
-    () => (words.length ? products.filter((p) => matches(p, words)) : []),
-    [products, words]
+    () =>
+      words.length
+        ? products.filter((p) => (scope === "All" || p.category_name === scope) && matches(p, words))
+        : [],
+    [products, words, scope]
   );
   const shown = results.slice(0, MAX_SUGGESTIONS);
   const showList = focused && words.length > 0;
 
   const goToResults = () => {
-    const q = text.trim();
-    navigate(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
+    const params = new URLSearchParams();
+    if (scope !== "All") params.set("category", scope);
+    if (text.trim()) params.set("q", text.trim());
+    navigate(params.toString() ? `/shop?${params}` : "/shop");
   };
 
   const openProduct = (p) => navigate(productPath(p));
@@ -118,12 +155,32 @@ const NavSearch = () => {
       </button>
 
       <form className="ns-form" role="search" onSubmit={onSubmit}>
+        <label className="ns-scope">
+          <span className="ns-scope__label">{scope === "All" ? "All" : scope}</span>
+          <KeyboardArrowDownIcon fontSize="small" />
+          <select
+            value={scope}
+            onChange={(e) => {
+              setScope(e.target.value);
+              setActive(-1);
+              inputRef.current?.focus();
+            }}
+            aria-label="Search in category"
+          >
+            <option value="All">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <SearchIcon className="ns-icon" fontSize="small" />
         <input
           ref={inputRef}
           type="search"
           value={text}
-          placeholder="Search products"
+          placeholder={scope === "All" ? "Search graphics cards, monitors, laptops…" : `Search in ${scope}…`}
           aria-label="Search products"
           role="combobox"
           aria-expanded={showList}
@@ -141,6 +198,14 @@ const NavSearch = () => {
           }}
           onKeyDown={onKeyDown}
         />
+        {!text && (
+          <kbd className="ns-kbd" title="Press / to search">
+            /
+          </kbd>
+        )}
+        <button type="submit" className="ns-submit" aria-label="Search">
+          <SearchIcon />
+        </button>
 
         {showList && (
           <div className="ns-panel" id={listId} role="listbox">
@@ -177,6 +242,7 @@ const NavSearch = () => {
               onClick={goToResults}
             >
               See all {results.length} {results.length === 1 ? "result" : "results"} for “{text.trim()}”
+              {scope !== "All" && ` in ${scope}`}
               <ArrowForwardIcon fontSize="small" />
             </button>
           </div>

@@ -33,10 +33,6 @@ const Menu = () => {
           <div>
             <span className="mt-eyebrow">Our stores</span>
             <h1 className="mt-title">Visit a MegaTech store</h1>
-            <p className="mt-lead">
-              See the latest PC accessories, gaming peripherals and hardware in person, and get
-              advice from our team.
-            </p>
           </div>
         </header>
 

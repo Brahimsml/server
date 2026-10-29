@@ -75,7 +75,14 @@ export const CartProvider = ({ children }) => {
         prev.map((item) => (item.id === product.id ? { ...item, quantity: nextQty } : item))
       );
     } else {
-      setCart((prev) => [...prev, { ...product, quantity: Math.min(stock, amount) }]);
+      // (checked again inside, so two very fast clicks can't add the same product twice)
+      setCart((prev) =>
+        prev.some((item) => item.id === product.id)
+          ? prev.map((item) =>
+              item.id === product.id ? { ...item, quantity: Math.min(stock, (item.quantity || 1) + amount) } : item
+            )
+          : [...prev, { ...product, quantity: Math.min(stock, amount) }]
+      );
     }
 
     if (!silent) setMiniCart({ open: true, lastAddedId: product.id, notice: "" });

@@ -3,12 +3,18 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
+import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
 import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
 import { saveUserSession } from "../utils/auth";
 import "../Styles/Login.css";
+import logo from "../Assets/logo.jpg";
+import setupPhoto from "../Assets/apo.jpeg";
 import usePageTitle from "../utils/usePageTitle";
 
 const RESEND_SECONDS = 60;
@@ -381,29 +387,75 @@ const Login = () => {
           {isRegister ? "Sign in" : "Create an account"}
         </button>
       </p>
+
+      <p className="auth-legal">
+        <LockOutlinedIcon fontSize="inherit" />
+        <span>
+          Secure sign-in. By continuing you agree to our <Link to="/terms">Terms</Link> and{" "}
+          <Link to="/privacy">Privacy Policy</Link>.
+        </span>
+      </p>
     </>
   );
 
   return (
     <section className="auth-page">
       <div className="auth-card">
-        <aside className="auth-aside">
-          <div>
+        <aside className="auth-aside" style={{ "--auth-photo": `url(${setupPhoto})` }}>
+          <Link to="/home" className="auth-logo" aria-label="MegaTech home">
+            <img src={logo} alt="" />
             <span className="auth-brand">MegaTech</span>
-            <p className="auth-tagline">Premium PC components and gaming accessories.</p>
+          </Link>
+
+          <div className="auth-aside__copy">
+            <h2 className="auth-headline">
+              Your next setup <span>starts here.</span>
+            </h2>
+            <p className="auth-tagline">
+              One account for your orders, your wishlist and faster checkout, on every device.
+            </p>
+
+            <ul className="auth-perks">
+              <li>
+                <span className="auth-perks__icon">
+                  <LocalShippingOutlinedIcon fontSize="small" />
+                </span>
+                <span>
+                  <strong>Track every order</strong>
+                  <small>See where your order is, from confirmed to delivered.</small>
+                </span>
+              </li>
+              <li>
+                <span className="auth-perks__icon">
+                  <FavoriteBorderIcon fontSize="small" />
+                </span>
+                <span>
+                  <strong>Wishlist on all your devices</strong>
+                  <small>Save gear on your phone, buy it later on your laptop.</small>
+                </span>
+              </li>
+              <li>
+                <span className="auth-perks__icon">
+                  <BoltOutlinedIcon fontSize="small" />
+                </span>
+                <span>
+                  <strong>Faster checkout</strong>
+                  <small>Your phone and address are filled in for you.</small>
+                </span>
+              </li>
+              <li>
+                <span className="auth-perks__icon">
+                  <MarkEmailUnreadOutlinedIcon fontSize="small" />
+                </span>
+                <span>
+                  <strong>Order updates by email</strong>
+                  <small>A confirmation for every order you place.</small>
+                </span>
+              </li>
+            </ul>
           </div>
 
-          <ul className="auth-perks">
-            <li>
-              <CheckCircleOutlineIcon fontSize="small" /> Track your orders and their status
-            </li>
-            <li>
-              <CheckCircleOutlineIcon fontSize="small" /> Your cart is saved while you shop
-            </li>
-            <li>
-              <CheckCircleOutlineIcon fontSize="small" /> Order confirmations by email
-            </li>
-          </ul>
+          <p className="auth-trust">Cash on delivery · 7-day returns · Delivery all over Lebanon</p>
         </aside>
 
         <div className="auth-main">{verifyEmail ? verifyStep : formStep}</div>
