@@ -623,7 +623,7 @@ module.exports = function createChatbot({ db, jwt, secret }) {
 
   async function respond(text, context, user) {
     const [products, categories, stores] = await Promise.all([
-      run(db, "SELECT p.*, c.name AS category_name FROM products p JOIN categories c ON p.category_id = c.id"),
+      run(db, "SELECT p.*, c.name AS category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.active = 1"),
       run(db, "SELECT * FROM categories"),
       run(db, "SELECT * FROM places"),
     ]);

@@ -20,10 +20,19 @@ function AdminProducts() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all"); // all / live / hidden
+  const [allCategories, setAllCategories] = useState([]); // for "Move to category"
 
+  // Bulk edit: tick products, pick a change, Apply
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkAction, setBulkAction] = useState("");
+  const [bulkValue, setBulkValue] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  // ?all=1: the admin also gets the hidden products
   const fetchProducts = () =>
     api
-      .get("/products")
+      .get("/products?all=1")
       .then((res) => {
         setProducts(Array.isArray(res.data) ? res.data : []);
         setError("");
@@ -36,7 +45,13 @@ function AdminProducts() {
 
   useEffect(() => {
     fetchProducts();
+    api
+      .get("/categories")
+      .then((res) => setAllCategories(Array.isArray(res.data) ? res.data : []))
+      .catch(() => {});
   }, []);
+
+  const isLive = (p) => p.active === undefined || !!Number(p.active);
 
   const categories = useMemo(
     () => [...new Set(products.map((p) => p.category_name).filter(Boolean))].sort(),
@@ -48,6 +63,7 @@ function AdminProducts() {
     return {
       low: products.filter((p) => stock(p) > 0 && stock(p) <= LOW_STOCK).length,
       out: products.filter((p) => stock(p) <= 0).length,
+      hidden: products.filter((p) => !isLive(p)).length,
     };
   }, [products]);
 
@@ -58,10 +74,93 @@ function AdminProducts() {
       if (category !== "all" && p.category_name !== category) return false;
       if (stockFilter === "low" && !(stock > 0 && stock <= LOW_STOCK)) return false;
       if (stockFilter === "out" && stock > 0) return false;
+      if (statusFilter === "live" && !isLive(p)) return false;
+      if (statusFilter === "hidden" && isLive(p)) return false;
       if (!q) return true;
       return `${p.name} ${p.category_name} ${p.label || ""}`.toLowerCase().includes(q);
     });
-  }, [products, search, category, stockFilter]);
+  }, [products, search, category, stockFilter, statusFilter]);
+
+  // ===== Show / hide one product (nothing is deleted) =====
+  const toggleLive = async (p) => {
+    const next = !isLive(p);
+    setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, active: next ? 1 : 0 } : x)));
+    try {
+      await api.put(`/products/${p.id}/active`, { active: next });
+      notify(next ? `"${p.name}" is back in the shop` : `"${p.name}" is hidden from the shop`);
+    } catch (err) {
+      setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, active: next ? 0 : 1 } : x)));
+      notify(apiError(err, "We couldn't change this product."), "error");
+    }
+  };
+
+  // ===== Bulk edit =====
+  // A new filter or search starts a fresh selection
+  useEffect(() => setSelected(new Set()), [search, category, stockFilter, statusFilter]);
+
+  const allTicked = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
+  const toggle = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const toggleAll = () => setSelected(allTicked ? new Set() : new Set(filtered.map((p) => p.id)));
+
+  const BULK_ACTIONS = {
+    show: { label: "Show in the shop" },
+    hide: { label: "Hide from the shop" },
+    category: { label: "Move to category…", field: "category" },
+    price_set: { label: "Set the price to…", field: "money", placeholder: "New price" },
+    price_percent: { label: "Change the price by %…", field: "percent", placeholder: "e.g. -10 or 5" },
+    stock_set: { label: "Set the stock to…", field: "number", placeholder: "New stock" },
+  };
+  const bulkField = BULK_ACTIONS[bulkAction]?.field;
+
+  const applyBulk = async () => {
+    const ids = [...selected];
+    const value = Number(bulkValue);
+    if (!bulkAction || !ids.length) return;
+    if (bulkField && (bulkValue === "" || Number.isNaN(value))) {
+      notify(bulkField === "category" ? "Choose a category." : "Enter a number first.", "error");
+      return;
+    }
+    const n = `${ids.length} ${ids.length === 1 ? "product" : "products"}`;
+    const what = {
+      show: `Show ${n} in the shop?`,
+      hide: `Hide ${n} from the shop?`,
+      category: `Move ${n} to ${allCategories.find((c) => c.id === value)?.name || "this category"}?`,
+      price_set: `Set the price of ${n} to ${formatMoney(value)}?`,
+      price_percent: `${value > 0 ? "Raise" : "Lower"} the price of ${n} by ${Math.abs(value)}%?`,
+      stock_set: `Set the stock of ${n} to ${value}?`,
+    }[bulkAction];
+    const ok = await confirm({
+      title: what,
+      message:
+        bulkAction === "hide"
+          ? "Customers won't see them any more. Nothing is deleted; you can show them again any time."
+          : bulkAction === "price_percent"
+          ? "Prices are rounded to the cent."
+          : "This changes all the ticked products at once.",
+      confirmLabel: "Apply",
+      cancelLabel: "Go back",
+    });
+    if (!ok) return;
+
+    setBulkBusy(true);
+    try {
+      await api.put("/products/bulk", { ids, action: bulkAction, value });
+      await fetchProducts();
+      notify(`${n} updated`);
+      setSelected(new Set());
+      setBulkAction("");
+      setBulkValue("");
+    } catch (err) {
+      notify(apiError(err, "We couldn't update those products."), "error");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleDelete = async (product) => {
     const ok = await confirm({
@@ -82,7 +181,7 @@ function AdminProducts() {
     }
   };
 
-  const filtersActive = search || category !== "all" || stockFilter !== "all";
+  const filtersActive = search || category !== "all" || stockFilter !== "all" || statusFilter !== "all";
 
   return (
     <>
@@ -91,7 +190,7 @@ function AdminProducts() {
         subtitle={
           loading
             ? "Loading products…"
-            : `${products.length} products · ${counts.low} low on stock · ${counts.out} sold out`
+            : `${products.length} products · ${counts.low} low on stock · ${counts.out} sold out${counts.hidden ? ` · ${counts.hidden} hidden` : ""}`
         }
         actions={
           <Link to="/products/add" className="mt-btn mt-btn--primary">
@@ -120,6 +219,12 @@ function AdminProducts() {
             <option value="low">Low stock ({counts.low})</option>
             <option value="out">Sold out ({counts.out})</option>
           </select>
+
+          <select className="mt-input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Shown or hidden">
+            <option value="all">Shown &amp; hidden</option>
+            <option value="live">Shown in the shop</option>
+            <option value="hidden">Hidden ({counts.hidden})</option>
+          </select>
         </div>
 
         {loading ? (
@@ -143,6 +248,7 @@ function AdminProducts() {
                   setSearch("");
                   setCategory("all");
                   setStockFilter("all");
+                  setStatusFilter("all");
                 }}
               >
                 Clear filters
@@ -155,25 +261,97 @@ function AdminProducts() {
           </div>
         ) : (
           <>
-            <div className="ad-meta">
-              Showing {filtered.length} of {products.length}
-            </div>
+            {selected.size > 0 ? (
+              <div className="ad-bulk" role="region" aria-label="Change several products">
+                <strong>
+                  {selected.size} {selected.size === 1 ? "product" : "products"} selected
+                </strong>
+                <select
+                  className="mt-input"
+                  value={bulkAction}
+                  onChange={(e) => {
+                    setBulkAction(e.target.value);
+                    setBulkValue("");
+                  }}
+                  aria-label="What to change"
+                >
+                  <option value="">Change…</option>
+                  {Object.entries(BULK_ACTIONS).map(([value, a]) => (
+                    <option key={value} value={value}>
+                      {a.label}
+                    </option>
+                  ))}
+                </select>
+                {bulkField === "category" && (
+                  <select className="mt-input" value={bulkValue} onChange={(e) => setBulkValue(e.target.value)} aria-label="Category">
+                    <option value="">Choose a category</option>
+                    {allCategories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {bulkField && bulkField !== "category" && (
+                  <input
+                    className="mt-input ad-bulk__value"
+                    type="number"
+                    step={bulkField === "money" ? "0.01" : "1"}
+                    min={bulkField === "percent" ? "-90" : "0"}
+                    value={bulkValue}
+                    onChange={(e) => setBulkValue(e.target.value)}
+                    placeholder={BULK_ACTIONS[bulkAction].placeholder}
+                    aria-label={BULK_ACTIONS[bulkAction].placeholder}
+                  />
+                )}
+                <button type="button" className="mt-btn mt-btn--primary mt-btn--sm" onClick={applyBulk} disabled={!bulkAction || bulkBusy}>
+                  {bulkBusy ? "Updating…" : "Apply"}
+                </button>
+                <button type="button" className="mt-link" onClick={() => setSelected(new Set())} disabled={bulkBusy}>
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <div className="ad-meta">
+                Showing {filtered.length} of {products.length} · tick products to change several at once
+              </div>
+            )}
             <div className="ad-table-wrap">
-              <table className="ad-table">
+              <table className="ad-table ad-products">
                 <thead>
                   <tr>
+                    <th className="ad-check-cell">
+                      <input
+                        type="checkbox"
+                        className="ad-check"
+                        checked={allTicked}
+                        onChange={toggleAll}
+                        aria-label="Select all products shown"
+                      />
+                    </th>
                     <th>Product</th>
                     <th>Category</th>
                     <th className="ad-num">Price</th>
                     <th>Stock</th>
+                    <th>In shop</th>
                     <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((p) => {
                     const label = normalizeLabel(p.label);
+                    const live = isLive(p);
                     return (
-                      <tr key={p.id}>
+                      <tr key={p.id} className={`${selected.has(p.id) ? "is-selected" : ""} ${live ? "" : "is-hidden"}`}>
+                        <td className="ad-check-cell">
+                          <input
+                            type="checkbox"
+                            className="ad-check"
+                            checked={selected.has(p.id)}
+                            onChange={() => toggle(p.id)}
+                            aria-label={`Select ${p.name}`}
+                          />
+                        </td>
                         <td className="ad-cell-full">
                           <div className="ad-product">
                             <img
@@ -205,6 +383,17 @@ function AdminProducts() {
                             }
                             onError={(err) => notify(apiError(err, `We couldn't save the stock for "${p.name}".`), "error")}
                           />
+                        </td>
+                        <td data-label="In shop">
+                          <label className="ad-switch ad-product-switch" title={live ? "Shown in the shop" : "Hidden from customers"}>
+                            <input
+                              type="checkbox"
+                              checked={live}
+                              onChange={() => toggleLive(p)}
+                              aria-label={`Show ${p.name} in the shop`}
+                            />
+                            <span>{live ? "Shown" : "Hidden"}</span>
+                          </label>
                         </td>
                         <td className="ad-actions-cell">
                           <div className="ad-row-actions">

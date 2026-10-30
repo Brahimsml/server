@@ -2807,3 +2807,252 @@ a.ad-kpi:hover {
     padding: 8px 6px;
   }
 }
+
+/* ===================== PRODUCTS: shown / hidden + bulk edit ===================== */
+/* hidden products are dimmed in the list */
+.ad-products tr.is-hidden .ad-product,
+.ad-products tr.is-hidden td[data-label="Category"],
+.ad-products tr.is-hidden td[data-label="Price"] {
+  opacity: 0.5;
+}
+
+.ad-products tr.is-selected {
+  background: rgba(196, 154, 52, 0.07);
+}
+
+.ad-product-switch span {
+  min-width: 52px;
+  font-size: 0.85rem;
+}
+
+.ad-bulk__value {
+  width: 150px !important;
+  min-width: 0 !important;
+}
+
+.ad-form__switch {
+  margin-top: 18px;
+  color: var(--mt-text);
+  font-weight: 600;
+}
+
+/* phones: the tick box sits in the card's top-right corner */
+@media (max-width: 760px) {
+  .ad-products tr {
+    position: relative;
+  }
+
+  .ad-products td.ad-check-cell {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: auto;
+    padding: 0 !important;
+  }
+
+  .ad-products td.ad-cell-full {
+    padding-right: 36px;
+  }
+
+  .ad-bulk__value {
+    flex: 1 1 120px;
+    width: auto !important;
+  }
+}
+
+/* ===================== DASHBOARD: sales for the days you pick ===================== */
+.ad-sales__head {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ad-sales.is-loading .ad-sales__kpis,
+.ad-sales.is-loading .ad-chart {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.ad-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ad-range__seg {
+  flex-wrap: wrap;
+}
+
+.ad-range__seg button {
+  padding: 6px 11px;
+  font-size: 0.8rem;
+}
+
+.ad-range__dates {
+  display: flex;
+  gap: 8px;
+}
+
+.ad-range__dates label {
+  display: grid;
+  gap: 4px;
+  color: var(--mt-faint);
+  font-size: 0.74rem;
+}
+
+.ad-range__dates .mt-input {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+/* Sales · Orders · Average order · Items sold */
+.ad-sales__kpis {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 20px 20px 6px;
+}
+
+.ad-sales__kpi {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--mt-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ad-sales__kpi:not(.is-main) .ad-sales__value {
+  font-size: 1.45rem;
+}
+
+/* the chart: as many bars as days / weeks / months picked */
+.ad-chart--range {
+  padding: 18px 20px 14px;
+}
+
+.ad-chart--range .ad-chart__bars {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: clamp(2px, 0.6vw, 10px);
+}
+
+/* Best sellers · Top categories · Low stock */
+.ad-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.ad-catbars {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 20px 20px;
+}
+
+.ad-catbars__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.ad-catbars__top span {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-catbars__track {
+  display: block;
+  height: 8px;
+  margin: 7px 0 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ad-catbars__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--mt-accent), var(--mt-accent-bright));
+}
+
+.ad-catbars small {
+  color: var(--mt-faint);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 1180px) {
+  .ad-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ad-sales__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ad-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-range {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  /* the day choices: one row you can swipe */
+  .ad-range__seg {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ad-range__seg::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ad-range__seg button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .ad-range__dates {
+    width: 100%;
+  }
+
+  .ad-range__dates label {
+    flex: 1;
+  }
+
+  .ad-sales__kpis {
+    padding: 16px 16px 4px;
+    gap: 10px;
+  }
+
+  /* Sales gets the whole width, the other three share the row below */
+  .ad-sales__kpi.is-main {
+    grid-column: 1 / -1;
+  }
+
+  .ad-sales__kpi .ad-sales__value {
+    font-size: 1.6rem;
+  }
+
+  .ad-sales__kpi:not(.is-main) .ad-sales__value {
+    font-size: 1.15rem;
+  }
+
+  .ad-chart--range {
+    padding: 14px 16px 12px;
+  }
+}

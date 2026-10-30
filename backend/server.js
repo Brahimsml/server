@@ -246,6 +246,17 @@ const verifyAdmin = (req, res, next) => {
   });
 };
 
+// For routes anyone can call that show more to the admin (e.g. hidden products)
+const isAdminRequest = (req) => {
+  const token = String(req.headers.authorization || "").split(" ")[1];
+  if (!token) return false;
+  try {
+    return jwt.verify(token, SECRET).role === "admin";
+  } catch {
+    return false;
+  }
+};
+
 /*
    JWT MIDDLEWARE (USER)
 */
@@ -1305,11 +1316,14 @@ app.delete("/banners/:id", verifyAdmin, async (req, res) => {
 /*
    PRODUCTS CRUD
 */
+// The shop only gets products that are shown; the admin list asks for all of them (?all=1)
 app.get("/products", (req, res) => {
+  const all = req.query.all === "1" && isAdminRequest(req);
   const q = `
     SELECT p.*, c.name AS category_name, c.sort_order AS category_order, c.image AS category_image
     FROM products p
     JOIN categories c ON p.category_id = c.id
+    ${all ? "" : "WHERE p.active = 1"}
     ORDER BY p.id DESC
   `;
 
@@ -1332,7 +1346,10 @@ app.get("/products/:id", (req, res) => {
   `;
   db.query(q, [id], (err, rows) => {
     if (err) return serverError(res, err);
-    if (!rows.length) return res.status(404).json({ message: "Product not found" });
+    // a hidden product's page is only for the admin
+    if (!rows.length || (!rows[0].active && !isAdminRequest(req))) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     db.query(
       "SELECT id, image FROM product_images WHERE product_id=? ORDER BY sort_order, id",
@@ -1386,6 +1403,10 @@ async function addGalleryImages(conn, productId, files) {
   );
 }
 
+// "Show in the shop" from the product form: 1 or 0 (null = not sent, keep it as it is)
+const activeFlag = (value) =>
+  value === undefined || value === null || value === "" ? null : value === "0" || value === "false" || value === false ? 0 : 1;
+
 const PRODUCT_FIELDS = [
   { name: "image", maxCount: 1 },
   { name: "gallery", maxCount: MAX_GALLERY },
@@ -1416,8 +1437,8 @@ app.post("/products", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), process
 
     const result = await runQuery(
       db,
-      "INSERT INTO products (category_id,name,brand,price,image,label,description,stock_quantity,specs) VALUES (?,?,?,?,?,?,?,?,?)",
-      [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs)]
+      "INSERT INTO products (category_id,name,brand,price,image,label,description,stock_quantity,specs,active) VALUES (?,?,?,?,?,?,?,?,?,?)",
+      [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active) ?? 1]
     );
     if (copiedGallery.length) {
       await runQuery(db, "INSERT INTO product_images (product_id, image, sort_order) VALUES ?", [
@@ -1465,9 +1486,9 @@ app.post("/products/modify/:id", verifyAdmin, productUpload.fields(PRODUCT_FIELD
       await runQuery(
         conn,
         `UPDATE products
-         SET category_id=?, name=?, brand=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?
+         SET category_id=?, name=?, brand=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?, active=COALESCE(?, active)
          WHERE id=?`,
-        [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), productId]
+        [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active), productId]
       );
 
       if (removeIds.length) {
@@ -1558,7 +1579,7 @@ app.post("/orders", verifyUser, async (req, res) => {
 
     const productsStock = await runQuery(
       conn,
-      "SELECT id, name, price, stock_quantity, image FROM products WHERE id IN (?) FOR UPDATE",
+      "SELECT id, name, price, stock_quantity, image, active FROM products WHERE id IN (?) FOR UPDATE",
       [productIds]
     );
 
@@ -1570,6 +1591,11 @@ app.post("/orders", verifyUser, async (req, res) => {
       if (!product) {
         await runQuery(conn, "ROLLBACK");
         return res.status(400).json({ message: `Product #${id} not found` });
+      }
+
+      if (!product.active) {
+        await runQuery(conn, "ROLLBACK");
+        return res.status(400).json({ message: `${product.name} isn't available right now. Please remove it from your cart.` });
       }
 
       if (Number(product.stock_quantity) < qty) {
@@ -2138,38 +2164,134 @@ app.patch("/products/:id/stock", verifyAdmin, async (req, res) => {
 });
 
 /*
-   ADMIN SALES OVERVIEW
-   Sales = orders that weren't cancelled (pending, processing and completed), delivery included.
+   SHOW / HIDE A PRODUCT (hidden = only the admin sees it, nothing is deleted)
 */
-const SALES_WEEKS = 8;
+app.put("/products/:id/active", verifyAdmin, async (req, res) => {
+  const active = req.body?.active ? 1 : 0;
+  try {
+    const result = await runQuery(db, "UPDATE products SET active=? WHERE id=?", [active, req.params.id]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Product not found" });
+    res.json({ message: active ? "Product is shown in the shop" : "Product hidden", active });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   BULK EDIT (products list: tick products, pick a change, Apply)
+   { ids: [1, 2], action, value }
+     show / hide            -
+     category               category id
+     price_set              new price
+     price_percent          +10 = 10% more, -15 = 15% less (rounded to cents)
+     stock_set              new stock
+*/
+app.put("/products/bulk", verifyAdmin, async (req, res) => {
+  const ids = Array.isArray(req.body?.ids) ? [...new Set(req.body.ids.map(Number))] : [];
+  const { action } = req.body || {};
+  const value = Number(req.body?.value);
+  if (!ids.length || ids.length > 1000 || ids.some((id) => !Number.isInteger(id) || id < 1)) {
+    return res.status(400).json({ message: "Choose the products to change." });
+  }
+
+  let sql;
+  let params;
+  if (action === "show" || action === "hide") {
+    sql = "UPDATE products SET active=? WHERE id IN (?)";
+    params = [action === "show" ? 1 : 0, ids];
+  } else if (action === "category") {
+    if (!Number.isInteger(value) || value < 1) return res.status(400).json({ message: "Choose a category." });
+    const [cat] = await runQuery(db, "SELECT id FROM categories WHERE id=?", [value]).catch(() => []);
+    if (!cat) return res.status(400).json({ message: "That category doesn't exist." });
+    sql = "UPDATE products SET category_id=? WHERE id IN (?)";
+    params = [value, ids];
+  } else if (action === "price_set") {
+    if (!Number.isFinite(value) || value <= 0 || value > 1000000) return res.status(400).json({ message: "Enter a price above $0." });
+    sql = "UPDATE products SET price=? WHERE id IN (?)";
+    params = [Math.round(value * 100) / 100, ids];
+  } else if (action === "price_percent") {
+    if (!Number.isFinite(value) || value <= -90 || value > 500 || value === 0) {
+      return res.status(400).json({ message: "Enter a change between -90% and +500%." });
+    }
+    sql = "UPDATE products SET price = GREATEST(0.01, ROUND(price * ?, 2)) WHERE id IN (?)";
+    params = [1 + value / 100, ids];
+  } else if (action === "stock_set") {
+    if (!Number.isInteger(value) || value < 0 || value > 100000) return res.status(400).json({ message: "Stock must be a whole number, 0 or more." });
+    sql = "UPDATE products SET stock_quantity=? WHERE id IN (?)";
+    params = [value, ids];
+  } else {
+    return res.status(400).json({ message: "Choose what to change." });
+  }
+
+  try {
+    const result = await runQuery(db, sql, params);
+    res.json({ message: "Products updated", changed: result.affectedRows });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   ADMIN SALES OVERVIEW (dashboard)
+   Sales = orders that weren't cancelled (pending, processing and completed), delivery included.
+   ?from=YYYY-MM-DD&to=YYYY-MM-DD picks the days (default: the last 30 days, today included).
+   Also: the same number of days just before (to compare), sales per day / week / month for the
+   chart, best sellers and top categories in those days, and products running low.
+*/
+const DAY_MS = 24 * 60 * 60 * 1000;
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const parseDay = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return null;
+  const d = new Date(`${value}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+const addDays = (d, n) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
 
 app.get("/admin/sales", verifyAdmin, async (req, res) => {
   const lowStock = Math.max(0, Math.min(50, parseInt(req.query.low, 10) || 2));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let to = parseDay(req.query.to) || today;
+  let from = parseDay(req.query.from) || addDays(to, -29);
+  if (from > to) [from, to] = [to, from];
+  if ((to - from) / DAY_MS > 3 * 366) from = addDays(to, -3 * 366);
+
+  const days = Math.round((to - from) / DAY_MS) + 1;
+  const prevTo = addDays(from, -1);
+  const prevFrom = addDays(prevTo, -(days - 1));
+  // chart bars: one per day for up to 2 months, then per week, then per month
+  const bucket = days <= 62 ? "day" : days <= 371 ? "week" : "month";
+  const bucketSql =
+    bucket === "day"
+      ? "DATE_FORMAT(DATE(o.created_at), '%Y-%m-%d')"
+      : bucket === "week"
+      ? "DATE_FORMAT(DATE_SUB(DATE(o.created_at), INTERVAL WEEKDAY(o.created_at) DAY), '%Y-%m-%d')"
+      : "DATE_FORMAT(o.created_at, '%Y-%m-01')";
+  const inRange = "o.status <> 'cancelled' AND o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)";
+  const span = [dayKey(from), dayKey(to)];
+
   try {
-    // Week = Monday to Sunday
-    const weekly = await runQuery(
+    const [totals] = await runQuery(db, `SELECT COUNT(*) AS orders, COALESCE(SUM(o.total), 0) AS sales FROM orders o WHERE ${inRange}`, span);
+    const [previous] = await runQuery(
       db,
-      `SELECT DATE_FORMAT(DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY), '%Y-%m-%d') AS week,
-              COUNT(*) AS orders, COALESCE(SUM(total), 0) AS sales
-       FROM orders
-       WHERE status <> 'cancelled'
-         AND created_at >= DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL ? WEEK)
-       GROUP BY week
-       ORDER BY week`,
-      [SALES_WEEKS - 1]
+      `SELECT COUNT(*) AS orders, COALESCE(SUM(o.total), 0) AS sales FROM orders o WHERE ${inRange}`,
+      [dayKey(prevFrom), dayKey(prevTo)]
+    );
+    const [items] = await runQuery(
+      db,
+      `SELECT COALESCE(SUM(oi.quantity), 0) AS sold FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE ${inRange}`,
+      span
     );
 
-    const [months] = await runQuery(
+    const rows = await runQuery(
       db,
-      `SELECT
-         COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN total END), 0) AS thisMonthSales,
-         COUNT(CASE WHEN created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN 1 END) AS thisMonthOrders,
-         COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
-                            AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN total END), 0) AS lastMonthSales,
-         COUNT(CASE WHEN created_at >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
-                     AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN 1 END) AS lastMonthOrders
-       FROM orders
-       WHERE status <> 'cancelled'`
+      `SELECT ${bucketSql} AS bucket, COUNT(*) AS orders, COALESCE(SUM(o.total), 0) AS sales
+       FROM orders o WHERE ${inRange} GROUP BY bucket ORDER BY bucket`,
+      span
     );
 
     const topProducts = await runQuery(
@@ -2179,10 +2301,25 @@ app.get("/admin/sales", verifyAdmin, async (req, res) => {
        FROM order_items oi
        JOIN orders o ON o.id = oi.order_id
        LEFT JOIN products p ON p.id = oi.product_id
-       WHERE o.status <> 'cancelled' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+       WHERE ${inRange}
        GROUP BY oi.product_id, p.name, p.image
        ORDER BY sold DESC, sales DESC
-       LIMIT 5`
+       LIMIT 5`,
+      span
+    );
+
+    const topCategories = await runQuery(
+      db,
+      `SELECT COALESCE(c.name, 'Other') AS name, SUM(oi.quantity) AS sold, SUM(oi.quantity * oi.price) AS sales
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       LEFT JOIN products p ON p.id = oi.product_id
+       LEFT JOIN categories c ON c.id = p.category_id
+       WHERE ${inRange}
+       GROUP BY COALESCE(c.name, 'Other')
+       ORDER BY sales DESC
+       LIMIT 6`,
+      span
     );
 
     const lowStockProducts = await runQuery(
@@ -2191,25 +2328,34 @@ app.get("/admin/sales", verifyAdmin, async (req, res) => {
       [lowStock]
     );
 
-    // Fill in weeks without sales so the chart always shows every week
-    const byWeek = new Map(weekly.map((w) => [w.week, w]));
-    const monday = new Date();
-    monday.setHours(0, 0, 0, 0);
-    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-    const weeks = [];
-    for (let i = SALES_WEEKS - 1; i >= 0; i--) {
-      const d = new Date(monday);
-      d.setDate(d.getDate() - i * 7);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const w = byWeek.get(key);
-      weeks.push({ week: key, orders: Number(w?.orders || 0), sales: Number(w?.sales || 0) });
+    // Every bar of the chart, also the ones without sales
+    const byBucket = new Map(rows.map((r) => [r.bucket, r]));
+    const series = [];
+    let cursor =
+      bucket === "day"
+        ? new Date(from)
+        : bucket === "week"
+        ? addDays(from, -((from.getDay() + 6) % 7))
+        : new Date(from.getFullYear(), from.getMonth(), 1);
+    while (cursor <= to) {
+      const key = dayKey(cursor);
+      const r = byBucket.get(key);
+      series.push({ start: key, orders: Number(r?.orders || 0), sales: Number(r?.sales || 0) });
+      cursor = bucket === "day" ? addDays(cursor, 1) : bucket === "week" ? addDays(cursor, 7) : new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
     }
 
+    const sales = Number(totals.sales);
+    const orders = Number(totals.orders);
     res.json({
-      weeks,
-      thisMonth: { sales: Number(months.thisMonthSales), orders: Number(months.thisMonthOrders) },
-      lastMonth: { sales: Number(months.lastMonthSales), orders: Number(months.lastMonthOrders) },
+      from: dayKey(from),
+      to: dayKey(to),
+      days,
+      bucket,
+      totals: { sales, orders, average: orders ? sales / orders : 0, itemsSold: Number(items.sold) },
+      previous: { from: dayKey(prevFrom), to: dayKey(prevTo), sales: Number(previous.sales), orders: Number(previous.orders) },
+      series,
       topProducts: topProducts.map((p) => ({ ...p, sold: Number(p.sold), sales: Number(p.sales) })),
+      topCategories: topCategories.map((c) => ({ ...c, sold: Number(c.sold), sales: Number(c.sales) })),
       lowStock: lowStockProducts,
       lowStockLimit: lowStock,
     });

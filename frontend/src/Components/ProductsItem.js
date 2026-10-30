@@ -381,9 +381,9 @@ const ProductsItem = ({
               const justAdded = addedId === product.id;
 
               return (
-                <article className="pc-card" key={product.id}>
+                <article className={`pc-card ${soldOut ? "is-soldout" : ""}`} key={product.id}>
                   <div className="pc-media">
-                    {label && (
+                    {label && !soldOut && (
                       <span className={`pc-label ${/best/i.test(label) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""}`}>
                         {/best/i.test(label) ? "Best Seller" : label}
                       </span>
@@ -426,9 +426,11 @@ const ProductsItem = ({
                         className={`mt-btn mt-btn--secondary mt-btn--sm pc-add ${justAdded ? "pc-added" : ""}`}
                         disabled={soldOut}
                         onClick={() => handleAdd(product)}
-                        aria-label={`Add ${product.name} to cart`}
+                        aria-label={soldOut ? `${product.name} is sold out` : `Add ${product.name} to cart`}
                       >
-                        {justAdded ? (
+                        {soldOut ? (
+                          <span className="pc-add__text">Sold out</span>
+                        ) : justAdded ? (
                           <>
                             <CheckIcon /> <span className="pc-add__text">Added</span>
                           </>

@@ -10,6 +10,8 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import SHOP_INFO from "../utils/shopInfo";
 import ProductsItem from "../Components/ProductsItem";
 import { addRecentlyViewed } from "../utils/recentlyViewed";
 import WishlistButton from "../Components/WishlistButton";
@@ -26,6 +28,7 @@ import {
   productIdFromParam,
   productPath,
   toCartProduct,
+  whatsappLink,
   FALLBACK_IMG,
 } from "../utils/shop";
 import "../Styles/theme.css";
@@ -166,6 +169,7 @@ const Product = () => {
 
   const stock = Number(product.stock_quantity) || 0;
   const soldOut = isSoldOut(product);
+  const restockLink = whatsappLink(SHOP_INFO.phone, `Hi MegaTech, when will "${product.name}" be back in stock?`);
   const label = normalizeLabel(product.label);
   const categoryLink = `/shop?category=${encodeURIComponent(product.category_name)}`;
 
@@ -323,15 +327,37 @@ const Product = () => {
               </div>
             )}
 
-            <div className="pd-actions" ref={actionsRef}>
-              <button type="button" className="mt-btn mt-btn--secondary" onClick={handleAdd} disabled={soldOut}>
-                <AddShoppingCartIcon /> Add to cart
-              </button>
-              <button type="button" className="mt-btn mt-btn--primary" onClick={handleBuy} disabled={soldOut}>
-                Buy now
-              </button>
-            </div>
-            <WishlistButton product={product} withLabel className="pd-wish" />
+            {soldOut ? (
+              // Sold out: one clear message instead of buttons that don't work
+              <div className="pd-soldout" ref={actionsRef}>
+                <strong>Sold out for now</strong>
+                <p>We're restocking soon. Save it to your wishlist, or ask us when it'll be back.</p>
+                <div className="pd-soldout__actions">
+                  {restockLink ? (
+                    <a className="mt-btn mt-btn--primary" href={restockLink} target="_blank" rel="noopener noreferrer">
+                      <WhatsAppIcon /> Ask when it's back
+                    </a>
+                  ) : (
+                    <Link className="mt-btn mt-btn--primary" to="/contact">
+                      Ask when it's back
+                    </Link>
+                  )}
+                  <WishlistButton product={product} withLabel className="pd-wish" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="pd-actions" ref={actionsRef}>
+                  <button type="button" className="mt-btn mt-btn--secondary" onClick={handleAdd}>
+                    <AddShoppingCartIcon /> Add to cart
+                  </button>
+                  <button type="button" className="mt-btn mt-btn--primary" onClick={handleBuy}>
+                    Buy now
+                  </button>
+                </div>
+                <WishlistButton product={product} withLabel className="pd-wish" />
+              </>
+            )}
 
             <ul className="pd-perks">
               <li>

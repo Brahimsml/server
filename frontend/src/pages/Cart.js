@@ -84,6 +84,11 @@ const Cart = () => {
     return [...related, ...best, ...rest].slice(0, 10);
   }, [allProducts, cart]);
 
+  // saved products the shop shows right now (hidden ones stay saved but aren't counted)
+  const savedCount = allProducts
+    ? wishlist.filter((p) => allProducts.some((x) => x.id === p.id)).length
+    : wishlist.length;
+
   // "Save for later": move the item to the wishlist
   const saveForLater = (item) => {
     if (!isSaved(item.id)) toggleWishlist(item);
@@ -292,9 +297,9 @@ const Cart = () => {
               <button type="button" className="cart-btn cart-btn--primary" onClick={() => navigate("/shop")}>
                 Start shopping
               </button>
-              {wishlist.length > 0 && (
+              {savedCount > 0 && (
                 <Link to="/wishlist" className="mt-btn mt-btn--secondary">
-                  <FavoriteBorderIcon fontSize="small" /> Your wishlist ({wishlist.length})
+                  <FavoriteBorderIcon fontSize="small" /> Your wishlist ({savedCount})
                 </Link>
               )}
             </div>

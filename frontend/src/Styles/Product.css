@@ -379,3 +379,44 @@
   }
 
 }
+
+/* ===== Sold out: one clear message (instead of buttons that don't work) ===== */
+.pd-soldout {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 18px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(240, 138, 138, 0.28);
+  background: rgba(240, 138, 138, 0.06);
+}
+
+.pd-soldout strong {
+  font-family: var(--mt-font-display);
+  font-size: 1.15rem;
+}
+
+.pd-soldout p {
+  margin: 0 0 6px;
+  color: var(--mt-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pd-soldout__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.pd-soldout__actions .pd-wish {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .pd-soldout__actions .mt-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

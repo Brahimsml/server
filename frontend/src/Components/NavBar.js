@@ -65,6 +65,7 @@ const NavBar = () => {
   // Reloaded on every page change, so a category added in the admin shows up straight away.
   // Product counts come along, so empty categories stay out of the menus.
   const [catCounts, setCatCounts] = useState(null);
+  const [shopIds, setShopIds] = useState(null); // products customers can see right now
   useEffect(() => {
     api
       .get("/categories")
@@ -73,11 +74,13 @@ const NavBar = () => {
     api
       .get("/products")
       .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
         const counts = {};
-        (Array.isArray(res.data) ? res.data : []).forEach((p) => {
+        list.forEach((p) => {
           counts[p.category_id] = (counts[p.category_id] || 0) + 1;
         });
         setCatCounts(counts);
+        setShopIds(new Set(list.map((p) => p.id)));
       })
       .catch(() => {});
   }, [location.pathname]);
@@ -131,6 +134,8 @@ const NavBar = () => {
   const prevCount = useRef(cartCount);
 
   const { items: wishlist } = useWishlist();
+  // The heart counts only saved products the shop shows (a hidden one stays saved, but isn't counted)
+  const savedCount = shopIds ? wishlist.filter((p) => shopIds.has(p.id)).length : wishlist.length;
   const isAdmin = !!localStorage.getItem("adminToken");
   const user = getUser();
   const firstName = (user?.name || "Account").trim().split(/\s+/)[0];
@@ -392,11 +397,11 @@ const NavBar = () => {
           <Link
             to="/wishlist"
             className="nb-icon-btn nb-wish"
-            aria-label={`Wishlist, ${wishlist.length} ${wishlist.length === 1 ? "item" : "items"}`}
+            aria-label={`Wishlist, ${savedCount} ${savedCount === 1 ? "item" : "items"}`}
           >
             <FavoriteBorderIcon />
             <span className="nb-act__label">Wishlist</span>
-            {wishlist.length > 0 && <span className="nb-badge">{wishlist.length > 99 ? "99+" : wishlist.length}</span>}
+            {savedCount > 0 && <span className="nb-badge">{savedCount > 99 ? "99+" : savedCount}</span>}
           </Link>
 
           {/* ===== Cart ===== */}
@@ -555,7 +560,7 @@ const NavBar = () => {
                       <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
                         <FavoriteBorderIcon fontSize="small" />
                         <span>Wishlist</span>
-                        {wishlist.length > 0 && <span className="nb-drawer__count">{wishlist.length}</span>}
+                        {savedCount > 0 && <span className="nb-drawer__count">{savedCount}</span>}
                         <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
                       </NavLink>
                     </li>
@@ -576,7 +581,7 @@ const NavBar = () => {
                     <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
                       <FavoriteBorderIcon fontSize="small" />
                       <span>Wishlist</span>
-                      {wishlist.length > 0 && <span className="nb-drawer__count">{wishlist.length}</span>}
+                      {savedCount > 0 && <span className="nb-drawer__count">{savedCount}</span>}
                       <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
                     </NavLink>
                   </li>

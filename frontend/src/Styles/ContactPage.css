@@ -1,113 +1,234 @@
 /* =========================================================
    CONTACT PAGE (ct-*) — uses tokens from theme.css
+   Heading, four ways to reach us, then the form and quick answers side by side.
 ========================================================= */
-.ct-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
-  gap: 56px;
-  align-items: start;
-  padding-top: 12px;
+.ct-head {
+  margin-bottom: 28px;
+  text-align: center;
 }
 
-.ct-methods {
+/* ===== Ways to reach us ===== */
+.ct-channels {
   display: grid;
-  gap: 12px;
-  margin-top: 32px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
-.ct-method {
+.ct-channel {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 22px 22px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--mt-border);
+  background: var(--mt-surface);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ct-method:hover {
+.ct-channel:hover {
   border-color: var(--mt-border-strong);
-  transform: translateX(3px);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
-.ct-method small {
-  display: block;
-  color: var(--mt-muted);
-  font-size: 0.8rem;
-}
-
-.ct-method strong {
-  display: block;
-  margin-top: 2px;
-  color: var(--mt-text);
-  font-size: 1rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.ct-icon {
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+.ct-channel__icon {
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+  border-radius: 14px;
   background: rgba(196, 154, 52, 0.12);
   color: var(--mt-accent-bright);
 }
 
-.ct-topics {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 24px 0 0;
-  display: grid;
-  gap: 16px;
-  border-top: 1px solid var(--mt-border);
+.ct-channel strong {
+  font-family: var(--mt-font-display);
+  font-size: 1.12rem;
 }
 
-.ct-topics li {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.ct-topics svg {
-  margin-top: 2px;
-  color: var(--mt-accent-bright);
-}
-
-.ct-topics strong {
-  display: block;
-  color: var(--mt-text);
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.ct-topics span {
-  display: block;
-  margin-top: 2px;
+.ct-channel__detail {
   color: var(--mt-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.ct-channel__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  color: var(--mt-accent-bright);
   font-size: 0.88rem;
+  font-weight: 700;
 }
 
-.ct-card {
-  padding: 32px;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+.ct-channel:hover .ct-channel__action svg {
+  transform: translateX(3px);
 }
 
-.ct-card h2 {
+.ct-channel__action svg {
+  transition: transform 0.2s ease;
+}
+
+/* WhatsApp: the fastest way, so it stands out */
+.ct-channel.is-main {
+  border-color: rgba(196, 154, 52, 0.45);
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(228, 193, 90, 0.1), transparent 60%),
+    var(--mt-surface);
+}
+
+.ct-channel.is-main .ct-channel__icon {
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  color: #131313;
+}
+
+/* ===== Form + quick answers ===== */
+.ct-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.ct-card,
+.ct-faq {
+  padding: 30px 32px;
+}
+
+.ct-card h2,
+.ct-faq h2 {
   margin: 0;
   font-family: var(--mt-font-display);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
 .ct-card__sub {
-  margin: 6px 0 24px;
+  margin: 6px 0 22px;
   color: var(--mt-muted);
   font-size: 0.93rem;
 }
 
+/* topic chips */
+.ct-topic {
+  margin-bottom: 18px;
+}
+
+.ct-topic__label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--mt-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ct-topic__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ct-topic__chips button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--mt-text);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.ct-topic__chips button:hover {
+  border-color: var(--mt-border-strong);
+}
+
+.ct-topic__chips button.is-active {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  color: #131313;
+}
+
+/* two fields side by side */
+.ct-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.ct-card .mt-field span em {
+  color: var(--mt-faint);
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* quick answers: questions that open with a click */
+.ct-faq__list {
+  display: grid;
+}
+
+.ct-faq__item {
+  border-top: 1px solid var(--mt-border);
+}
+
+.ct-faq__item:last-child {
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.ct-faq__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  color: var(--mt-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ct-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.ct-faq__item summary:hover {
+  color: var(--mt-accent-bright);
+}
+
+.ct-faq__chev {
+  flex-shrink: 0;
+  color: var(--mt-muted);
+  transition: transform 0.2s ease;
+}
+
+.ct-faq__item[open] .ct-faq__chev {
+  transform: rotate(180deg);
+  color: var(--mt-accent-bright);
+}
+
+.ct-faq__item p {
+  margin: -4px 0 16px;
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ct-faq__item a {
+  color: var(--mt-accent-bright);
+  font-weight: 600;
+}
+
+/* message sent */
 .ct-sent {
   padding: 32px 8px;
   text-align: center;
@@ -125,15 +246,51 @@
   line-height: 1.55;
 }
 
-@media (max-width: 900px) {
-  .ct-layout {
-    grid-template-columns: 1fr;
-    gap: 36px;
+@media (max-width: 1100px) {
+  .ct-channels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 480px) {
-  .ct-card {
+@media (max-width: 900px) {
+  .ct-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ct-head {
+    text-align: left;
+  }
+
+  .ct-channels {
+    gap: 10px;
+  }
+
+  .ct-channel {
+    padding: 16px;
+  }
+
+  .ct-channel__icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 4px;
+  }
+
+  .ct-channel strong {
+    font-size: 1rem;
+  }
+
+  .ct-channel__detail {
+    font-size: 0.82rem;
+  }
+
+  .ct-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-card,
+  .ct-faq {
     padding: 22px 18px;
   }
 }

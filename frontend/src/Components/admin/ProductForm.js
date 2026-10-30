@@ -21,7 +21,7 @@ const cleanLabel = (label) => {
   return l;
 };
 
-const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "" };
+const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "", active: true };
 
 /*
   Shared form for "Add product" and "Edit product".
@@ -70,6 +70,7 @@ const ProductForm = ({ productId, copyFromId }) => {
           price: String(p.price ?? ""),
           stock_quantity: String(p.stock_quantity ?? 0),
           label: isCopy ? "" : cleanLabel(p.label), // a copy doesn't inherit "Best Seller"
+          active: p.active === undefined ? true : !!Number(p.active),
         });
         setExistingImage(p.image || "");
         setGallery(Array.isArray(p.images) ? p.images : []);
@@ -84,7 +85,7 @@ const ProductForm = ({ productId, copyFromId }) => {
 
   useEffect(() => {
     api
-      .get("/products")
+      .get("/products?all=1")
       .then((res) => {
         const names = (Array.isArray(res.data) ? res.data : []).map((p) => (p.brand || "").trim()).filter(Boolean);
         setBrands([...new Set(names)].sort((a, b) => a.localeCompare(b)));
@@ -175,6 +176,7 @@ const ProductForm = ({ productId, copyFromId }) => {
     formData.append("description", values.description.trim());
     formData.append("stock_quantity", values.stock_quantity);
     formData.append("specs", values.specs);
+    formData.append("active", values.active ? "1" : "0");
     if (file) formData.append("image", file);
     else if (isEdit || isCopy) formData.append("existingImage", existingImage);
     if (isCopy) {
@@ -355,6 +357,18 @@ const ProductForm = ({ productId, copyFromId }) => {
                       "Best Seller" products appear in the Best sellers section on the home page.
                     </small>
                   </label>
+
+                  <label className="ad-switch ad-form__switch">
+                    <input
+                      type="checkbox"
+                      checked={values.active}
+                      onChange={(e) => setValues((v) => ({ ...v, active: e.target.checked }))}
+                    />
+                    <span>Show in the shop</span>
+                  </label>
+                  <small className="ad-hint">
+                    Turn off to hide it from customers without deleting it (e.g. not ready yet, or out of season).
+                  </small>
                 </div>
               </section>
             </div>

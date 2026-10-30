@@ -15,7 +15,7 @@ import "../Styles/Account.css";
 
 // Saved products. Uses the live shop data (price, stock), so what you see is current.
 const Wishlist = () => {
-  const { items, remove, inAccount } = useWishlist();
+  const { items, inAccount } = useWishlist();
   const { addToCart, openMiniCart } = useContext(CartContext);
   const [live, setLive] = useState(null);
 
@@ -39,14 +39,10 @@ const Wishlist = () => {
     return items.map((p) => byId.get(p.id)).filter(Boolean);
   }, [items, live]);
 
-  // Drop products that were removed from the shop
-  useEffect(() => {
-    if (!live?.length) return;
-    const ids = new Set(live.map((p) => p.id));
-    items.filter((p) => !ids.has(p.id)).forEach((p) => remove(p.id));
-  }, [live, items, remove]);
-
+  // Saved products the shop doesn't show right now (hidden by the admin, or deleted) are left
+  // out of the list but stay saved, so a product that's shown again comes back by itself.
   const ids = useMemo(() => new Set(items.map((p) => p.id)), [items]);
+  const shownCount = live ? products.length : items.length;
 
   const inStock = products.filter((p) => !isSoldOut(p));
   const totalValue = products.reduce((sum, p) => sum + Number(p.price || 0), 0);
@@ -71,14 +67,14 @@ const Wishlist = () => {
             <span className="mt-eyebrow">Saved for later</span>
             <h1 className="mt-title">Wishlist</h1>
             <p className="mt-lead">
-              {items.length
-                ? `${items.length} saved ${items.length === 1 ? "product" : "products"}${
+              {shownCount
+                ? `${shownCount} saved ${shownCount === 1 ? "product" : "products"}${
                     live?.length ? ` · ${formatMoney(totalValue)} in total` : ""
                   }. Tap the heart to remove one.`
                 : "Tap the heart on any product to save it here."}
             </p>
           </div>
-          {items.length > 0 && (
+          {shownCount > 0 && (
             <div className="wl-actions">
               <Link to="/shop" className="mt-btn mt-btn--secondary">
                 Keep shopping
@@ -107,7 +103,7 @@ const Wishlist = () => {
           )}
         </p>
 
-        {items.length === 0 ? (
+        {shownCount === 0 ? (
           <>
             <div className="mt-panel wl-empty">
               <div className="mt-empty__icon">

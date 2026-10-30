@@ -3,18 +3,28 @@ import { Link } from "react-router-dom";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
-import MemoryOutlinedIcon from "@mui/icons-material/MemoryOutlined";
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import api from "../api";
+import SHOP_INFO from "../utils/shopInfo";
+import { DEFAULT_DELIVERY_FEE, whatsappLink } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/ContactPage.css";
 import usePageTitle from "../utils/usePageTitle";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const EMPTY_FORM = { fname: "", email: "", message: "" };
+const EMPTY_FORM = { topic: "product", fname: "", email: "", phone: "", order: "", message: "" };
+
+// What the message is about (sent at the top of the message, so the team sees it first)
+const TOPICS = [
+  { id: "order", label: "An order" },
+  { id: "product", label: "A product" },
+  { id: "returns", label: "Returns" },
+  { id: "other", label: "Something else" },
+];
 
 const validate = (data) => {
   const e = {};
@@ -24,10 +34,47 @@ const validate = (data) => {
   return e;
 };
 
-const TOPICS = [
-  { icon: ScheduleOutlinedIcon, title: "Fast support", text: "We usually reply within 24 hours." },
-  { icon: MemoryOutlinedIcon, title: "Product help", text: "Availability, compatibility and recommendations." },
-  { icon: ReceiptLongOutlinedIcon, title: "Order support", text: "Questions about checkout or an existing order." },
+// Short answers to the questions customers ask most
+const FAQS = [
+  {
+    q: "How long does delivery take, and how much is it?",
+    a: (
+      <>
+        We deliver all over Lebanon for ${DEFAULT_DELIVERY_FEE}. Beirut orders arrive faster; other areas take a little
+        longer. <Link to="/shipping">Delivery info</Link>
+      </>
+    ),
+  },
+  {
+    q: "How do I pay?",
+    a: <>Cash on delivery: you pay the driver when your order arrives.</>,
+  },
+  {
+    q: "Where is my order?",
+    a: (
+      <>
+        Sign in and open <Link to="/my-orders">My orders</Link> to see the status of every order. We also email you
+        when it changes.
+      </>
+    ),
+  },
+  {
+    q: "Can I cancel an order?",
+    a: (
+      <>
+        Yes, while it's still pending: open it in <Link to="/my-orders">My orders</Link> and press Cancel. If it's already
+        on its way, message us.
+      </>
+    ),
+  },
+  {
+    q: "Can I return a product?",
+    a: (
+      <>
+        You have 7 days to change your mind. <Link to="/returns">How returns work</Link>
+      </>
+    ),
+  },
 ];
 
 function Contact() {
@@ -41,6 +88,7 @@ function Contact() {
 
   const errors = validate(form);
   const showError = (name) => touched[name] && errors[name];
+  const wa = whatsappLink(SHOP_INFO.phone, "Hi MegaTech, I have a question.");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,6 +107,14 @@ function Contact() {
 
     if (Object.keys(errors).length > 0) return;
 
+    // The topic, phone and order number go at the top of the message the team receives
+    const topic = TOPICS.find((t) => t.id === form.topic)?.label || "Other";
+    const details = [
+      `Topic: ${topic}`,
+      form.phone.trim() && `Phone: ${form.phone.trim()}`,
+      form.topic === "order" && form.order.trim() && `Order: #${form.order.trim().replace(/^#/, "")}`,
+    ].filter(Boolean);
+
     try {
       setLoading(true);
       setFailMsg("");
@@ -66,7 +122,7 @@ function Contact() {
       await api.post("/contact", {
         fname: form.fname.trim(),
         email: form.email.trim(),
-        message: form.message.trim(),
+        message: `${details.join(" · ")}\n\n${form.message.trim()}`,
       });
 
       setSent(true);
@@ -80,139 +136,210 @@ function Contact() {
     }
   };
 
+  const channels = [
+    wa && {
+      href: wa,
+      external: true,
+      icon: WhatsAppIcon,
+      title: "WhatsApp",
+      detail: "The fastest way to reach us",
+      action: "Chat now",
+      main: true,
+    },
+    {
+      href: `tel:${SHOP_INFO.phoneLink}`,
+      icon: PhoneOutlinedIcon,
+      title: "Call us",
+      detail: SHOP_INFO.phone,
+      action: "Call",
+    },
+    {
+      href: `mailto:${SHOP_INFO.email}`,
+      icon: MailOutlineIcon,
+      title: "Email",
+      detail: SHOP_INFO.email,
+      action: "Write to us",
+    },
+    {
+      to: "/menu",
+      icon: StorefrontOutlinedIcon,
+      title: "Visit a store",
+      detail: "See the gear and get advice in person",
+      action: "Find a store",
+    },
+  ].filter(Boolean);
+
   return (
     <section className="mt-page">
-      <div className="mt-container ct-layout">
-        {/* ===== INFO ===== */}
-        <div className="ct-info">
-          <span className="mt-eyebrow">Contact</span>
-          <h1 className="mt-title">Let's talk about your setup</h1>
-          <p className="mt-lead">
-            Have a question about products, orders, our stores, or your next PC build? Send us a
-            message and our team will get back to you.
-          </p>
+      <div className="mt-container">
+        <header className="ct-head">
+          <span className="mt-eyebrow">Contact us</span>
+          <h1 className="mt-title">How can we help?</h1>
+        </header>
 
-          <div className="ct-methods">
-            <a className="ct-method mt-panel" href="tel:+96170123456">
-              <span className="ct-icon">
-                <PhoneOutlinedIcon />
-              </span>
-              <span>
-                <small>Call us</small>
-                <strong>70 123 456</strong>
-              </span>
-            </a>
-
-            <a className="ct-method mt-panel" href="mailto:support@megatech.com">
-              <span className="ct-icon">
-                <MailOutlineIcon />
-              </span>
-              <span>
-                <small>Email</small>
-                <strong>support@megatech.com</strong>
-              </span>
-            </a>
-
-            <Link className="ct-method mt-panel" to="/menu">
-              <span className="ct-icon">
-                <StorefrontOutlinedIcon />
-              </span>
-              <span>
-                <small>Visit</small>
-                <strong>Find a store near you</strong>
-              </span>
-            </Link>
-          </div>
-
-          <ul className="ct-topics">
-            {TOPICS.map(({ icon: Icon, title, text }) => (
-              <li key={title}>
-                <Icon fontSize="small" />
-                <div>
-                  <strong>{title}</strong>
-                  <span>{text}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+        {/* ===== Ways to reach us ===== */}
+        <div className="ct-channels">
+          {channels.map(({ href, to, external, icon: Icon, title, detail, action, main }) => {
+            const inner = (
+              <>
+                <span className="ct-channel__icon">
+                  <Icon />
+                </span>
+                <strong>{title}</strong>
+                <span className="ct-channel__detail">{detail}</span>
+                <span className="ct-channel__action">
+                  {action} <ArrowForwardIcon fontSize="inherit" />
+                </span>
+              </>
+            );
+            const cls = `ct-channel ${main ? "is-main" : ""}`;
+            return to ? (
+              <Link key={title} to={to} className={cls}>
+                {inner}
+              </Link>
+            ) : (
+              <a key={title} href={href} className={cls} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                {inner}
+              </a>
+            );
+          })}
         </div>
 
-        {/* ===== FORM ===== */}
-        <div className="ct-card mt-panel">
-          {sent ? (
-            <div className="ct-sent">
-              <div className="mt-empty__icon ct-sent__icon">
-                <CheckCircleOutlineIcon fontSize="inherit" />
-              </div>
-              <h2>Message sent</h2>
-              <p>Thanks for reaching out. Our team will reply to your email within 24 hours.</p>
-              <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setSent(false)}>
-                Send another message
-              </button>
-            </div>
-          ) : (
-            <>
-              <h2>Send us a message</h2>
-              <p className="ct-card__sub">We'll reply within 24 hours.</p>
-
-              {failMsg && (
-                <div className="mt-alert mt-alert--error" role="alert">
-                  {failMsg}
+        <div className="ct-layout">
+          {/* ===== Form ===== */}
+          <div className="ct-card mt-panel">
+            {sent ? (
+              <div className="ct-sent">
+                <div className="mt-empty__icon ct-sent__icon">
+                  <CheckCircleOutlineIcon fontSize="inherit" />
                 </div>
-              )}
-
-              <form onSubmit={handleSubmit} noValidate>
-                <label className={`mt-field ${showError("fname") ? "mt-field--invalid" : ""}`}>
-                  <span>Full name</span>
-                  <input
-                    name="fname"
-                    autoComplete="name"
-                    placeholder="Your full name"
-                    value={form.fname}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    aria-invalid={!!showError("fname")}
-                  />
-                  {showError("fname") && <small className="mt-field__error">{errors.fname}</small>}
-                </label>
-
-                <label className={`mt-field ${showError("email") ? "mt-field--invalid" : ""}`}>
-                  <span>Email</span>
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    value={form.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    aria-invalid={!!showError("email")}
-                  />
-                  {showError("email") && <small className="mt-field__error">{errors.email}</small>}
-                </label>
-
-                <label className={`mt-field ${showError("message") ? "mt-field--invalid" : ""}`}>
-                  <span>Message</span>
-                  <textarea
-                    name="message"
-                    rows={6}
-                    placeholder="How can we help?"
-                    value={form.message}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    aria-invalid={!!showError("message")}
-                  />
-                  {showError("message") && (
-                    <small className="mt-field__error">{errors.message}</small>
-                  )}
-                </label>
-
-                <button type="submit" className="mt-btn mt-btn--primary mt-btn--block" disabled={loading}>
-                  {loading ? "Sending..." : "Send message"}
+                <h2>Message sent</h2>
+                <p>Thanks for reaching out. Our team will reply to your email within 24 hours.</p>
+                <button type="button" className="mt-btn mt-btn--secondary" onClick={() => setSent(false)}>
+                  Send another message
                 </button>
-              </form>
-            </>
-          )}
+              </div>
+            ) : (
+              <>
+                <h2>Send us a message</h2>
+                <p className="ct-card__sub">We reply within 24 hours.</p>
+
+                {failMsg && (
+                  <div className="mt-alert mt-alert--error" role="alert">
+                    {failMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} noValidate>
+                  <div className="ct-topic" role="radiogroup" aria-label="What is it about?">
+                    <span className="ct-topic__label">What is it about?</span>
+                    <div className="ct-topic__chips">
+                      {TOPICS.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={form.topic === t.id}
+                          className={form.topic === t.id ? "is-active" : ""}
+                          onClick={() => setForm((f) => ({ ...f, topic: t.id }))}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="ct-row">
+                    <label className={`mt-field ${showError("fname") ? "mt-field--invalid" : ""}`}>
+                      <span>Full name</span>
+                      <input
+                        name="fname"
+                        autoComplete="name"
+                        placeholder="Your full name"
+                        value={form.fname}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        aria-invalid={!!showError("fname")}
+                      />
+                      {showError("fname") && <small className="mt-field__error">{errors.fname}</small>}
+                    </label>
+
+                    <label className={`mt-field ${showError("email") ? "mt-field--invalid" : ""}`}>
+                      <span>Email</span>
+                      <input
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={form.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        aria-invalid={!!showError("email")}
+                      />
+                      {showError("email") && <small className="mt-field__error">{errors.email}</small>}
+                    </label>
+                  </div>
+
+                  <div className="ct-row">
+                    <label className="mt-field">
+                      <span>
+                        Phone <em>(optional)</em>
+                      </span>
+                      <input name="phone" type="tel" autoComplete="tel" placeholder="e.g. 70 123 456" value={form.phone} onChange={handleChange} />
+                    </label>
+
+                    {form.topic === "order" && (
+                      <label className="mt-field">
+                        <span>
+                          Order number <em>(optional)</em>
+                        </span>
+                        <input name="order" inputMode="numeric" placeholder="e.g. 215" value={form.order} onChange={handleChange} />
+                      </label>
+                    )}
+                  </div>
+
+                  <label className={`mt-field ${showError("message") ? "mt-field--invalid" : ""}`}>
+                    <span>Message</span>
+                    <textarea
+                      name="message"
+                      rows={5}
+                      placeholder={
+                        form.topic === "product"
+                          ? "Which product, and what would you like to know? (compatibility, availability…)"
+                          : "How can we help?"
+                      }
+                      value={form.message}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      aria-invalid={!!showError("message")}
+                    />
+                    {showError("message") && <small className="mt-field__error">{errors.message}</small>}
+                  </label>
+
+                  <button type="submit" className="mt-btn mt-btn--primary mt-btn--block" disabled={loading}>
+                    {loading ? "Sending..." : "Send message"}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+
+          {/* ===== Quick answers ===== */}
+          <aside className="ct-faq mt-panel">
+            <h2>Quick answers</h2>
+            <p className="ct-card__sub">The questions we hear most.</p>
+            <div className="ct-faq__list">
+              {FAQS.map(({ q, a }) => (
+                <details key={q} className="ct-faq__item">
+                  <summary>
+                    {q}
+                    <ExpandMoreIcon className="ct-faq__chev" />
+                  </summary>
+                  <p>{a}</p>
+                </details>
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     </section>

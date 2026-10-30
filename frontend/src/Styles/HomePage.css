@@ -2233,3 +2233,41 @@
     border-top: 1px solid var(--mt-border);
   }
 }
+
+/* ===================== SOLD OUT PRODUCT CARDS ===================== */
+/* the "Sold out" badge takes the label's place (top left), never on top of another badge */
+.pc-label.pc-label--out {
+  left: 12px;
+  right: auto;
+  border: 1px solid rgba(240, 138, 138, 0.45);
+  background: #2a1414;
+  color: #ffb4b4;
+}
+
+/* the button says "Sold out", calm grey instead of a faded gold one */
+.pc-card.is-soldout .pc-add:not(.pc-added),
+.pc-card.is-soldout .pc-add:not(.pc-added):hover {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--mt-muted);
+  filter: none;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* phones: no round button on a sold-out card ("Out of stock" is under the price) */
+@media (max-width: 640px) {
+  .pc-label.pc-label--out {
+    left: 9px;
+    right: auto;
+  }
+
+  .pc-card.is-soldout .pc-actions {
+    display: none;
+  }
+
+  .pc-card.is-soldout .pc-price-row {
+    padding-right: 0;
+  }
+}
