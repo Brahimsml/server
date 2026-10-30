@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "../api";
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import { formatMoney, formatOrderDate, orderStatus, paymentLabel } from "../utils/shop";
 import "../Styles/Invoice.css";
 

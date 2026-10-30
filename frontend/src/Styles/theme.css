@@ -12,7 +12,7 @@
 
 @media (min-width: 901px) {
   :root {
-    --nb-h: 118px;
+    --nb-h: 122px;
   }
 }
 
@@ -43,7 +43,6 @@
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(1100px 480px at 50% -12%, rgba(196, 154, 52, 0.16), transparent 62%),
     linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
 }
 
@@ -142,6 +141,83 @@
   margin: 6px 0 0;
   color: var(--mt-muted);
   font-size: 0.95rem;
+}
+
+/* ===== Section boxes: each product row sits in its own panel, like big stores =====
+   One shade lighter than the page, a thin gold-tinted edge; the title is inside.
+   Phones: a full-width band instead (the rows run edge to edge). */
+.mt-section.mt-box,
+.mt-box {
+  padding: 26px 28px 30px;
+  border-radius: 22px;
+  border: 1px solid var(--mt-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+}
+
+.mt-section.mt-box {
+  margin-top: 28px;
+}
+
+/* Box titles: gold accent bar, "View all" as a pill */
+.mt-box .mt-section-head {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.mt-box .mt-section-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(1.3rem, 2vw, 1.55rem);
+  letter-spacing: -0.015em;
+}
+
+.mt-box .mt-section-head h2::before {
+  content: "";
+  flex-shrink: 0;
+  width: 4px;
+  height: 0.95em;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+}
+
+.mt-box .mt-section-head .mt-link {
+  padding: 7px 14px;
+  border: 1px solid var(--mt-border-strong);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.mt-box .mt-section-head .mt-link:hover {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  color: #131313;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .mt-section.mt-box,
+  .mt-box {
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 22px 24px 24px;
+    border-radius: 0;
+    border-width: 1px 0;
+  }
+
+  .mt-section.mt-box {
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .mt-section.mt-box,
+  .mt-box {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 20px 16px 22px;
+  }
 }
 
 /* ===== Panels ===== */
@@ -548,4 +624,17 @@ select.mt-input option {
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* ===== The MegaTech logo (Assets/logo.svg): it has its own dark tile, so no extra frame ===== */
+.nb-brand img,
+.ft-logo img,
+.cb-avatar,
+.auth-logo img,
+.ad-brand img,
+.ad-login__brand img,
+.inv-brand img {
+  border: none !important;
+  background: none;
+  object-fit: contain;
 }

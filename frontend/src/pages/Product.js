@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -360,14 +361,13 @@ const Product = () => {
 
         {/* ===== Related ===== */}
         {related.some(sameCategory) && (
-          <section className="mt-section">
+          <section className="mt-section mt-box">
             <div className="mt-section-head">
               <div>
                 <h2>You may also like</h2>
-                <p>More {String(product.category_name).toLowerCase()} from MegaTech.</p>
               </div>
               <Link to={categoryLink} className="mt-link">
-                See all
+                See all <ArrowForwardIcon fontSize="inherit" />
               </Link>
             </div>
             <ProductsItem

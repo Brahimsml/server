@@ -173,19 +173,19 @@ const processProductUploads = async (req, res, next) => {
 };
 
 /*
-  Home page banners: every banner becomes 1600 x 600 (cropped to fill, keeping the most
-  eye-catching part, e.g. the product), on the
-  site's dark colour if the image has see-through parts. Same file name and format.
+  Home page banners: the whole picture is kept (never cropped), only made smaller if it's
+  very big, and put on the site's dark colour if it has see-through parts. The admin's focus
+  point decides, on every screen, which part stays visible when the banner box trims it.
+  Same file name and format.
 */
-const BANNER_WIDTH = 1600;
-const BANNER_HEIGHT = 600;
-const DARK = { r: 11, g: 9, b: 7, alpha: 1 };
+const BANNER_MAX = 2400;
+const DARK = { r: 10, g: 10, b: 10, alpha: 1 };
 
 async function standardizeBannerImage(filePath) {
   const encode = encoders[path.extname(filePath).toLowerCase()];
   if (!encode) return false;
   const out = await encode(
-    sharp(filePath).rotate().flatten({ background: DARK }).resize(BANNER_WIDTH, BANNER_HEIGHT, { fit: "cover", position: sharp.strategy.attention })
+    sharp(filePath).rotate().flatten({ background: DARK }).resize(BANNER_MAX, BANNER_MAX, { fit: "inside", withoutEnlargement: true })
   ).toBuffer();
   await fs.promises.writeFile(filePath, out);
   return true;

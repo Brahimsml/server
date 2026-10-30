@@ -172,11 +172,19 @@
   }
 
   .hp-cat__body h3 {
-    font-size: 0.95rem;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    font-size: 1rem;
   }
 
   .hp-cat__meta {
-    font-size: 0.78rem;
+    font-size: 0.66rem;
+  }
+
+  .hp-cat__go {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
   }
 
   /* ===== Product cards ===== */
@@ -555,7 +563,8 @@
 @media (max-width: 900px) {
   .pc--shop .pc-toolbar {
     position: sticky;
-    top: calc(61px + env(safe-area-inset-top, 0px));
+    top: calc(62px + env(safe-area-inset-top, 0px)); /* under the phone bar (2px gold line + 60px) */
+    transition: top 0.28s ease;
     z-index: 20;
     margin: 0 -24px 14px;
     padding: 10px 24px;
@@ -776,7 +785,7 @@
     aspect-ratio: auto;
   }
 
-  /* the whole banner picture, nothing cropped (it's 1600 x 600) */
+  /* the banner picture in a wide box, trimmed around the admin's focus point */
   .hp-slide--banner .hp-banner__img {
     position: relative;
     display: block;
@@ -817,5 +826,12 @@
 
   .hp-slide--banner .hp-slide__copy {
     max-width: 52%;
+  }
+}
+
+/* the Filters bar moves up while the menu bar is hidden (Shell.css) */
+@media (max-width: 900px) {
+  body.nb-hidden .pc--shop .pc-toolbar {
+    top: env(safe-area-inset-top, 0px);
   }
 }

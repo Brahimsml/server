@@ -26,10 +26,8 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
-import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
-import NewReleasesOutlinedIcon from "@mui/icons-material/NewReleasesOutlined";
 
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
 import { clearUserSession, getUser } from "../utils/auth";
@@ -126,6 +124,7 @@ const NavBar = () => {
       .catch(() => setCatInfo({}));
   }, [mobileOpen, catInfo]);
 
+  const headerRef = useRef(null);
   const accountRef = useRef(null);
   const adminRef = useRef(null);
   const cartRef = useRef(null);
@@ -188,6 +187,46 @@ const NavBar = () => {
     prevCount.current = cartCount;
   }, [cartCount]);
 
+  // While scrolling:
+  //  - computers: the bar turns into a slim one (logo, search, account, cart; no category row)
+  //    and goes back to full size at the top of the page, like Best Buy / Newegg
+  //  - phones: the bar slides away while you scroll down and comes back as soon as you scroll up
+  // On phones it stays put near the top, while a menu is open, or while you're using it.
+  const [barHidden, setBarHidden] = useState(false);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const computer = window.matchMedia("(min-width: 901px)");
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (computer.matches) {
+        setBarHidden(false);
+        setCompact(y > 160);
+        lastY = y;
+        return;
+      }
+      setCompact(false);
+      const header = headerRef.current;
+      const inUse = header && (header.matches(":hover") || header.contains(document.activeElement));
+      if (y < 160 || openMenu || mobileOpen || miniCart.open) setBarHidden(false);
+      else if (y > lastY + 8 && !inUse) setBarHidden(true);
+      else if (y < lastY - 4) setBarHidden(false);
+      lastY = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [openMenu, mobileOpen, miniCart.open]);
+  useEffect(() => setBarHidden(false), [location.pathname]);
+  useEffect(() => {
+    if (miniCart.open || mobileOpen) setBarHidden(false); // e.g. "Add to cart" opens the cart
+  }, [miniCart.open, mobileOpen]);
+  // sticky parts of pages (shop filters…) move up while the bar is away or slim
+  useEffect(() => {
+    document.body.classList.toggle("nb-hidden", barHidden);
+    document.body.classList.toggle("nb-compact", compact);
+    return () => document.body.classList.remove("nb-hidden", "nb-compact");
+  }, [barHidden, compact]);
+
   const toggleMenu = (name) => setOpenMenu((cur) => (cur === name ? null : name));
 
   const toggleCart = () => {
@@ -219,7 +258,14 @@ const NavBar = () => {
     `nb-link ${isActive || (to === "/home" && isHome) ? "is-active" : ""}`;
 
   return (
-    <header className="nb mt-scope">
+    <>
+    {/* computers: keeps the full bar's space, so the page never moves when the bar gets slim */}
+    <div className="nb-spacer" aria-hidden="true" />
+    <header
+      className={`nb mt-scope ${barHidden ? "is-hidden" : ""} ${compact ? "is-compact" : ""}`}
+      ref={headerRef}
+      style={barHidden ? { top: -((headerRef.current?.offsetHeight || 130) + 4) } : undefined}
+    >
       <div className="nb-inner">
         <button
           type="button"
@@ -286,10 +332,7 @@ const NavBar = () => {
                 aria-label="Account menu"
               >
                 <span className="nb-avatar">{initial}</span>
-                <span className="nb-two">
-                  <small>Hi, {firstName}</small>
-                  <span className="nb-account__name">My account</span>
-                </span>
+                <span className="nb-account__name">{firstName}</span>
                 <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
               </button>
 
@@ -319,10 +362,7 @@ const NavBar = () => {
             <div className="nb-dropdown nb-guest">
               <Link to="/login" className="nb-pill nb-signin">
                 <PersonOutlineIcon />
-                <span className="nb-two">
-                  <small>Hello, sign in</small>
-                  <span>Account</span>
-                </span>
+                <span>Sign in</span>
                 <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
               </Link>
 
@@ -386,13 +426,6 @@ const NavBar = () => {
       <div className="nb-sub">
         <div className="nb-sub__inner">
           <ShopMegaMenu linkClass={linkClass} />
-          <Link to="/home#best-sellers" className="nb-sublink nb-sublink--hot">
-            <LocalFireDepartmentOutlinedIcon fontSize="small" /> Best sellers
-          </Link>
-          <Link to="/home#new-arrivals" className="nb-sublink nb-sublink--hot">
-            <NewReleasesOutlinedIcon fontSize="small" /> New arrivals
-          </Link>
-          <span className="nb-sub__sep" aria-hidden="true" />
           <nav className="nb-sub__cats" aria-label="Categories" ref={catsRef}>
             {shownCategories.map((c) => (
               <Link
@@ -593,6 +626,7 @@ const NavBar = () => {
         </>
       )}
     </header>
+    </>
   );
 };
 

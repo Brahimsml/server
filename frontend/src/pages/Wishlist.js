@@ -123,11 +123,10 @@ const Wishlist = () => {
             </div>
 
             {popular.length > 0 && (
-              <div className="wl-popular">
+              <div className="mt-box wl-popular">
                 <div className="mt-section-head">
                   <div>
                     <h2>Popular right now</h2>
-                    <p>Tap the heart on anything you like to save it.</p>
                   </div>
                 </div>
                 <ProductsItem products={popular} row showToolbar={false} showCategories={false} showPagination={false} />

@@ -198,11 +198,6 @@ const NavSearch = () => {
           }}
           onKeyDown={onKeyDown}
         />
-        {!text && (
-          <kbd className="ns-kbd" title="Press / to search">
-            /
-          </kbd>
-        )}
         <button type="submit" className="ns-submit" aria-label="Search">
           <SearchIcon />
         </button>

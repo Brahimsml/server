@@ -1151,6 +1151,13 @@ const cleanLink = (value) => {
   return null;
 };
 
+const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
+const percent = (value) => {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
+};
+const cleanDay = (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value) : null);
+
 const bannerFields = (body) => ({
   eyebrow: cleanText(body.eyebrow, 60) || null,
   title: cleanText(body.title, 120),
@@ -1158,15 +1165,39 @@ const bannerFields = (body) => ({
   button_text: cleanText(body.button_text, 40) || "Shop now",
   link: cleanLink(body.link),
   active: body.active === "0" || body.active === "false" || body.active === false ? 0 : 1,
+  // design: where the text sits, its color, the fade behind it, the spot that must stay visible
+  text_align: pick(body.text_align, ["left", "center", "right"], "left"),
+  text_color: pick(body.text_color, ["light", "dark"], "light"),
+  shade: pick(body.shade, ["none", "light", "medium", "strong"], "medium"),
+  focus_x: percent(body.focus_x ?? 50),
+  focus_y: percent(body.focus_y ?? 50),
+  // optional schedule (e.g. a weekend sale)
+  starts_on: cleanDay(body.starts_on),
+  ends_on: cleanDay(body.ends_on),
 });
 
 const bannerError = (fields) =>
-  !fields.title ? "Enter a headline." : !fields.link ? "Enter where the button goes: a page like /shop or a full https:// link." : "";
+  !fields.title
+    ? "Enter a headline."
+    : !fields.link
+    ? "Enter where the button goes: a page like /shop or a full https:// link."
+    : fields.starts_on && fields.ends_on && fields.ends_on < fields.starts_on
+    ? "The end date is before the start date."
+    : "";
 
-// Shown on the home page, in the admin's order
+const BANNER_COLUMNS = "eyebrow, title, subtitle, button_text, link, active, text_align, text_color, shade, focus_x, focus_y, starts_on, ends_on";
+const bannerValues = (f) => [
+  f.eyebrow, f.title, f.subtitle, f.button_text, f.link, f.active,
+  f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y, f.starts_on, f.ends_on,
+];
+
+// Shown on the home page, in the admin's order (only on their scheduled days, if any)
 app.get("/banners", (req, res) => {
   db.query(
-    "SELECT id, image, eyebrow, title, subtitle, button_text, link FROM banners WHERE active=1 ORDER BY sort_order, id",
+    `SELECT id, image, eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y
+     FROM banners
+     WHERE active=1 AND (starts_on IS NULL OR starts_on <= CURDATE()) AND (ends_on IS NULL OR ends_on >= CURDATE())
+     ORDER BY sort_order, id`,
     (err, rows) => {
       if (err) return serverError(res, err);
       res.json(rows);
@@ -1175,7 +1206,11 @@ app.get("/banners", (req, res) => {
 });
 
 app.get("/admin/banners", verifyAdmin, (req, res) => {
-  db.query("SELECT * FROM banners ORDER BY sort_order, id", (err, rows) => {
+  // dates as plain YYYY-MM-DD, so the admin form shows the day that was picked
+  const sql = `SELECT *, DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, DATE_FORMAT(ends_on, '%Y-%m-%d') AS ends_on,
+    (starts_on IS NOT NULL AND starts_on > CURDATE()) AS not_started, (ends_on IS NOT NULL AND ends_on < CURDATE()) AS has_ended
+    FROM banners ORDER BY sort_order, id`;
+  db.query(sql, (err, rows) => {
     if (err) return serverError(res, err);
     res.json(rows);
   });
@@ -1191,9 +1226,9 @@ app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, a
   try {
     const result = await runQuery(
       db,
-      `INSERT INTO banners (image, eyebrow, title, subtitle, button_text, link, active, sort_order)
-       SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
-      [req.file.filename, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active]
+      `INSERT INTO banners (image, ${BANNER_COLUMNS}, sort_order)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
+      [req.file.filename, ...bannerValues(fields)]
     );
     res.json({ message: "Banner added", id: result.insertId });
   } catch (err) {
@@ -1244,8 +1279,8 @@ app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload
     const image = req.file ? req.file.filename : current.image;
     await runQuery(
       db,
-      "UPDATE banners SET image=?, eyebrow=?, title=?, subtitle=?, button_text=?, link=?, active=? WHERE id=?",
-      [image, fields.eyebrow, fields.title, fields.subtitle, fields.button_text, fields.link, fields.active, req.params.id]
+      `UPDATE banners SET image=?, ${BANNER_COLUMNS.split(", ").map((c) => `${c}=?`).join(", ")} WHERE id=?`,
+      [image, ...bannerValues(fields), req.params.id]
     );
     if (req.file && current.image !== image) removeImageIfUnused(current.image);
     res.json({ message: "Banner updated" });

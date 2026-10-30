@@ -4,7 +4,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "../api";
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import "../Styles/theme.css";
 import "../Styles/AdminPanel.css";
 

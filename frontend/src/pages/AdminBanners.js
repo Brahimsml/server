@@ -1,26 +1,117 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
+import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
+import LaptopMacOutlinedIcon from "@mui/icons-material/LaptopMacOutlined";
+import PhoneIphoneOutlinedIcon from "@mui/icons-material/PhoneIphoneOutlined";
+import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import ViewCarouselOutlinedIcon from "@mui/icons-material/ViewCarouselOutlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
+import BannerSlide from "../Components/BannerSlide";
 import { imageUrl } from "../utils/shop";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_MB = 5;
-const EMPTY = { eyebrow: "", title: "", subtitle: "", button_text: "Shop now", link: "/shop", active: true };
+const DESIGN = { text_align: "left", text_color: "light", shade: "medium", focus_x: 50, focus_y: 50, starts_on: "", ends_on: "" };
+const EMPTY = { eyebrow: "", title: "", subtitle: "", button_text: "Shop now", link: "/shop", active: true, ...DESIGN };
+
+const ALIGN_OPTIONS = [
+  { value: "left", label: "Left", icon: FormatAlignLeftIcon },
+  { value: "center", label: "Centre", icon: FormatAlignCenterIcon },
+  { value: "right", label: "Right", icon: FormatAlignRightIcon },
+];
+const COLOR_OPTIONS = [
+  { value: "light", label: "White text" },
+  { value: "dark", label: "Black text" },
+];
+const SHADE_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "light", label: "Light" },
+  { value: "medium", label: "Medium" },
+  { value: "strong", label: "Strong" },
+];
+
+// Width the computer preview is drawn at (a 1440px laptop), then shrunk to fit the panel
+const PREVIEW_WIDTH = 1360;
+
+const formatDay = (day) =>
+  day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+
+// Buttons in a row where one is chosen (text position, text color, fade)
+const Segmented = ({ label, options, value, onChange }) => (
+  <div className="ad-seg-field">
+    <span className="ad-seg-field__label">{label}</span>
+    <div className="ad-seg" role="radiogroup" aria-label={label}>
+      {options.map(({ value: v, label: l, icon: Icon }) => (
+        <button
+          key={v}
+          type="button"
+          role="radio"
+          aria-checked={value === v}
+          className={value === v ? "is-active" : ""}
+          onClick={() => onChange(v)}
+        >
+          {Icon && <Icon fontSize="small" />} {l}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+// The real home page banner, drawn at laptop size and scaled down to fit
+const ComputerPreview = ({ banner, image }) => {
+  const outer = useRef(null);
+  const inner = useRef(null);
+  const [scale, setScale] = useState(0.5);
+  const [height, setHeight] = useState(0);
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (!outer.current || !inner.current) return;
+      const s = outer.current.clientWidth / PREVIEW_WIDTH;
+      setScale(s);
+      setHeight(inner.current.offsetHeight * s);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(outer.current);
+    ro.observe(inner.current);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div className="ad-bprev ad-bprev--computer" ref={outer} style={{ height }}>
+      <div className="mt-scope hp-home ad-bprev__stage" ref={inner} style={{ width: PREVIEW_WIDTH, transform: `scale(${scale})` }}>
+        <section className="hp-slider">
+          <BannerSlide banner={banner} image={image} preview />
+        </section>
+      </div>
+    </div>
+  );
+};
+
+const PhonePreview = ({ banner, image }) => (
+  <div className="ad-bprev ad-bprev--phone">
+    <div className="ad-bprev__phone mt-scope">
+      <section className="hp-slider">
+        <BannerSlide banner={banner} image={image} preview />
+      </section>
+    </div>
+  </div>
+);
 const CUSTOM = "__custom";
 
 const categoryLink = (name) => `/shop?category=${encodeURIComponent(name)}`;
 
 /*
-  Home page banners: a picture (1600 x 600) with a headline and a button.
+  Home page banners: a picture with a headline and a button. The picture is kept whole;
+  the focus point decides which part stays visible on each screen.
   While at least one banner is live, the home page shows them instead of the
   automatic category slides.
 */
@@ -39,6 +130,7 @@ function AdminBanners() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [device, setDevice] = useState("computer"); // which preview is shown
 
   const load = () =>
     api
@@ -85,6 +177,13 @@ function AdminBanners() {
       button_text: b.button_text || "Shop now",
       link: b.link || "/shop",
       active: !!b.active,
+      text_align: b.text_align || DESIGN.text_align,
+      text_color: b.text_color || DESIGN.text_color,
+      shade: b.shade || DESIGN.shade,
+      focus_x: b.focus_x ?? 50,
+      focus_y: b.focus_y ?? 50,
+      starts_on: b.starts_on || "",
+      ends_on: b.ends_on || "",
     });
     setFile(null);
     setPreview("");
@@ -110,9 +209,11 @@ function AdminBanners() {
 
   const save = async (e) => {
     e.preventDefault();
-    if (editing === "new" && !file) return setFormError("Choose a banner image (1600 x 600 works best).");
+    if (editing === "new" && !file) return setFormError("Choose a banner image.");
     if (!values.title.trim()) return setFormError("Enter a headline.");
     if (!values.link.trim()) return setFormError("Choose where the button goes.");
+    if (values.starts_on && values.ends_on && values.ends_on < values.starts_on)
+      return setFormError("The end date is before the start date.");
 
     const form = new FormData();
     Object.entries(values).forEach(([k, v]) => form.append(k, k === "active" ? (v ? "1" : "0") : String(v).trim()));
@@ -209,33 +310,39 @@ function AdminBanners() {
           </div>
 
           <div className="ad-panel-body">
-            {/* Live preview: how it looks on the home page */}
-            <div className="ad-banner-preview" aria-label="Preview">
-              {shownImage ? (
-                <img src={shownImage} alt="" />
-              ) : (
+            {/* Live preview: exactly what the home page will show */}
+            {shownImage ? (
+              <div className="ad-bprev-wrap">
+                <div className="ad-bprev-bar">
+                  <div className="ad-seg" role="tablist" aria-label="Preview on">
+                    <button type="button" role="tab" aria-selected={device === "computer"} className={device === "computer" ? "is-active" : ""} onClick={() => setDevice("computer")}>
+                      <LaptopMacOutlinedIcon fontSize="small" /> Computer
+                    </button>
+                    <button type="button" role="tab" aria-selected={device === "phone"} className={device === "phone" ? "is-active" : ""} onClick={() => setDevice("phone")}>
+                      <PhoneIphoneOutlinedIcon fontSize="small" /> Phone
+                    </button>
+                  </div>
+                  <label className="mt-btn mt-btn--secondary mt-btn--sm ad-banner-replace">
+                    <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile} hidden />
+                    <AddPhotoAlternateOutlinedIcon /> Replace image
+                  </label>
+                </div>
+                {device === "computer" ? (
+                  <ComputerPreview banner={values} image={shownImage} />
+                ) : (
+                  <PhonePreview banner={values} image={shownImage} />
+                )}
+                <small className="ad-hint">Live preview: exactly what customers see, before and after saving. On phones the text sits under the picture.</small>
+              </div>
+            ) : (
+              <div className="ad-banner-preview" aria-label="Preview">
                 <label className="ad-banner-preview__empty">
                   <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile} />
                   <AddPhotoAlternateOutlinedIcon />
                   <strong>Click to choose the banner image</strong>
-                  <small>1600 x 600 px works best · keep the left side dark and empty for the text</small>
+                  <small>Any photo works; wide ones need the least trimming. You add the text and button here, no need to design it.</small>
                 </label>
-              )}
-              <div className="ad-banner-preview__copy">
-                {values.eyebrow && <span className="ad-banner-preview__eyebrow">{values.eyebrow}</span>}
-                <strong className="ad-banner-preview__title">{values.title || "Your headline"}</strong>
-                {values.subtitle && <span className="ad-banner-preview__sub">{values.subtitle}</span>}
-                <span className="ad-banner-preview__btn">
-                  {values.button_text || "Shop now"} <ArrowForwardIcon fontSize="inherit" />
-                </span>
               </div>
-            </div>
-
-            {shownImage && (
-              <label className="mt-btn mt-btn--secondary mt-btn--sm ad-banner-replace">
-                <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile} hidden />
-                <AddPhotoAlternateOutlinedIcon /> Replace image
-              </label>
             )}
 
             <div className="ad-form-row">
@@ -292,6 +399,61 @@ function AdminBanners() {
                 <small className="ad-hint">Tip: open the product on your site and copy the part after the domain, e.g. /product/12-nvidia-rtx-4090.</small>
               </label>
             )}
+
+            <div className="ad-banner-design">
+              <h3 className="ad-banner-design__title">Design</h3>
+              <Segmented label="Text position" options={ALIGN_OPTIONS} value={values.text_align} onChange={(v) => setValues((x) => ({ ...x, text_align: v }))} />
+              <Segmented label="Text color" options={COLOR_OPTIONS} value={values.text_color} onChange={(v) => setValues((x) => ({ ...x, text_color: v }))} />
+              <Segmented label="Fade behind the text" options={SHADE_OPTIONS} value={values.shade} onChange={(v) => setValues((x) => ({ ...x, shade: v }))} />
+              <small className="ad-hint">Black text is for bright pictures. Use a stronger fade if the text is hard to read.</small>
+
+              {shownImage && (
+                <div className="ad-focus">
+                  <span className="ad-seg-field__label">
+                    <CenterFocusStrongOutlinedIcon fontSize="small" /> Focus point
+                  </span>
+                  <button
+                    type="button"
+                    className="ad-focus__pick"
+                    aria-label="Click the most important part of the picture"
+                    onClick={(e) => {
+                      const r = e.currentTarget.getBoundingClientRect();
+                      setValues((x) => ({
+                        ...x,
+                        focus_x: Math.round(((e.clientX - r.left) / r.width) * 100),
+                        focus_y: Math.round(((e.clientY - r.top) / r.height) * 100),
+                      }));
+                    }}
+                  >
+                    <img src={shownImage} alt="" />
+                    <span className="ad-focus__dot" style={{ left: `${values.focus_x}%`, top: `${values.focus_y}%` }} />
+                  </button>
+                  <small className="ad-hint">
+                    Click the most important part (e.g. the product). Every screen trims the picture around it.{" "}
+                    {(values.focus_x !== 50 || values.focus_y !== 50) && (
+                      <button type="button" className="ad-linkbtn" onClick={() => setValues((x) => ({ ...x, focus_x: 50, focus_y: 50 }))}>
+                        Reset to the middle
+                      </button>
+                    )}
+                  </small>
+                </div>
+              )}
+            </div>
+
+            <div className="ad-banner-design">
+              <h3 className="ad-banner-design__title">Schedule (optional)</h3>
+              <div className="ad-form-row">
+                <label className="mt-field">
+                  <span>Show from</span>
+                  <input type="date" value={values.starts_on} onChange={set("starts_on")} />
+                </label>
+                <label className="mt-field">
+                  <span>Show until</span>
+                  <input type="date" value={values.ends_on} min={values.starts_on || undefined} onChange={set("ends_on")} />
+                </label>
+              </div>
+              <small className="ad-hint">For a sale or a launch: the banner turns on and off by itself. Leave empty to show it all the time.</small>
+            </div>
 
             <label className="ad-switch">
               <input type="checkbox" checked={values.active} onChange={(e) => setValues((v) => ({ ...v, active: e.target.checked }))} />
@@ -363,6 +525,17 @@ function AdminBanners() {
                   <small>
                     {b.button_text} → {b.link}
                   </small>
+                  {(b.starts_on || b.ends_on) && (
+                    <small className={`ad-banner-row__when ${b.has_ended ? "is-ended" : b.not_started ? "is-later" : ""}`}>
+                      {b.has_ended
+                        ? `Ended ${formatDay(b.ends_on)}`
+                        : b.not_started
+                        ? `Starts ${formatDay(b.starts_on)}${b.ends_on ? ` · until ${formatDay(b.ends_on)}` : ""}`
+                        : b.ends_on
+                        ? `Showing until ${formatDay(b.ends_on)}`
+                        : `Showing since ${formatDay(b.starts_on)}`}
+                    </small>
+                  )}
                 </div>
                 <label className="ad-switch ad-banner-row__switch" title={b.active ? "Live on the home page" : "Hidden"}>
                   <input type="checkbox" checked={!!b.active} onChange={() => toggleActive(b)} aria-label={`Show ${b.title} on the home page`} />

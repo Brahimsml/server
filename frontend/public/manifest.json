@@ -4,7 +4,7 @@
   "icons": [
     {
       "src": "favicon.ico",
-      "sizes": "64x64 32x32 16x16",
+      "sizes": "48x48 32x32 16x16",
       "type": "image/x-icon"
     },
     {
@@ -22,8 +22,8 @@
   ],
   "start_url": "/home",
   "display": "standalone",
-  "theme_color": "#120f0a",
-  "background_color": "#0e0c08",
+  "theme_color": "#0b0b0b",
+  "background_color": "#0a0a0a",
   "description": "PC components and gaming gear: graphics cards, monitors, laptops and peripherals.",
   "scope": "/",
   "categories": [

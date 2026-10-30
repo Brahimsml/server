@@ -6,7 +6,7 @@ import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import { API_URL } from "../api";
 import SHOP_INFO from "../utils/shopInfo";
 import "../Styles/theme.css";

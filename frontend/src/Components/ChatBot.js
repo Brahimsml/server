@@ -12,7 +12,7 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { CartContext } from "../Context/CartContext";
 import { API_URL } from "../api";
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import {
   formatMoney,
   formatOrderDate,

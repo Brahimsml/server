@@ -340,31 +340,83 @@
   transform: scale(1.05);
 }
 
+/* Name in big display type, a small gold line under it, the count, and a round arrow */
+/* name across the whole tile; underneath: the count on the left, the arrow on the right */
 .hp-cat__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
   padding: 16px 18px 18px;
 }
 
-.hp-cat__body h3 {
-  margin: 0;
-  font-family: var(--mt-font-display);
-  font-size: 1.08rem;
-  font-weight: 700;
-  color: var(--mt-text);
+.hp-cat__body > div {
+  display: contents;
 }
 
-.hp-cat__body p {
-  margin: 4px 0 12px;
-  color: var(--mt-muted);
-  font-size: 0.88rem;
+.hp-cat__body h3 {
+  grid-column: 1 / -1;
+}
+
+.hp-cat__body h3 {
+  position: relative;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  font-family: var(--mt-font-display);
+  font-size: 1.22rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--mt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hp-cat__body h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--mt-accent-bright), var(--mt-accent));
+  transition: width 0.3s ease;
+}
+
+.hp-cat:hover .hp-cat__body h3::after {
+  width: 48px;
 }
 
 .hp-cat__meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--mt-accent-bright);
-  font-size: 0.85rem;
+  display: block;
+  white-space: nowrap;
+  color: var(--mt-muted);
+  font-size: 0.74rem;
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hp-cat__go {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--mt-border-strong);
+  color: var(--mt-accent-bright);
+  font-size: 1rem;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.hp-cat:hover .hp-cat__go {
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  border-color: transparent;
+  color: #131313;
+  transform: translateX(2px);
 }
 
 /* =========================================================
@@ -1263,6 +1315,17 @@
   margin-top: 56px;
 }
 
+/* category rows sit in boxes too (theme.css .mt-box): same gap as the other boxes */
+.hp-catrow.mt-section.mt-box {
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .hp-catrow.mt-section.mt-box {
+    margin-top: 16px;
+  }
+}
+
 /* ===================== CLEANER CARDS ===================== */
 /* One button per card ("Buy now" is on the product page), like big shops */
 .pc-actions {
@@ -1663,6 +1726,125 @@
   z-index: 1;
   max-width: 48%;
   padding: 40px 32px 34px 56px;
+}
+
+/* ----- The whole banner is clickable (a link stretched over it) ----- */
+.hp-banner__hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* the text lets clicks through to that link; the button and the slider controls keep working */
+.hp-slide--banner.is-clickable .hp-slide__copy {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hp-slide--banner.is-clickable .hp-slide__actions > *,
+.hp-slide--banner.is-clickable .hp-slider__controls {
+  pointer-events: auto;
+}
+
+/* a slow, subtle zoom on the picture while the mouse is over the banner */
+.hp-slide--banner .hp-banner__img {
+  transition: transform 0.7s ease;
+}
+
+.hp-slide--banner.is-clickable:hover .hp-banner__img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-slide--banner.is-clickable:hover .hp-banner__img {
+    transform: none;
+  }
+}
+
+/* ----- Banner design (Admin → Banners): shade, text position, text color ----- */
+/* How strong the fade behind the text is */
+.hp-banner--shade-none::after {
+  opacity: 0;
+}
+
+.hp-banner--shade-light::after {
+  opacity: 0.6;
+}
+
+.hp-banner--shade-strong::after {
+  background: linear-gradient(90deg, rgba(7, 7, 7, 0.94) 0%, rgba(7, 7, 7, 0.7) 42%, rgba(7, 7, 7, 0.1) 72%);
+}
+
+/* Text in the middle: a soft fade all around the centre */
+.hp-banner--center .hp-slide__copy {
+  align-items: center;
+  max-width: 64%;
+  margin: 0 auto;
+  padding: 40px 32px 34px;
+  text-align: center;
+}
+
+.hp-banner--center .hp-slide__desc {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hp-banner--center .hp-slide__actions,
+.hp-banner--center .hp-slider__controls {
+  justify-content: center;
+}
+
+.hp-slide--banner.hp-banner--center::after {
+  background: radial-gradient(ellipse 60% 85% at 50% 50%, rgba(7, 7, 7, 0.78) 0%, rgba(7, 7, 7, 0.4) 55%, rgba(7, 7, 7, 0) 100%);
+}
+
+.hp-slide--banner.hp-banner--center.hp-banner--shade-strong::after {
+  background: radial-gradient(ellipse 70% 95% at 50% 50%, rgba(7, 7, 7, 0.9) 0%, rgba(7, 7, 7, 0.6) 55%, rgba(7, 7, 7, 0.15) 100%);
+}
+
+/* Computers: text on the right (the fade is mirrored) and dark text for bright pictures */
+@media (min-width: 861px) {
+  .hp-banner--right .hp-slide__copy {
+    margin-left: auto;
+    padding: 40px 56px 34px 32px;
+  }
+
+  .hp-slide--banner.hp-banner--right::after {
+    transform: scaleX(-1);
+  }
+
+  .hp-slide--banner.hp-banner--text-dark::after {
+    background: linear-gradient(90deg, rgba(250, 250, 248, 0.88) 0%, rgba(250, 250, 248, 0.5) 38%, rgba(250, 250, 248, 0) 62%);
+  }
+
+  .hp-slide--banner.hp-banner--text-dark.hp-banner--shade-strong::after {
+    background: linear-gradient(90deg, rgba(250, 250, 248, 0.96) 0%, rgba(250, 250, 248, 0.72) 42%, rgba(250, 250, 248, 0.1) 72%);
+  }
+
+  .hp-slide--banner.hp-banner--text-dark.hp-banner--center::after {
+    background: radial-gradient(ellipse 60% 85% at 50% 50%, rgba(250, 250, 248, 0.85) 0%, rgba(250, 250, 248, 0.45) 55%, rgba(250, 250, 248, 0) 100%);
+  }
+
+  .hp-banner--text-dark .hp-slide__title {
+    color: #121212;
+  }
+
+  .hp-banner--text-dark .hp-slide__desc {
+    color: rgba(18, 18, 18, 0.72);
+  }
+
+  .hp-banner--text-dark .hp-slide__cat {
+    color: #8a6610;
+  }
+
+  .hp-banner--text-dark .hp-slider__arrow {
+    border-color: rgba(18, 18, 18, 0.3);
+    color: #121212;
+  }
+
+  .hp-banner--text-dark .hp-slider__dots button {
+    background: rgba(18, 18, 18, 0.2);
+  }
 }
 
 @keyframes hp-fade {

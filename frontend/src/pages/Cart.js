@@ -264,13 +264,12 @@ const Cart = () => {
     return <span className="stock-note stock-note--ok">In stock</span>;
   };
 
-  const suggestionRow = (title, lead) =>
+  const suggestionRow = (title) =>
     suggestions.length > 0 && (
-      <div className="mt-scope cart-popular">
+      <div className="mt-scope mt-box cart-popular">
         <div className="mt-section-head">
           <div>
             <h2>{title}</h2>
-            <p>{lead}</p>
           </div>
         </div>
         <ProductsItem products={suggestions} row showToolbar={false} showCategories={false} showPagination={false} />
@@ -301,7 +300,7 @@ const Cart = () => {
             </div>
           </div>
 
-          {suggestionRow("Popular right now", "What other MegaTech customers are buying.")}
+          {suggestionRow("Popular right now")}
         </div>
       </section>
     );
@@ -553,7 +552,7 @@ const Cart = () => {
           </aside>
         </div>
 
-        {suggestionRow("You may also like", "More gear that goes well with what's in your cart.")}
+        {suggestionRow("You may also like")}
       </div>
     </section>
   );

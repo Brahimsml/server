@@ -17,7 +17,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { jwtDecode } from "jwt-decode";
 import api from "../../api";
-import logo from "../../Assets/logo.jpg";
+import logo from "../../Assets/logo.svg";
 import "../../Styles/theme.css";
 import "../../Styles/AdminPanel.css";
 

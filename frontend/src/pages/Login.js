@@ -13,7 +13,7 @@ import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
 import { saveUserSession } from "../utils/auth";
 import "../Styles/Login.css";
-import logo from "../Assets/logo.jpg";
+import logo from "../Assets/logo.svg";
 import setupPhoto from "../Assets/apo.jpeg";
 import usePageTitle from "../utils/usePageTitle";
 

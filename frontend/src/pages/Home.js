@@ -10,6 +10,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import BannerSlide from "../Components/BannerSlide";
 import ProductsItem from "../Components/ProductsItem";
 import SHOP_INFO from "../utils/shopInfo";
 import { clearRecentlyViewed, getRecentlyViewed } from "../utils/recentlyViewed";
@@ -29,18 +30,6 @@ import "../Styles/HomePage.css";
 
 const FEATURE_INTERVAL_MS = 6000;
 
-const CATEGORY_BLURBS = [
-  [/gpu|graphic/i, "Graphics power for serious builds"],
-  [/laptop/i, "Portable performance for work and play"],
-  [/monitor/i, "Sharper visuals for every setup"],
-  [/mouse|mice/i, "Gaming mice for every grip"],
-  [/headset|headphone/i, "Hear every footstep"],
-  [/keyboard/i, "Mechanical and low-profile keyboards"],
-  [/console|playstation|xbox/i, "Next-gen consoles, ready to play"],
-  [/chair/i, "Comfort for long sessions"],
-  [/peripheral|keyboard|mouse|headset|audio/i, "Keyboards, mice and headsets"],
-];
-
 // Top banner: a short campaign line per category (like big stores), not a product listing
 const CATEGORY_HEADLINES = [
   [/gpu|graphic/i, "Next-gen graphics power", "The latest GPUs for smooth 4K gaming and faster creative work."],
@@ -58,9 +47,6 @@ const categoryHeadline = (name) => {
   const match = CATEGORY_HEADLINES.find(([re]) => re.test(name || ""));
   return match ? { title: match[1], text: match[2] } : { title: `Shop ${name || "the latest gear"}`, text: "Explore the latest PC gear at MegaTech." };
 };
-
-const categoryBlurb = (name) =>
-  (CATEGORY_BLURBS.find(([re]) => re.test(name)) || [null, "Explore the range"])[1];
 
 const TRUST_ITEMS = [
   { icon: LockOutlinedIcon, title: "Secure checkout", text: "Safe, account-based ordering" },
@@ -275,18 +261,6 @@ const Home = () => {
       </div>
     );
 
-  // A banner's button: a page on this site, or an outside link in a new tab
-  const bannerButton = (b) =>
-    /^https?:/i.test(b.link) ? (
-      <a href={b.link} className="mt-btn mt-btn--primary" target="_blank" rel="noopener noreferrer">
-        {b.button_text} <ArrowForwardIcon />
-      </a>
-    ) : (
-      <Link to={b.link} className="mt-btn mt-btn--primary">
-        {b.button_text} <ArrowForwardIcon />
-      </Link>
-    );
-
   return (
     <div className="mt-page hp hp-home">
       <div className="mt-container">
@@ -303,16 +277,9 @@ const Home = () => {
           onBlur={() => setPaused(false)}
         >
           {currentBanner ? (
-            <div className="hp-slide hp-slide--banner" key={`banner-${currentBanner.id}`}>
-              <img className="hp-banner__img" src={imageUrl(currentBanner.image)} alt="" />
-              <div className="hp-slide__copy">
-                {currentBanner.eyebrow && <span className="hp-slide__cat">{currentBanner.eyebrow}</span>}
-                <h2 className="hp-slide__title">{currentBanner.title}</h2>
-                {currentBanner.subtitle && <p className="hp-slide__desc">{currentBanner.subtitle}</p>}
-                <div className="hp-slide__actions">{bannerButton(currentBanner)}</div>
-                {controls}
-              </div>
-            </div>
+            <BannerSlide key={`banner-${currentBanner.id}`} banner={currentBanner}>
+              {controls}
+            </BannerSlide>
           ) : loading ? (
             <div className="mt-skeleton hp-slider__skeleton" />
           ) : current ? (
@@ -364,11 +331,10 @@ const Home = () => {
 
         {/* ===== RECENTLY VIEWED (only for visitors who opened products before) ===== */}
         {hasRecent && (
-          <section className="mt-section hp-recent" id="recently-viewed">
+          <section className="mt-section mt-box hp-recent" id="recently-viewed">
             <div className="mt-section-head">
               <div>
                 <h2>Recently viewed</h2>
-                <p>Pick up where you left off.</p>
               </div>
               <button
                 type="button"
@@ -403,11 +369,10 @@ const Home = () => {
 
         {/* ===== CATEGORIES ===== */}
         {categories.length > 0 && (
-          <section className="mt-section" id="categories">
+          <section className="mt-section mt-box" id="categories">
             <div className="mt-section-head">
               <div>
                 <h2>Shop by category</h2>
-                <p>Jump straight to the gear you're after.</p>
               </div>
             </div>
 
@@ -421,10 +386,13 @@ const Home = () => {
                     )}
                   </div>
                   <div className="hp-cat__body">
-                    <h3>{cat.name}</h3>
-                    <p>{categoryBlurb(cat.name)}</p>
-                    <span className="hp-cat__meta">
-                      {cat.count} {cat.count === 1 ? "product" : "products"}
+                    <div>
+                      <h3>{cat.name}</h3>
+                      <span className="hp-cat__meta">
+                        {cat.count} {cat.count === 1 ? "product" : "products"}
+                      </span>
+                    </div>
+                    <span className="hp-cat__go" aria-hidden="true">
                       <ArrowForwardIcon fontSize="inherit" />
                     </span>
                   </div>
@@ -447,11 +415,10 @@ const Home = () => {
 
         {/* ===== BEST SELLERS ===== */}
         {(loading || products.some(isBestSeller)) && (
-          <section className="mt-section" id="best-sellers">
+          <section className="mt-section mt-box" id="best-sellers">
             <div className="mt-section-head">
               <div>
                 <h2>Best sellers</h2>
-                <p>The gear our customers keep coming back for.</p>
               </div>
               <Link to="/shop" className="mt-link">
                 View all products <ArrowForwardIcon fontSize="inherit" />
@@ -473,11 +440,10 @@ const Home = () => {
 
         {/* ===== NEW ARRIVALS ===== */}
         {(loading || newArrivalIds.size > 0) && (
-          <section className="mt-section" id="new-arrivals">
+          <section className="mt-section mt-box" id="new-arrivals">
             <div className="mt-section-head">
               <div>
                 <h2>New arrivals</h2>
-                <p>The latest gear to land in the shop.</p>
               </div>
               <Link to="/shop" className="mt-link">
                 Shop everything <ArrowForwardIcon fontSize="inherit" />
@@ -550,11 +516,10 @@ const Home = () => {
           categories
             .filter((cat) => cat.count >= 2)
             .map((cat) => (
-              <section className="mt-section hp-catrow" key={cat.name}>
+              <section className="mt-section mt-box hp-catrow" key={cat.name}>
                 <div className="mt-section-head">
                   <div>
                     <h2>{cat.name}</h2>
-                    <p>{categoryBlurb(cat.name)}</p>
                   </div>
                   <Link to={shopLink(cat.name)} className="mt-link">
                     See all {cat.count} <ArrowForwardIcon fontSize="inherit" />
