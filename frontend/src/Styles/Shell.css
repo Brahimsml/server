@@ -2724,3 +2724,37 @@ body.nb-hidden {
   }
 }
 
+
+/* ===== Footer: what every order comes with (above the copyright line) ===== */
+.ft-promises {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 32px;
+  margin: 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--mt-border);
+}
+
+.ft-promises li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mt-muted);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.ft-promises svg {
+  color: var(--mt-accent-bright);
+}
+
+@media (max-width: 640px) {
+  .ft-promises {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border-top: none; /* the last folding section already has a line */
+  }
+}

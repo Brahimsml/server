@@ -2271,3 +2271,37 @@
     padding-right: 0;
   }
 }
+
+/* ===== Trust bar: same 4 boxes, about a third shorter and quieter ===== */
+.hp-trust__item {
+  gap: 12px;
+  padding: 14px 20px;
+}
+
+.hp-trust__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.hp-trust__icon svg {
+  font-size: 1.15rem;
+}
+
+.hp-trust__item h3 {
+  font-size: 0.88rem;
+}
+
+.hp-trust__item p {
+  margin-top: 1px;
+  font-size: 0.78rem;
+}
+
+/* ===== Product cards without the description: name always takes two lines' room, so the
+   prices and buttons of a row line up; a little more space above the price ===== */
+@media (min-width: 641px) {
+  .pc-name {
+    min-height: calc(1.35em * 2);
+    margin-bottom: 12px;
+  }
+}

@@ -408,8 +408,6 @@ const ProductsItem = ({
                       <Link to={productPath(product)}>{product.name}</Link>
                     </h3>
 
-                    <p className="pc-desc">{product.description || " "}</p>
-
                     <div className="pc-price-row">
                       <span className="pc-price">{formatMoney(product.price)}</span>
                       {/* stock only when it matters, like big shops */}

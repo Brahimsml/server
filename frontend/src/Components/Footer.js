@@ -6,11 +6,19 @@ import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import logo from "../Assets/logo.svg";
 import { API_URL } from "../api";
 import SHOP_INFO from "../utils/shopInfo";
+import { whatsappLink } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
+
+// The Shop column lists the first categories (admin's order); "All products" leads to the rest
+const FOOTER_CATEGORIES = 6;
 
 // Opens the shop filtered to one category
 const categoryLink = (name) =>
@@ -46,6 +54,7 @@ const Footer = () => {
   }, []);
 
   const toggle = (id) => setOpen((cur) => (cur === id ? null : id));
+  const wa = whatsappLink(SHOP_INFO.phone, "Hi MegaTech, I have a question.");
 
   return (
     <footer className="ft mt-scope">
@@ -69,7 +78,7 @@ const Footer = () => {
 
           <FooterSection id="shop" title="Shop" open={open === "shop"} onToggle={toggle}>
             <Link to={categoryLink("All")}>All products</Link>
-            {categories.map((c) => (
+            {categories.slice(0, FOOTER_CATEGORIES).map((c) => (
               <Link key={c.id} to={categoryLink(c.name)}>
                 {c.name}
               </Link>
@@ -87,6 +96,11 @@ const Footer = () => {
           </FooterSection>
 
           <FooterSection id="contact" title="Get in touch" open={open === "contact"} onToggle={toggle} className="ft-contact">
+            {wa && (
+              <a href={wa} target="_blank" rel="noopener noreferrer">
+                <WhatsAppIcon fontSize="small" /> WhatsApp us
+              </a>
+            )}
             <a href={`tel:${SHOP_INFO.phoneLink}`}>
               <PhoneOutlinedIcon fontSize="small" /> {SHOP_INFO.phone}
             </a>
@@ -98,6 +112,19 @@ const Footer = () => {
             </span>
           </FooterSection>
         </div>
+
+        {/* what every order comes with */}
+        <ul className="ft-promises">
+          <li>
+            <PaymentsOutlinedIcon fontSize="small" /> Cash on delivery
+          </li>
+          <li>
+            <LocalShippingOutlinedIcon fontSize="small" /> Delivery all over Lebanon
+          </li>
+          <li>
+            <AssignmentReturnOutlinedIcon fontSize="small" /> 7-day returns
+          </li>
+        </ul>
 
         <div className="ft-bottom">
           <p>

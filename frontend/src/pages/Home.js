@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -49,10 +49,11 @@ const categoryHeadline = (name) => {
 };
 
 const TRUST_ITEMS = [
-  { icon: LockOutlinedIcon, title: "Secure checkout", text: "Safe, account-based ordering" },
-  { icon: LocalShippingOutlinedIcon, title: "Fast delivery", text: "Quick, tracked shipping" },
-  { icon: VerifiedUserOutlinedIcon, title: "Warranty", text: "Manufacturer backed" },
-  { icon: SupportAgentOutlinedIcon, title: "Support", text: "Real help, fast replies" },
+  // only what the shop really offers
+  { icon: PaymentsOutlinedIcon, title: "Cash on delivery", text: "Pay when it arrives" },
+  { icon: LocalShippingOutlinedIcon, title: "Delivery all over Lebanon", text: "Faster in Beirut" },
+  { icon: AssignmentReturnOutlinedIcon, title: "7-day returns", text: "Change your mind" },
+  { icon: SupportAgentOutlinedIcon, title: "Real support", text: "WhatsApp, call or visit" },
 ];
 
 const shopLink = (category) =>

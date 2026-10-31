@@ -29,3 +29,29 @@
   color: var(--mt-accent-bright);
   font-weight: 600;
 }
+
+/* Smaller, quieter title with the product count next to it, and less space above the products */
+.mt-page.hp-shop {
+  padding-top: 26px;
+}
+
+.sh-head {
+  margin-bottom: 18px;
+}
+
+.sh-head .mt-title.sh-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 8px;
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
+}
+
+.sh-total {
+  color: var(--mt-muted);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}

@@ -44,6 +44,8 @@ const Shop = () => {
   };
 
   const isAll = category === "All";
+  // how many products the title counts ("All products · 47 items", "Monitors · 6 items")
+  const total = isAll ? products.length : products.filter((p) => p.category_name === category).length;
 
   return (
     <div className="mt-page hp hp-shop">
@@ -62,7 +64,14 @@ const Shop = () => {
               </>
             )}
           </nav>
-          <h1 className="mt-title">{query ? `Results for “${query}”` : isAll ? "All products" : category}</h1>
+          <h1 className="mt-title sh-title">
+            {query ? `Results for “${query}”` : isAll ? "All products" : category}
+            {!query && !loading && total > 0 && (
+              <span className="sh-total">
+                {total} {total === 1 ? "item" : "items"}
+              </span>
+            )}
+          </h1>
         </header>
 
         {loadError && (
