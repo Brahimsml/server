@@ -3056,3 +3056,72 @@ a.ad-kpi:hover {
     padding: 14px 16px 12px;
   }
 }
+
+/* ===== Store opening hours (Admin → Places) ===== */
+.ad-hours {
+  display: grid;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-hours li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.ad-hours li:last-child {
+  border-bottom: none;
+}
+
+.ad-hours__day {
+  min-width: 92px;
+  color: var(--mt-text);
+  font-weight: 600;
+}
+
+.ad-hours li.is-closed .ad-hours__day {
+  color: var(--mt-muted);
+}
+
+.ad-hours__times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mt-muted);
+  font-size: 0.85rem;
+}
+
+.ad-hours__times .mt-input {
+  width: 128px;
+  padding: 8px 10px;
+  color-scheme: dark;
+}
+
+.ad-hours__closed {
+  color: var(--mt-faint);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 520px) {
+  .ad-hours li {
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+
+  .ad-hours__times {
+    width: 100%;
+  }
+
+  .ad-hours__times .mt-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}

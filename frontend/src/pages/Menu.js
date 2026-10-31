@@ -10,7 +10,7 @@ import "../Styles/Locations.css";
 import usePageTitle from "../utils/usePageTitle";
 
 const Menu = () => {
-  usePageTitle("Our stores");
+  usePageTitle("Find a store");
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -29,11 +29,16 @@ const Menu = () => {
   return (
     <section className="mt-page">
       <div className="mt-container">
-        <header className="mt-head mt-head--center">
-          <div>
-            <span className="mt-eyebrow">Our stores</span>
-            <h1 className="mt-title">Visit a MegaTech store</h1>
-          </div>
+        {/* One short title, like the Shop page; the stores start right under it */}
+        <header className="loc-head">
+          <h1 className="mt-title loc-title">
+            Find a store
+            {!loading && places.length > 0 && (
+              <span className="loc-total">
+                {places.length} {places.length === 1 ? "store" : "stores"}
+              </span>
+            )}
+          </h1>
         </header>
 
         {error && (
@@ -67,6 +72,7 @@ const Menu = () => {
                 address={loc.address}
                 lat={loc.lat}
                 lng={loc.lng}
+                hours={loc.hours}
               />
             ))}
           </div>

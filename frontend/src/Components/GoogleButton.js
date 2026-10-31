@@ -47,7 +47,7 @@ const GoogleButton = ({ onCredential, onError, text = "continue_with" }) => {
         window.google.accounts.id.renderButton(holder.current, {
           theme: "filled_black",
           size: "large",
-          shape: "pill",
+          shape: "rectangular", // same squared look as the fields and the Sign in button
           text,
           locale: "en", // match the site's language, not the visitor's browser
           width: Math.min(400, holder.current.offsetWidth || 320),

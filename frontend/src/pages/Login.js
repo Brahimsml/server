@@ -13,7 +13,6 @@ import GoogleButton, { googleEnabled } from "../Components/GoogleButton";
 import { API_URL } from "../api";
 import { saveUserSession } from "../utils/auth";
 import "../Styles/Login.css";
-import logo from "../Assets/logo.svg";
 import setupPhoto from "../Assets/apo.jpeg";
 import usePageTitle from "../utils/usePageTitle";
 
@@ -392,7 +391,7 @@ const Login = () => {
         <LockOutlinedIcon fontSize="inherit" />
         <span>
           Secure sign-in. By continuing you agree to our <Link to="/terms">Terms</Link> and{" "}
-          <Link to="/privacy">Privacy Policy</Link>.
+          <Link to="/privacy" className="auth-legal__nowrap">Privacy Policy</Link>.
         </span>
       </p>
     </>
@@ -402,11 +401,6 @@ const Login = () => {
     <section className="auth-page">
       <div className="auth-card">
         <aside className="auth-aside" style={{ "--auth-photo": `url(${setupPhoto})` }}>
-          <Link to="/home" className="auth-logo" aria-label="MegaTech home">
-            <img src={logo} alt="" />
-            <span className="auth-brand">MegaTech</span>
-          </Link>
-
           <div className="auth-aside__copy">
             <h2 className="auth-headline">
               Your next setup <span>starts here.</span>

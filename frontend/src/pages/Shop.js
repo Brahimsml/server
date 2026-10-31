@@ -19,6 +19,7 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [sortHost, setSortHost] = useState(null); // where "Sort by" sits on the title row (computers)
 
   useEffect(() => {
     let alive = true;
@@ -64,14 +65,18 @@ const Shop = () => {
               </>
             )}
           </nav>
-          <h1 className="mt-title sh-title">
-            {query ? `Results for “${query}”` : isAll ? "All products" : category}
-            {!query && !loading && total > 0 && (
-              <span className="sh-total">
-                {total} {total === 1 ? "item" : "items"}
-              </span>
-            )}
-          </h1>
+          <div className="sh-titlerow">
+            <h1 className="mt-title sh-title">
+              {query ? `Results for “${query}”` : isAll ? "All products" : category}
+              {!query && !loading && total > 0 && (
+                <span className="sh-total">
+                  {total} {total === 1 ? "item" : "items"}
+                </span>
+              )}
+            </h1>
+            {/* computers: "Sort by" sits here, on the right of the title */}
+            <div className="sh-sort" ref={setSortHost} />
+          </div>
         </header>
 
         {loadError && (
@@ -86,6 +91,7 @@ const Shop = () => {
           category={category}
           onCategoryChange={changeCategory}
           initialQuery={query}
+          sortHost={sortHost}
         />
       </div>
     </div>

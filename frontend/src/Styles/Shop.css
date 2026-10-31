@@ -55,3 +55,21 @@
   font-weight: 500;
   letter-spacing: 0;
 }
+
+/* Title on the left, "Sort by" on the right (computers); the products start right under it */
+.sh-titlerow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sh-sort:empty {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .sh-sort {
+    display: none; /* phones sort from the Filters panel */
+  }
+}

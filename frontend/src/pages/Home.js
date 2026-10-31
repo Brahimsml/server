@@ -466,11 +466,7 @@ const Home = () => {
 
         {/* ===== NEED HELP CHOOSING? ===== */}
         <section className="mt-section hp-help" aria-labelledby="hp-help-title">
-          <div className="hp-help__intro">
-            <span className="mt-eyebrow">We're here to help</span>
-            <h2 id="hp-help-title">Need help choosing?</h2>
-            <p>Not sure which part fits your build or budget? Ask us before you buy, it's free.</p>
-          </div>
+          <h2 id="hp-help-title" className="hp-help__title">Need help choosing?</h2>
 
           <div className="hp-help__options">
             {helpWhatsapp && (
@@ -478,10 +474,7 @@ const Home = () => {
                 <span className="hp-help__icon hp-help__icon--wa">
                   <WhatsAppIcon />
                 </span>
-                <span>
-                  <strong>WhatsApp us</strong>
-                  <small>Quick answers from our team</small>
-                </span>
+                <strong>WhatsApp</strong>
                 <ArrowForwardIcon className="hp-help__arrow" />
               </a>
             )}
@@ -493,20 +486,14 @@ const Home = () => {
               <span className="hp-help__icon">
                 <ChatBubbleOutlineIcon />
               </span>
-              <span>
-                <strong>Chat with our assistant</strong>
-                <small>Instant answers, any time</small>
-              </span>
+              <strong>Chat now</strong>
               <ArrowForwardIcon className="hp-help__arrow" />
             </button>
             <Link className="hp-help__option" to="/menu">
               <span className="hp-help__icon">
                 <StorefrontOutlinedIcon />
               </span>
-              <span>
-                <strong>Visit a store</strong>
-                <small>See the gear and get advice in person</small>
-              </span>
+              <strong>Visit a store</strong>
               <ArrowForwardIcon className="hp-help__arrow" />
             </Link>
           </div>

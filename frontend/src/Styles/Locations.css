@@ -122,3 +122,104 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Page title: one short line, like the Shop page ===== */
+.loc-head {
+  margin-bottom: 18px;
+}
+
+.mt-title.loc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
+}
+
+.loc-total {
+  color: var(--mt-muted);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* ===== Opening hours on the store card ===== */
+.loc-hours {
+  margin: -4px 0 18px;
+  border-radius: 10px;
+  border: 1px solid var(--mt-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.loc-hours summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--mt-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.loc-hours summary::-webkit-details-marker {
+  display: none;
+}
+
+.loc-hours summary > svg:first-child {
+  color: var(--mt-accent-bright);
+}
+
+.loc-hours__status {
+  font-weight: 700;
+}
+
+.loc-hours__status.is-open {
+  color: var(--mt-success);
+}
+
+.loc-hours__status.is-soon {
+  color: #f0b45a;
+}
+
+.loc-hours__status.is-closed {
+  color: var(--mt-danger, #f08a8a);
+}
+
+.loc-hours__next {
+  color: var(--mt-text);
+}
+
+.loc-hours__chev {
+  margin-left: auto;
+  color: var(--mt-faint);
+  transition: transform 0.2s ease;
+}
+
+.loc-hours[open] .loc-hours__chev {
+  transform: rotate(180deg);
+}
+
+.loc-hours__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 12px 12px 40px;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.loc-hours__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--mt-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.loc-hours__list li.is-today {
+  color: var(--mt-text);
+  font-weight: 600;
+}

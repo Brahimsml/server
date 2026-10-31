@@ -1082,6 +1082,35 @@ app.delete("/categories/:id", verifyAdmin, (req, res) => {
 /*
    PLACES CRUD
 */
+
+// Opening hours from the admin form → clean JSON text (or null = no hours shown).
+// undefined = the form didn't send hours, so an edit keeps what was saved.
+const PLACE_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const HOURS_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const cleanHours = (raw) => {
+  if (raw === undefined) return undefined;
+  if (!raw) return null;
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!data || typeof data !== "object") return null;
+  const out = {};
+  let any = false;
+  for (const day of PLACE_DAYS) {
+    const slot = data[day];
+    if (slot && HOURS_TIME.test(slot.open) && HOURS_TIME.test(slot.close) && slot.open !== slot.close) {
+      out[day] = { open: slot.open, close: slot.close };
+      any = true;
+    } else {
+      out[day] = null;
+    }
+  }
+  return any ? JSON.stringify(out) : null;
+};
+
 app.get("/places", (req, res) => {
   db.query("SELECT * FROM places", (err, data) => {
     if (err) return serverError(res, err);
@@ -1099,10 +1128,11 @@ app.get("/places/search/:id", (req, res) => {
 app.post("/places", verifyAdmin, upload.single("image"), (req, res) => {
   const { name, address, tel, lat, lng } = req.body;
   const image = req.file ? req.file.filename : null;
+  const hours = cleanHours(req.body.hours) ?? null;
 
-  const q = "INSERT INTO places (name,address,tel,image,lat,lng) VALUES (?,?,?,?,?,?)";
+  const q = "INSERT INTO places (name,address,tel,image,lat,lng,hours) VALUES (?,?,?,?,?,?,?)";
 
-  db.query(q, [name, address, tel, image, lat || null, lng || null], (err, data) => {
+  db.query(q, [name, address, tel, image, lat || null, lng || null, hours], (err, data) => {
     if (err) {
       discardUpload(req);
       return serverError(res, err);
@@ -1114,8 +1144,12 @@ app.post("/places", verifyAdmin, upload.single("image"), (req, res) => {
 app.post("/places/modify/:id", verifyAdmin, upload.single("image"), (req, res) => {
   const { name, address, tel, existingImage, lat, lng } = req.body;
   const image = req.file ? req.file.filename : existingImage;
+  const hours = cleanHours(req.body.hours);
 
-  const q = "UPDATE places SET name=?, address=?, tel=?, image=?, lat=?, lng=? WHERE id=?";
+  const q =
+    "UPDATE places SET name=?, address=?, tel=?, image=?, lat=?, lng=?" +
+    (hours === undefined ? "" : ", hours=?") +
+    " WHERE id=?";
 
   getCurrentImage("places", req.params.id, (imgErr, oldImage) => {
     if (imgErr) {
@@ -1125,7 +1159,7 @@ app.post("/places/modify/:id", verifyAdmin, upload.single("image"), (req, res) =
 
     db.query(
       q,
-      [name, address, tel, image, lat || null, lng || null, req.params.id],
+      [name, address, tel, image, lat || null, lng || null, ...(hours === undefined ? [] : [hours]), req.params.id],
       (err) => {
         if (err) {
           discardUpload(req);

@@ -1555,86 +1555,75 @@
 }
 
 /* ===================== NEED HELP CHOOSING? ===================== */
+/* One slim band: the question, then three quick ways to ask filling the rest of the row */
 .hp-help {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
-  gap: 36px;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  padding: 34px 36px;
+  gap: 28px;
+  padding: 22px 28px;
   border-radius: var(--mt-radius);
   border: 1px solid var(--mt-border);
   background:
-    radial-gradient(90% 140% at 0% 0%, rgba(196, 154, 52, 0.1), transparent 55%),
+    linear-gradient(90deg, rgba(196, 154, 52, 0.1), transparent 45%),
     var(--mt-surface);
 }
 
-.hp-help__intro h2 {
-  margin: 8px 0 8px;
+.hp-help__title {
+  margin: 0;
   font-family: var(--mt-font-display);
-  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+  font-size: clamp(1.25rem, 1.8vw, 1.5rem);
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-.hp-help__intro p {
-  margin: 0;
-  color: var(--mt-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  white-space: nowrap;
 }
 
 .hp-help__options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 12px;
 }
 
 .hp-help__option {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 18px 18px 20px;
-  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 16px 0 8px;
+  border-radius: 12px;
   border: 1px solid var(--mt-border);
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.25);
   color: var(--mt-text);
   font: inherit;
-  text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .hp-help__option:hover {
   border-color: var(--mt-border-strong);
-  background: rgba(196, 154, 52, 0.07);
-  transform: translateY(-2px);
+  background: rgba(196, 154, 52, 0.08);
 }
 
 .hp-help__option strong {
-  display: block;
-  font-size: 0.98rem;
+  font-size: 0.93rem;
   font-weight: 600;
-}
-
-.hp-help__option small {
-  display: block;
-  margin-top: 3px;
-  color: var(--mt-muted);
-  font-size: 0.84rem;
-  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .hp-help__icon {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  flex-shrink: 0;
+  border-radius: 9px;
   background: rgba(196, 154, 52, 0.12);
   color: var(--mt-accent-bright);
+}
+
+.hp-help__icon svg {
+  font-size: 1.2rem;
 }
 
 .hp-help__icon--wa {
@@ -1643,11 +1632,9 @@
 }
 
 .hp-help__arrow {
-  position: absolute;
-  top: 18px;
-  right: 16px;
+  margin-left: auto;
   color: var(--mt-faint);
-  font-size: 1.1rem !important;
+  font-size: 1rem !important;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -1656,38 +1643,29 @@
   transform: translateX(3px);
 }
 
+/* tablets: the question on top, the three buttons in a row under it */
 @media (max-width: 1024px) {
   .hp-help {
     grid-template-columns: 1fr;
-    gap: 22px;
+    gap: 16px;
   }
 }
 
+/* phones: one tidy list, icon left, arrow right */
 @media (max-width: 640px) {
   .hp-help {
-    padding: 22px 18px;
+    padding: 18px 16px;
+    gap: 14px;
   }
 
-  /* phones: one tidy list, icon left, arrow right */
   .hp-help__options {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 
   .hp-help__option {
-    flex-direction: row;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 44px 14px 14px;
-  }
-
-  .hp-help__arrow {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .hp-help__option:hover .hp-help__arrow {
-    transform: translate(3px, -50%);
+    height: 52px;
+    padding: 0 14px 0 9px;
   }
 }
 
@@ -2303,5 +2281,59 @@
   .pc-name {
     min-height: calc(1.35em * 2);
     margin-bottom: 12px;
+  }
+}
+
+/* ===== Shop on computers: one search only (the menu bar's), so the toolbar is just
+   "Showing 15 of 47 products" on the left and Sort on the right. Phones keep their search. ===== */
+.pc-toolbar__count {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .pc--shop .pc-toolbar .pc-search {
+    display: none;
+  }
+
+  .pc--shop .pc-toolbar {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pc--shop .pc-toolbar__count {
+    display: block;
+    color: var(--mt-muted);
+    font-size: 0.9rem;
+  }
+
+  .pc--shop .pc-results {
+    display: none;
+  }
+
+  .pc--shop .pc-sort {
+    width: auto;
+    min-width: 220px;
+  }
+}
+
+/* "Sort by" on the Shop title row (computers); the toolbar row above the grid goes away */
+.pc-sortby {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.pc-sortby .pc-sort--title {
+  width: auto;
+  min-width: 210px;
+  margin: 0;
+}
+
+@media (min-width: 901px) {
+  .pc--shop .pc-toolbar {
+    display: none;
   }
 }

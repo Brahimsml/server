@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import TuneIcon from "@mui/icons-material/Tune";
@@ -72,6 +73,7 @@ const ProductsItem = ({
   emptyTitle = "No products found",
   emptyText = "Try another category, or clear the search.",
   initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
+  sortHost = null, // Shop page: a spot on the title row where "Sort by" is shown on computers
   row = false, // one sideways-scrolling row instead of a grid (home, related products)
   rank, // optional: products where rank(p) is true come first (keeps the rest in order)
 }) => {
@@ -308,6 +310,15 @@ const ProductsItem = ({
             />
           </label>
 
+          {/* computers: the count sits here, next to Sort (the search box is the one in the menu bar) */}
+          {!loading && (
+            <span className="pc-toolbar__count" aria-hidden="true">
+              {filtered.length === 0
+                ? "No products match"
+                : `Showing ${visibleProducts.length} of ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
+            </span>
+          )}
+
           {sortSelect("pc-sort")}
 
           {showCategories && (
@@ -521,6 +532,14 @@ const ProductsItem = ({
 
   return (
     <div className={`pc pc--shop ${filtersOpen ? "is-filters-open" : ""}`}>
+      {sortHost &&
+        createPortal(
+          <label className="pc-sortby">
+            <span>Sort by</span>
+            {sortSelect("pc-sort pc-sort--title")}
+          </label>,
+          sortHost
+        )}
       <div className="pc-sheet-overlay" onClick={() => setFiltersOpen(false)} aria-hidden="true" />
       <aside
         className="pc-side"

@@ -479,24 +479,9 @@
     #151515;
 }
 
-.auth-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-.auth-logo img {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid rgba(196, 154, 52, 0.4);
-  object-fit: cover;
-}
-
-.auth-logo .auth-brand {
-  font-size: 1.35rem;
-  color: var(--a-text);
+/* the menu bar already shows the logo, so the photo side starts with the headline, centred */
+.auth-aside__copy {
+  margin: auto 0;
 }
 
 .auth-headline {
@@ -592,6 +577,21 @@
 
 .auth-legal a {
   color: rgba(245, 245, 245, 0.7);
+}
+
+/* lock sits inside the sentence, even lines, and "Privacy Policy" never split */
+.auth-legal {
+  display: block;
+  text-wrap: balance;
+}
+
+.auth-legal svg {
+  margin: 0 4px 0 0;
+  vertical-align: -2px;
+}
+
+.auth-legal__nowrap {
+  white-space: nowrap;
 }
 
 .auth-legal a:hover {

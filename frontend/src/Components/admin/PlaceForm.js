@@ -4,6 +4,7 @@ import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternate
 import api from "../../api";
 import { PageHeader, apiError } from "./AdminUI";
 import { imageUrl } from "../../utils/shop";
+import { DAYS, DEFAULT_HOURS, parseHours } from "../../utils/hours";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_IMAGE_MB = 5;
@@ -33,6 +34,9 @@ const PlaceForm = ({ placeId }) => {
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
+  // Opening hours: on for a new store (Mon–Sat 10–8 to start with); an older store without hours starts off
+  const [showHours, setShowHours] = useState(!isEdit);
+  const [hours, setHours] = useState(DEFAULT_HOURS);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -52,6 +56,9 @@ const PlaceForm = ({ placeId }) => {
           lng: p.lng ?? "",
         });
         setExistingImage(p.image || "");
+        const saved = parseHours(p.hours);
+        setShowHours(!!saved);
+        if (saved) setHours(saved);
       })
       .catch(() => setFormError("We couldn't load this store."))
       .finally(() => setLoading(false));
@@ -97,6 +104,12 @@ const PlaceForm = ({ placeId }) => {
     if (values.lat === "" || !Number.isFinite(lat) || Math.abs(lat) > 90) e.lat = "Enter a latitude between -90 and 90.";
     if (values.lng === "" || !Number.isFinite(lng) || Math.abs(lng) > 180) e.lng = "Enter a longitude between -180 and 180.";
     if (!isEdit && !file) e.image = "Add a photo of the store.";
+    if (showHours) {
+      const openDays = DAYS.filter((d) => hours[d.key]);
+      if (!openDays.length) e.hours = "Set at least one open day, or turn opening hours off.";
+      else if (openDays.some((d) => !hours[d.key].open || !hours[d.key].close || hours[d.key].open === hours[d.key].close))
+        e.hours = "Each open day needs an opening and a closing time.";
+    }
     return e;
   };
 
@@ -114,6 +127,7 @@ const PlaceForm = ({ placeId }) => {
     formData.append("tel", values.tel.trim());
     formData.append("lat", values.lat);
     formData.append("lng", values.lng);
+    formData.append("hours", showHours ? JSON.stringify(hours) : "");
     if (file) formData.append("image", file);
     else if (isEdit) formData.append("existingImage", existingImage);
 
@@ -131,6 +145,14 @@ const PlaceForm = ({ placeId }) => {
       setSaving(false);
     }
   };
+
+  // one day: open/closed, or a new open or close time
+  const setDay = (key, slot) => {
+    setHours((h) => ({ ...h, [key]: slot }));
+    setErrors((er) => ({ ...er, hours: undefined }));
+  };
+  const copyMondayToAll = () =>
+    setHours((h) => Object.fromEntries(DAYS.map((d) => [d.key, d.key === "sun" ? h.sun : h.mon && { ...h.mon }])));
 
   const fieldClass = (name) => `mt-field ${errors[name] ? "mt-field--invalid" : ""}`;
   const shownImage = preview || (existingImage ? imageUrl(existingImage) : "");
@@ -241,6 +263,80 @@ const PlaceForm = ({ placeId }) => {
                   </label>
                   {file && <span className="ad-upload-name">Selected: {file.name}</span>}
                   {errors.image && <small className="mt-field__error">{errors.image}</small>}
+                </div>
+              </section>
+
+              <section className="mt-panel">
+                <div className="ad-panel-head">
+                  <div>
+                    <h2>Opening hours</h2>
+                    <p>Shown on the store card with "Open now" or "Closed" (Lebanon time).</p>
+                  </div>
+                  <label className="ad-switch">
+                    <input
+                      type="checkbox"
+                      checked={showHours}
+                      onChange={(e) => {
+                        setShowHours(e.target.checked);
+                        setErrors((er) => ({ ...er, hours: undefined }));
+                      }}
+                      aria-label="Show opening hours"
+                    />
+                  </label>
+                </div>
+                <div className="ad-panel-body">
+                  {showHours ? (
+                    <>
+                      <ul className="ad-hours">
+                        {DAYS.map((d) => {
+                          const slot = hours[d.key];
+                          return (
+                            <li key={d.key} className={slot ? "" : "is-closed"}>
+                              <label className="ad-switch ad-hours__day">
+                                <input
+                                  type="checkbox"
+                                  checked={!!slot}
+                                  onChange={(e) =>
+                                    setDay(d.key, e.target.checked ? { open: "10:00", close: "20:00" } : null)
+                                  }
+                                />
+                                <span title={d.long}>{d.short}</span>
+                              </label>
+                              {slot ? (
+                                <div className="ad-hours__times">
+                                  <input
+                                    type="time"
+                                    className="mt-input"
+                                    value={slot.open}
+                                    onChange={(e) => setDay(d.key, { ...slot, open: e.target.value })}
+                                    aria-label={`${d.long} opens`}
+                                  />
+                                  <span>to</span>
+                                  <input
+                                    type="time"
+                                    className="mt-input"
+                                    value={slot.close}
+                                    onChange={(e) => setDay(d.key, { ...slot, close: e.target.value })}
+                                    aria-label={`${d.long} closes`}
+                                  />
+                                </div>
+                              ) : (
+                                <span className="ad-hours__closed">Closed</span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm ad-hours__copy" onClick={copyMondayToAll}>
+                        Copy Monday to Tuesday – Saturday
+                      </button>
+                      {errors.hours && <small className="mt-field__error">{errors.hours}</small>}
+                    </>
+                  ) : (
+                    <p className="ad-hint" style={{ margin: 0 }}>
+                      Off: no opening hours are shown for this store. Turn on to add them.
+                    </p>
+                  )}
                 </div>
               </section>
             </div>

@@ -64,6 +64,8 @@ const isAdminPath = (path) =>
 const SiteChrome = ({ children }) => {
   const { pathname } = useLocation();
   const admin = isAdminPath(pathname);
+  // sign-in pages stay focused: no chat button over the form
+  const authPage = /^\/(login|forgot-password|reset-password)(\/|$)/.test(pathname);
 
   return (
     <div className="app-container">
@@ -72,7 +74,7 @@ const SiteChrome = ({ children }) => {
         <div className="page-content">{children}</div>
         {!admin && <Footer />}
       </div>
-      {!admin && <ChatBot />}
+      {!admin && !authPage && <ChatBot />}
       {!admin && <WishlistToast />}
     </div>
   );

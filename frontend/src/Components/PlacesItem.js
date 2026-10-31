@@ -3,14 +3,20 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import DirectionsOutlinedIcon from "@mui/icons-material/DirectionsOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { onImageError } from "../utils/shop";
+import { parseHours, storeStatus, groupHours, todayIndex } from "../utils/hours";
 
 const hasCoords = (lat, lng) =>
   lat !== null && lat !== "" && lng !== null && lng !== "" &&
   Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
 
-function PlacesItem({ image, name, tel, address, lat, lng }) {
+function PlacesItem({ image, name, tel, address, lat, lng, hours: rawHours }) {
   const coords = hasCoords(lat, lng);
+  const hours = parseHours(rawHours);
+  const status = storeStatus(hours);
+  const today = todayIndex();
 
   const mapSrc = coords
     ? `https://www.google.com/maps?q=${lat},${lng}&hl=en&z=15&output=embed`
@@ -52,6 +58,28 @@ function PlacesItem({ image, name, tel, address, lat, lng }) {
             </li>
           )}
         </ul>
+
+        {/* "Open now · Closes 8 PM", opens to show the whole week */}
+        {status && (
+          <details className="loc-hours">
+            <summary>
+              <AccessTimeIcon fontSize="small" />
+              <span className={`loc-hours__status ${status.open ? (status.soon ? "is-soon" : "is-open") : "is-closed"}`}>
+                {status.open ? (status.soon ? "Closing soon" : "Open now") : "Closed"}
+              </span>
+              {status.text && <span className="loc-hours__next">· {status.text}</span>}
+              <ExpandMoreIcon className="loc-hours__chev" fontSize="small" />
+            </summary>
+            <ul className="loc-hours__list">
+              {groupHours(hours).map((g) => (
+                <li key={g.days} className={today >= g.from && today <= g.to ? "is-today" : ""}>
+                  <span>{g.days}</span>
+                  <span>{g.text}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
         <div className="loc-card__actions">
           {directionsUrl && (
