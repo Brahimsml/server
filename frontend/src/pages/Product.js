@@ -125,11 +125,12 @@ const Product = () => {
   }, [showBuyBar]);
 
   // Old or short links (/product/12) get the current name added: /product/12-nvidia-rtx-4090
+  // (only once the product in the address has loaded, so a click on another product isn't sent back)
   useEffect(() => {
-    if (status !== "ready" || !product) return;
+    if (status !== "ready" || !product || Number(product.id) !== Number(productId)) return;
     const canonical = productPath(product);
     if (pathname !== canonical) navigate(canonical, { replace: true });
-  }, [status, product, pathname, navigate]);
+  }, [status, product, productId, pathname, navigate]);
 
   if (status === "loading") {
     return (

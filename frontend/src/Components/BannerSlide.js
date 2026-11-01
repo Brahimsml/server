@@ -21,6 +21,8 @@ const BannerSlide = ({ banner, image, preview = false, children }) => {
   // The whole banner opens the page (like big stores); the button stays as the clear call to action.
   // Not in the admin preview.
   const hit = preview ? null : external ? (
+    // empty on purpose: an invisible click area hidden from screen readers (the button is the real link)
+    // eslint-disable-next-line jsx-a11y/anchor-has-content
     <a href={banner.link} className="hp-banner__hit" target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" />
   ) : (
     <Link to={banner.link} className="hp-banner__hit" tabIndex={-1} aria-hidden="true" />

@@ -12,6 +12,8 @@ import PhoneIphoneOutlinedIcon from "@mui/icons-material/PhoneIphoneOutlined";
 import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import ViewCarouselOutlinedIcon from "@mui/icons-material/ViewCarouselOutlined";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
@@ -39,8 +41,9 @@ const SHADE_OPTIONS = [
   { value: "strong", label: "Strong" },
 ];
 
-// Width the computer preview is drawn at (a 1440px laptop), then shrunk to fit the panel
-const PREVIEW_WIDTH = 1360;
+// Width the computer preview is drawn at (a big screen), then shrunk to fit the panel.
+// The banner has one shape (32:9) on every computer, so this matches all of them.
+const PREVIEW_WIDTH = 1600;
 
 const formatDay = (day) =>
   day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -66,7 +69,8 @@ const Segmented = ({ label, options, value, onChange }) => (
   </div>
 );
 
-// The real home page banner, drawn at laptop size and scaled down to fit
+// The real home page banner, drawn at big-screen size and scaled down to fit,
+// with look-alike slider arrows so the text sits where it does on the home page
 const ComputerPreview = ({ banner, image }) => {
   const outer = useRef(null);
   const inner = useRef(null);
@@ -89,7 +93,21 @@ const ComputerPreview = ({ banner, image }) => {
     <div className="ad-bprev ad-bprev--computer" ref={outer} style={{ height }}>
       <div className="mt-scope hp-home ad-bprev__stage" ref={inner} style={{ width: PREVIEW_WIDTH, transform: `scale(${scale})` }}>
         <section className="hp-slider">
-          <BannerSlide banner={banner} image={image} preview />
+          <BannerSlide banner={banner} image={image} preview>
+            <div className="hp-slider__controls" aria-hidden="true">
+              <span className="hp-slider__arrow">
+                <ChevronLeftIcon />
+              </span>
+              <div className="hp-slider__dots">
+                <button type="button" tabIndex={-1} className="is-active" />
+                <button type="button" tabIndex={-1} />
+                <button type="button" tabIndex={-1} />
+              </div>
+              <span className="hp-slider__arrow">
+                <ChevronRightIcon />
+              </span>
+            </div>
+          </BannerSlide>
         </section>
       </div>
     </div>
@@ -332,7 +350,10 @@ function AdminBanners() {
                 ) : (
                   <PhonePreview banner={values} image={shownImage} />
                 )}
-                <small className="ad-hint">Live preview: exactly what customers see, before and after saving. On phones the text sits under the picture.</small>
+                <small className="ad-hint">
+                  Live preview: the banner has the same shape on every computer, so this is what customers see (bigger or smaller). On phones the text sits under the picture.
+                  Best picture size: <strong>2400 × 675 px</strong> (for example a Canva custom size); then nothing is trimmed.
+                </small>
               </div>
             ) : (
               <div className="ad-banner-preview" aria-label="Preview">
@@ -340,7 +361,7 @@ function AdminBanners() {
                   <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile} />
                   <AddPhotoAlternateOutlinedIcon />
                   <strong>Click to choose the banner image</strong>
-                  <small>Any photo works; wide ones need the least trimming. You add the text and button here, no need to design it.</small>
+                  <small>Best size: 2400 × 675 px (other sizes are trimmed to fit). You add the text and button here, no need to put them in the picture.</small>
                 </label>
               </div>
             )}

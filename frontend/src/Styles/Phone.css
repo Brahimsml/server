@@ -785,12 +785,12 @@
     aspect-ratio: auto;
   }
 
-  /* the banner picture in a wide box, trimmed around the admin's focus point */
+  /* the banner picture in a box of the same 32:9 shape, so the whole picture shows */
   .hp-slide--banner .hp-banner__img {
     position: relative;
     display: block;
     height: auto;
-    aspect-ratio: 8 / 3;
+    aspect-ratio: 32 / 9;
     object-position: center;
   }
 
@@ -809,7 +809,7 @@
 @media (max-height: 520px) and (orientation: landscape) and (max-width: 1000px) {
   .hp-slide.hp-slide--banner {
     display: flex;
-    aspect-ratio: 8 / 3;
+    aspect-ratio: 32 / 9;
     min-height: 0;
   }
 

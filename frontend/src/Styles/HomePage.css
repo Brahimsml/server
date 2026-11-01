@@ -1676,7 +1676,7 @@
   display: flex;
   align-items: center;
   min-height: 0;
-  aspect-ratio: 8 / 3;
+  aspect-ratio: 32 / 9;
   overflow: hidden;
 }
 
@@ -1878,11 +1878,6 @@
     grid-template-columns: minmax(0, 1fr) 400px;
   }
 
-  /* the banner keeps its height instead of growing with the page */
-  .hp-home .hp-slide.hp-slide--banner {
-    aspect-ratio: auto;
-    height: 450px;
-  }
 
   /* top menu bar, Shop menu and footer: the same wide size on every page (lined up with
      the wide pages), so the bar never jumps when you move between pages */
@@ -2335,5 +2330,83 @@
 @media (min-width: 901px) {
   .pc--shop .pc-toolbar {
     display: none;
+  }
+}
+
+/* ===================== BANNER: ONE FIXED SHAPE ON COMPUTERS ===================== */
+/* Always 32:9 (1600 × 450 on big screens, best picture 2400 × 675). Smaller screens show the
+   same banner smaller, text included, like a photo: nothing is trimmed differently, and the
+   admin preview matches every computer. Text sizes are in em of 1% of the banner width
+   (16px at 1600px), with a floor so the text stays readable on small laptops. */
+@media (min-width: 861px) {
+  .hp-slide.hp-slide--banner {
+    container-type: inline-size;
+  }
+
+  .hp-slide--banner .hp-slide__copy {
+    font-size: max(1cqw, 11px);
+    padding: 2.5em 2em 2.125em 3.5em;
+  }
+
+  .hp-banner--right .hp-slide__copy {
+    padding: 2.5em 3.5em 2.125em 2em;
+  }
+
+  .hp-slide--banner .hp-slide__cat {
+    font-size: 0.78em;
+  }
+
+  .hp-slide--banner .hp-slide__title {
+    margin-top: 0.27em;
+    font-size: 3.2em;
+  }
+
+  .hp-slide--banner .hp-slide__desc {
+    margin-top: 0.84em;
+    font-size: 1.04em;
+  }
+
+  .hp-slide--banner .hp-slide__actions {
+    gap: 1.125em;
+    margin-top: 1.625em;
+  }
+
+  .hp-slide--banner .hp-slide__actions .mt-btn {
+    gap: 0.53em;
+    padding: 0.79em 1.45em;
+    border-radius: 0.79em;
+    font-size: 0.95em;
+  }
+
+  .hp-slide--banner .hp-slider__controls {
+    gap: 0.875em;
+    margin-top: 1.75em;
+  }
+
+  .hp-slide--banner .hp-slider__arrow {
+    width: 2.375em;
+    height: 2.375em;
+  }
+
+  .hp-slide--banner .hp-slider__arrow svg {
+    font-size: 1.5em;
+  }
+
+  .hp-slide--banner .hp-slider__dots {
+    gap: 0.375em;
+  }
+
+  .hp-slide--banner .hp-slider__dots button {
+    width: 1.375em;
+    height: 0.25em;
+  }
+
+  .hp-slide--banner .hp-slider__dots button.is-active {
+    width: 2.75em;
+  }
+
+  .hp-slider__skeleton {
+    height: auto;
+    aspect-ratio: 32 / 9;
   }
 }
