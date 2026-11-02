@@ -2410,3 +2410,305 @@
     aspect-ratio: 32 / 9;
   }
 }
+
+/* ===================== PROMO SECTIONS ON THE HOME PAGE ===================== */
+/* Admin → Banners → Promo sections. Each section is a row of banners with one fixed shape per
+   layout (best picture sizes in brackets):
+     wide    1 banner, 4:1 (2400 × 600)
+     halves  2 side by side, 2:1 each (1200 × 600)
+     thirds  3 tiles, 4:3 each (800 × 600)
+   Like the top banner, smaller screens show them smaller, text included. On phones: the whole
+   picture with one slim line of text under it; the three tiles become a sideways swipe row. */
+.hp-promos {
+  display: grid;
+  gap: 18px;
+}
+
+.hp-promos--halves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hp-promos--thirds {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hp-promo {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(196, 154, 52, 0.22);
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(228, 193, 90, 0.08), transparent 45%),
+    linear-gradient(160deg, #101010 0%, #080808 60%, #060606 100%);
+  box-shadow: inset 0 1px 0 rgba(228, 193, 90, 0.12), 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.hp-promo .hp-slide.hp-slide--banner {
+  aspect-ratio: 4 / 1;
+}
+
+.hp-promos--halves .hp-promo .hp-slide.hp-slide--banner {
+  aspect-ratio: 2 / 1;
+}
+
+.hp-promos--thirds .hp-promo .hp-slide.hp-slide--banner {
+  aspect-ratio: 4 / 3;
+}
+
+/* a picture without text needs no dark fade */
+.hp-slide--banner.hp-banner--no-text::after {
+  display: none;
+}
+
+@media (min-width: 861px) {
+  /* text sized for a 1600px-wide wide banner, an 800px half or a 520px tile */
+  .hp-promos--wide .hp-slide--banner .hp-slide__copy {
+    font-size: max(0.85cqw, 11px);
+  }
+
+  .hp-promos--halves .hp-slide--banner .hp-slide__copy {
+    font-size: max(1.7cqw, 11px);
+  }
+
+  .hp-promos--thirds .hp-slide--banner .hp-slide__copy {
+    max-width: 72%;
+    font-size: max(2.5cqw, 11px);
+  }
+
+  .hp-promo .hp-slide--banner .hp-slide__title {
+    font-size: 2.6em;
+  }
+
+  .hp-promos--thirds .hp-slide--banner .hp-slide__title {
+    font-size: 2.2em;
+  }
+}
+
+@media (max-width: 860px) {
+  .hp-promos,
+  .hp-promos--halves {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* three tiles: a sideways swipe row, the next tile peeking in */
+  .hp-promos--thirds {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 80%;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .hp-promos--thirds::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-promos--thirds .hp-promo {
+    scroll-snap-align: start;
+  }
+
+  .hp-promo {
+    border-radius: 18px;
+  }
+
+  .hp-promo .hp-slide.hp-slide--banner,
+  .hp-promos--halves .hp-promo .hp-slide.hp-slide--banner,
+  .hp-promos--thirds .hp-promo .hp-slide.hp-slide--banner {
+    aspect-ratio: auto;
+  }
+
+  .hp-promo .hp-slide--banner .hp-banner__img {
+    aspect-ratio: 4 / 1;
+  }
+
+  .hp-promos--halves .hp-slide--banner .hp-banner__img {
+    aspect-ratio: 2 / 1;
+  }
+
+  .hp-promos--thirds .hp-slide--banner .hp-banner__img {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* compact like shopping apps: the whole picture, then one slim line with the title and a small button */
+  .hp-promo .hp-slide--banner .hp-slide__copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 14px;
+    padding: 12px 14px 14px;
+    text-align: left;
+  }
+
+  .hp-promo .hp-slide__cat {
+    grid-column: 1;
+    font-size: 0.68rem;
+  }
+
+  .hp-promo .hp-slide--banner .hp-slide__title {
+    grid-column: 1;
+    margin: 2px 0 0;
+    font-size: 1.15rem;
+  }
+
+  .hp-promo .hp-slide--banner .hp-slide__desc {
+    grid-column: 1;
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .hp-promo .hp-slide--banner .hp-slide__actions {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    width: auto;
+    margin: 0;
+  }
+
+  .hp-promo .hp-slide--banner .hp-slide__actions .mt-btn {
+    width: auto;
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ===================== SHOP BY CATEGORY: ROUND PICTURES ===================== */
+/* Like big electronics stores: a round picture and the name under it, in even rows that
+   fill the width (Home.js works out how many per row: 9 → one row on computers, 5 + 4 on tablets;
+   more categories split into even rows). Phones swipe sideways instead. */
+.hp-circles {
+  --per-row: var(--per-row-desktop);
+  --gap: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 22px var(--gap);
+  padding: 4px 0;
+}
+
+.hp-circle {
+  flex: 0 0 calc((100% - (var(--per-row) - 1) * var(--gap)) / var(--per-row));
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--mt-text);
+  text-decoration: none;
+}
+
+.hp-circle__pic {
+  width: min(110px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid rgba(196, 154, 52, 0.28);
+  background: radial-gradient(circle at 50% 35%, #1c1c1c, #0b0b0b);
+  box-shadow: inset 0 1px 0 rgba(228, 193, 90, 0.12), 0 10px 30px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.hp-circle__pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.hp-circle__name {
+  max-width: 100%;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.hp-circle:hover .hp-circle__pic,
+.hp-circle:focus-visible .hp-circle__pic {
+  border-color: var(--mt-accent);
+  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.22), 0 14px 34px rgba(0, 0, 0, 0.5);
+  transform: translateY(-3px);
+}
+
+.hp-circle:hover .hp-circle__pic img {
+  transform: scale(1.06);
+}
+
+.hp-circle:hover .hp-circle__name,
+.hp-circle:focus-visible .hp-circle__name {
+  color: var(--mt-accent-bright);
+}
+
+.hp-circle:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-circle__pic,
+  .hp-circle__pic img {
+    transition: none;
+  }
+
+  .hp-circle:hover .hp-circle__pic,
+  .hp-circle:hover .hp-circle__pic img {
+    transform: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hp-circles {
+    --per-row: var(--per-row-tablet);
+    --gap: 20px;
+  }
+
+  .hp-circle__pic {
+    width: min(100px, 100%);
+  }
+}
+
+/* phones: one sideways swipe row like shopping apps; about 4.5 circles show, the half one says "swipe" */
+@media (max-width: 640px) {
+  .hp-circles {
+    --gap: 12px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .hp-circles::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-circle {
+    flex: 0 0 calc((100% - 4 * var(--gap)) / 4.5);
+    gap: 7px;
+    scroll-snap-align: start;
+  }
+
+  .hp-circle__pic {
+    width: 100%;
+  }
+
+  /* long names ("Graphics Cards") take two short lines instead of being cut */
+  .hp-circle__name {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.76rem;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* no lift on touch screens (it would be cut off by the swipe row) */
+  .hp-circle:hover .hp-circle__pic {
+    transform: none;
+  }
+}

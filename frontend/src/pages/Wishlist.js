@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import SignInLink from "../Components/SignInLink";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import CloudDoneOutlinedIcon from "@mui/icons-material/CloudDoneOutlined";
@@ -97,7 +98,7 @@ const Wishlist = () => {
             <>
               <PhoneIphoneOutlinedIcon fontSize="small" />
               <span>
-                Saved on this device only. <Link to="/login?redirect=/wishlist">Sign in</Link> to keep it in your account.
+                Saved on this device only. <SignInLink context="wishlist">Sign in</SignInLink> to keep it in your account.
               </span>
             </>
           )}

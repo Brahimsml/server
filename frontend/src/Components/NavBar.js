@@ -31,6 +31,7 @@ import logo from "../Assets/logo.svg";
 import "../Styles/theme.css";
 import "../Styles/Shell.css";
 import { clearUserSession, getUser } from "../utils/auth";
+import SignInLink, { AccountLink } from "./SignInLink";
 import api from "../api";
 import SHOP_INFO from "../utils/shopInfo";
 import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
@@ -365,24 +366,24 @@ const NavBar = () => {
             </div>
           ) : (
             <div className="nb-dropdown nb-guest">
-              <Link to="/login" className="nb-pill nb-signin">
+              <SignInLink className="nb-pill nb-signin">
                 <PersonOutlineIcon />
                 <span>Sign in</span>
                 <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
-              </Link>
+              </SignInLink>
 
               {/* computers: opens on hover */}
               <div className="nb-menu nb-guest__menu" role="menu">
-                <Link to="/login" className="mt-btn mt-btn--primary nb-guest__signin" role="menuitem">
+                <SignInLink className="mt-btn mt-btn--primary nb-guest__signin" role="menuitem">
                   Sign in
-                </Link>
+                </SignInLink>
                 <p className="nb-guest__new">
-                  New customer? <Link to="/login?mode=register">Create an account</Link>
+                  New customer? <SignInLink mode="register">Create an account</SignInLink>
                 </p>
                 <hr />
-                <Link to="/my-orders" role="menuitem">
+                <AccountLink to="/my-orders" role="menuitem">
                   <ReceiptLongOutlinedIcon fontSize="small" /> My orders
-                </Link>
+                </AccountLink>
                 <Link to="/wishlist" role="menuitem">
                   <FavoriteBorderIcon fontSize="small" /> Wishlist
                 </Link>
@@ -493,12 +494,12 @@ const NavBar = () => {
                   <strong>Welcome to MegaTech</strong>
                   <span>Sign in to track orders, save a wishlist and check out faster.</span>
                   <div className="nb-drawer__auth">
-                    <Link to="/login" className="mt-btn mt-btn--primary mt-btn--sm">
+                    <SignInLink className="mt-btn mt-btn--primary mt-btn--sm" onClick={() => setMobileOpen(false)}>
                       Sign in
-                    </Link>
-                    <Link to="/login?mode=register" className="mt-btn mt-btn--secondary mt-btn--sm">
+                    </SignInLink>
+                    <SignInLink mode="register" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={() => setMobileOpen(false)}>
                       Create account
-                    </Link>
+                    </SignInLink>
                   </div>
                 </div>
               )}
@@ -577,6 +578,13 @@ const NavBar = () => {
 
               {!user && (
                 <ul className="nb-drawer__list">
+                  <li>
+                    <AccountLink to="/my-orders" className="nb-drawer__link" onClick={() => setMobileOpen(false)}>
+                      <ReceiptLongOutlinedIcon fontSize="small" />
+                      <span>My orders</span>
+                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
+                    </AccountLink>
+                  </li>
                   <li>
                     <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
                       <FavoriteBorderIcon fontSize="small" />

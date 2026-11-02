@@ -827,6 +827,23 @@
   .hp-slide--banner .hp-slide__copy {
     max-width: 52%;
   }
+
+  /* promo banners keep their own shape */
+  .hp-promo .hp-slide.hp-slide--banner {
+    aspect-ratio: 4 / 1;
+  }
+
+  .hp-promos--halves .hp-promo .hp-slide.hp-slide--banner {
+    aspect-ratio: 2 / 1;
+  }
+
+  .hp-promos--thirds .hp-promo .hp-slide.hp-slide--banner {
+    aspect-ratio: 4 / 3;
+  }
+
+  .hp-promo .hp-slide--banner .hp-banner__img {
+    aspect-ratio: auto;
+  }
 }
 
 /* the Filters bar moves up while the menu bar is hidden (Shell.css) */

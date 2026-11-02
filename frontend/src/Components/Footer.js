@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AccountLink } from "./SignInLink";
 import axios from "axios";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
@@ -86,7 +87,7 @@ const Footer = () => {
           </FooterSection>
 
           <FooterSection id="help" title="Help" open={open === "help"} onToggle={toggle}>
-            <Link to="/my-orders">My orders</Link>
+            <AccountLink to="/my-orders">My orders</AccountLink>
             <Link to="/cart">Shopping cart</Link>
             <Link to="/menu">Find a store</Link>
             <Link to="/about">About us</Link>

@@ -1,8 +1,9 @@
 /* ===============================
    CUSTOMER SIGN IN / REGISTER
-   Colors are scoped to .auth-page so they don't affect other pages.
+   Colors are scoped to .auth-page (and the sign-in popup) so they don't affect other pages.
 =============================== */
-.auth-page {
+.auth-page,
+.auth-modal {
   --a-surface: #151515;
   --a-border: rgba(196, 154, 52, 0.16);
   --a-text: #f5f5f5;
@@ -11,7 +12,9 @@
   --a-accent-bright: #e4c15a;
   --a-danger: #f08a8a;
   --a-success: #6fd59c;
+}
 
+.auth-page {
   min-height: calc(100vh - 68px);
   min-height: calc(100dvh - 68px); /* minus the navbar */
   display: flex;
@@ -26,7 +29,10 @@
 
 .auth-page *,
 .auth-page *::before,
-.auth-page *::after {
+.auth-page *::after,
+.auth-modal *,
+.auth-modal *::before,
+.auth-modal *::after {
   box-sizing: border-box;
 }
 
@@ -601,5 +607,164 @@
 @media (max-width: 480px) {
   .auth-main {
     padding: 28px 22px 24px;
+  }
+}
+
+/* ===== Email-first form (Components/AuthForm.js) ===== */
+/* the email being used, with "Change" to go back */
+.auth-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -8px 0 18px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--a-border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.92rem;
+}
+
+.auth-who span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.auth-who button,
+.auth-hint button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--a-accent-bright);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-who button:hover,
+.auth-hint button:hover {
+  text-decoration: underline;
+}
+
+/* a mistake shows under its own box, in red */
+.auth-field input.is-invalid,
+.auth-otp input[aria-invalid="true"] {
+  border-color: var(--a-danger);
+}
+
+.auth-field input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(240, 138, 138, 0.2);
+}
+
+.auth-field > .auth-field-error {
+  display: block;
+  margin: 6px 0 0;
+  color: var(--a-danger);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.auth-hint {
+  margin: -6px 0 16px;
+  color: var(--a-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.auth-note {
+  margin: 10px 0 0;
+  color: var(--a-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* new password: strength bar + what's needed */
+.auth-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 10px;
+  color: var(--a-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.auth-strength__bar {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.auth-strength__bar i {
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 0.2s ease;
+}
+
+.auth-strength--0 span { color: var(--a-danger); }
+.auth-strength--1 .auth-strength__bar i:nth-child(-n + 1) { background: #f08a5a; }
+.auth-strength--1 span { color: #f08a5a; }
+.auth-strength--2 .auth-strength__bar i:nth-child(-n + 2) { background: #f0b45a; }
+.auth-strength--2 span { color: #f0b45a; }
+.auth-strength--3 .auth-strength__bar i { background: var(--a-success); }
+.auth-strength--3 span { color: var(--a-success); }
+
+.auth-checks {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+  color: var(--a-muted);
+  font-size: 0.8rem;
+}
+
+.auth-checks li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth-checks svg {
+  opacity: 0.35;
+}
+
+.auth-checks li.is-ok {
+  color: var(--a-success);
+}
+
+.auth-checks li.is-ok svg {
+  opacity: 1;
+}
+
+/* the email code: six boxes */
+.auth-otp {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.auth-field .auth-otp input {
+  width: 100%;
+  padding: 0;
+  aspect-ratio: 1 / 1.15;
+  border-radius: 12px;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 380px) {
+  .auth-otp {
+    gap: 6px;
+  }
+
+  .auth-field .auth-otp input {
+    font-size: 1.2rem;
   }
 }

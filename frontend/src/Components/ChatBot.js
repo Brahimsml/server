@@ -23,7 +23,7 @@ import {
   FALLBACK_IMG,
 } from "../utils/shop";
 import "../Styles/ChatBot.css";
-import { getUserToken } from "../utils/auth";
+import { getUserToken, openSignIn } from "../utils/auth";
 
 const STORAGE_KEY = "mt-chat";
 const MIN_TYPING_MS = 550;
@@ -169,6 +169,11 @@ const ChatBot = () => {
   };
 
   const go = (to) => {
+    // "Sign in" opens the sign-in popup (and goes to the page it was about afterwards)
+    if (to.startsWith("/login")) {
+      setOpen(false);
+      return openSignIn({ redirect: new URLSearchParams(to.split("?")[1]).get("redirect") });
+    }
     navigate(to);
     if (isPhone()) setOpen(false);
   };

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AccountLink } from "../Components/SignInLink";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
@@ -53,7 +54,7 @@ const FAQS = [
     q: "Where is my order?",
     a: (
       <>
-        Sign in and open <Link to="/my-orders">My orders</Link> to see the status of every order. We also email you
+        Sign in and open <AccountLink to="/my-orders">My orders</AccountLink> to see the status of every order. We also email you
         when it changes.
       </>
     ),
@@ -62,7 +63,7 @@ const FAQS = [
     q: "Can I cancel an order?",
     a: (
       <>
-        Yes, while it's still pending: open it in <Link to="/my-orders">My orders</Link> and press Cancel. If it's already
+        Yes, while it's still pending: open it in <AccountLink to="/my-orders">My orders</AccountLink> and press Cancel. If it's already
         on its way, message us.
       </>
     ),

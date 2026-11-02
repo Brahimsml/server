@@ -18,6 +18,7 @@
     focus_x/y    the spot of the picture that must stay visible (0-100 %)
     starts_on    show from this day (optional)
     ends_on      show until this day (optional)
+    placement    top (the slider) or promo (a slot of a promo section, see migrate-promo-sections.js)
 
   Safe to run more than once.
 
@@ -64,6 +65,7 @@ const query = (sql, params) =>
       ["focus_y", "TINYINT UNSIGNED NOT NULL DEFAULT 50"],
       ["starts_on", "DATE NULL"],
       ["ends_on", "DATE NULL"],
+      ["placement", "VARCHAR(12) NOT NULL DEFAULT 'top'"],
     ];
     for (const [name, type] of columns) {
       if (existing.has(name)) {

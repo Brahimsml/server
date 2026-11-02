@@ -1,0 +1,157 @@
+/* ===============================
+   SIGN-IN POPUP (Components/AuthModal.js)
+   Uses the sign-in page's colors and form styles (Login.css).
+   Computers: a centred card. Phones: a sheet that slides up from the bottom.
+=============================== */
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050; /* above the menu bar, phone menu and chat */
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: am-fade 0.2s ease;
+}
+
+.auth-modal__panel {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 20px;
+  border: 1px solid var(--a-border);
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(228, 193, 90, 0.07), transparent 50%),
+    linear-gradient(180deg, #171717 0%, #0f0f0f 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(228, 193, 90, 0.1);
+  color: var(--a-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  animation: am-pop 0.22s ease;
+}
+
+.auth-modal__panel:focus {
+  outline: none;
+}
+
+.auth-modal__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 0 28px;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.auth-modal__head img {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-modal__close {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--a-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.auth-modal__close:hover,
+.auth-modal__close:focus-visible {
+  border-color: var(--a-border);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--a-text);
+}
+
+.auth-modal__body {
+  padding: 18px 28px 6px;
+}
+
+.auth-modal .auth-title {
+  font-size: 1.45rem;
+}
+
+.auth-modal .auth-subtitle {
+  margin-bottom: 18px;
+}
+
+.auth-modal__trust {
+  margin: 0;
+  padding: 14px 28px 18px;
+  border-top: 1px solid var(--a-border);
+  color: var(--a-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@keyframes am-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes am-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@keyframes am-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* phones: a bottom sheet */
+@media (max-width: 640px) {
+  .auth-modal {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .auth-modal__panel {
+    width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: am-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .auth-modal__head {
+    padding: 14px 12px 0 20px;
+  }
+
+  .auth-modal__body {
+    padding: 14px 20px 4px;
+  }
+
+  .auth-modal__trust {
+    padding: 12px 20px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-modal__backdrop,
+  .auth-modal__panel {
+    animation: none;
+  }
+}

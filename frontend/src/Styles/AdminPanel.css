@@ -3125,3 +3125,405 @@ a.ad-kpi:hover {
     min-width: 0;
   }
 }
+
+/* ===================== BANNERS: TOP SLIDER / PROMO SECTIONS ===================== */
+.ad-banner-tabs {
+  overflow: hidden;
+}
+
+.ad-banner-tabs .ad-tabs {
+  border-bottom: none;
+}
+
+/* a typed-in link takes the whole row of a two-column form */
+.ad-form-row .ad-field-wide {
+  grid-column: 1 / -1;
+}
+
+/* the top banner preview can't be clicked; the promo preview can (to pick a banner) */
+.ad-bprev__stage.is-interactive {
+  pointer-events: auto;
+}
+
+/* the phone preview uses phone text sizes, not the computer ones that grow with the banner */
+.ad-bprev__phone .hp-slide--banner .hp-slide__copy {
+  font-size: 16px;
+}
+
+.ad-bprev__phone .hp-slide--banner .hp-slide__title {
+  font-size: 1.45rem;
+}
+
+/* ----- Promo section form: layout + place on the page ----- */
+.ad-promo-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  gap: 20px;
+  align-items: start;
+}
+
+.ad-promo-setup__group {
+  display: grid;
+  gap: 10px;
+}
+
+.ad-promo-setup__spot {
+  margin: 0;
+}
+
+.ad-layouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ad-layout {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--mt-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--mt-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ad-layout:hover {
+  border-color: var(--mt-border-strong);
+}
+
+.ad-layout.is-active {
+  border-color: var(--mt-accent);
+  background: rgba(196, 154, 52, 0.1);
+  box-shadow: inset 0 0 0 1px var(--mt-accent);
+}
+
+.ad-layout strong {
+  font-size: 0.9rem;
+}
+
+.ad-layout small {
+  color: var(--mt-muted);
+  font-size: 0.75rem;
+}
+
+/* little drawing of the layout */
+.ad-layout__pic {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 34px;
+}
+
+.ad-layout__pic--halves {
+  grid-template-columns: 1fr 1fr;
+}
+
+.ad-layout__pic--thirds {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.ad-layout__pic i {
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ad-layout.is-active .ad-layout__pic i {
+  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  opacity: 0.85;
+}
+
+/* ----- Promo preview: each banner can be picked; empty ones invite a picture ----- */
+/* the gold frame is drawn inside the banner, so the preview's edges never cut it off */
+.ad-promo-slot.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border: 6px solid var(--mt-accent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ad-promo-slot__pick {
+  display: block;
+  cursor: pointer;
+}
+
+.ad-promo-slot__empty {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  aspect-ratio: 4 / 1;
+  border: 3px dashed var(--mt-border-strong);
+  border-radius: inherit;
+  color: var(--mt-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.hp-promos--halves .ad-promo-slot__empty {
+  aspect-ratio: 2 / 1;
+}
+
+.hp-promos--thirds .ad-promo-slot__empty {
+  aspect-ratio: 4 / 3;
+}
+
+.ad-promo-slot__empty:hover {
+  border-color: var(--mt-accent);
+  color: var(--mt-accent-bright);
+}
+
+.ad-promo-slot__empty svg {
+  font-size: 3.4rem;
+}
+
+.ad-promo-slot__empty strong {
+  font-size: 1.8rem;
+}
+
+.ad-promo-slot__empty span {
+  font-size: 1.3rem;
+}
+
+.ad-promo-slot__num {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.ad-promo-slot.is-selected .ad-promo-slot__num {
+  background: var(--mt-accent);
+  color: #131313;
+}
+
+/* ----- The selected banner's fields ----- */
+.ad-promo-editor {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--mt-border);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.ad-promo-editor .mt-field {
+  margin: 0;
+}
+
+.ad-promo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ad-promo-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--mt-border);
+  background: transparent;
+  color: var(--mt-muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ad-promo-tabs button svg {
+  margin-left: 6px;
+}
+
+.ad-promo-tabs button.is-active {
+  border-color: var(--mt-accent);
+  background: rgba(196, 154, 52, 0.12);
+  color: var(--mt-text);
+}
+
+.ad-promo-tabs img {
+  width: 44px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.ad-promo-tabs em {
+  color: #f0b45a;
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ad-promo-picture {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ad-promo-picture .mt-btn {
+  cursor: pointer;
+}
+
+/* ----- List of sections ----- */
+.ad-promo-listhead h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.ad-promo-thumb {
+  display: grid;
+  gap: 3px;
+  width: 160px;
+  aspect-ratio: 32 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--mt-border);
+}
+
+.ad-promo-thumb--halves {
+  grid-template-columns: 1fr 1fr;
+}
+
+.ad-promo-thumb--thirds {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.ad-promo-thumb img {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  object-fit: cover;
+}
+
+/* ----- Phone preview of a promo section: the phone layout (see HomePage.css) ----- */
+.ad-bprev__phone .hp-promos {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ad-bprev__phone.is-interactive {
+  pointer-events: auto;
+}
+
+.ad-bprev__phone .hp-promos--thirds {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 80%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ad-bprev__phone .hp-promo {
+  border-radius: 16px;
+}
+
+.ad-bprev__phone .ad-promo-slot.is-selected::after {
+  border-width: 3px;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide.hp-slide--banner {
+  aspect-ratio: auto;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-banner__img {
+  aspect-ratio: 4 / 1;
+}
+
+.ad-bprev__phone .hp-promos--halves .hp-promo .hp-slide--banner .hp-banner__img {
+  aspect-ratio: 2 / 1;
+}
+
+.ad-bprev__phone .hp-promos--thirds .hp-promo .hp-slide--banner .hp-banner__img {
+  aspect-ratio: 4 / 3;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  max-width: none;
+  margin: 0;
+  padding: 10px 12px 12px;
+  font-size: 16px;
+  text-align: left;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide__cat {
+  grid-column: 1;
+  font-size: 0.66rem;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__title {
+  grid-column: 1;
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__desc {
+  grid-column: 1;
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  -webkit-line-clamp: 1;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__actions {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  width: auto;
+  margin: 0;
+}
+
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__actions .mt-btn {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.ad-bprev__phone .ad-promo-slot__empty svg {
+  font-size: 1.8rem;
+}
+
+.ad-bprev__phone .ad-promo-slot__empty strong {
+  font-size: 0.95rem;
+}
+
+.ad-bprev__phone .ad-promo-slot__empty span {
+  font-size: 0.75rem;
+}
+
+.ad-bprev__phone .ad-promo-slot__num {
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .ad-promo-setup,
+  .ad-layouts {
+    grid-template-columns: 1fr;
+  }
+}

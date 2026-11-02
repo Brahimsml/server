@@ -14,7 +14,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
-const { processProductUpload, processProductUploads, processBannerUpload } = require("./productImages");
+const { processProductUpload, processProductUploads, processBannerUpload, processPromoUploads } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -492,6 +492,39 @@ app.post("/users/register", async (req, res) => {
 });
 
 /*
+   EMAIL-FIRST SIGN IN: does this email have an account?
+   The sign-in form asks for the email first (like Amazon or Google), then shows the
+   password step or the create-account step. That tells people whether an email has an
+   account, so each visitor can only check 30 emails per 15 minutes.
+*/
+const emailChecks = new Map(); // ip -> { count, resetAt }
+const EMAIL_CHECKS_MAX = 30;
+const EMAIL_CHECKS_WINDOW_MS = 15 * 60 * 1000;
+
+app.post("/users/check-email", async (req, res) => {
+  const now = Date.now();
+  const entry = emailChecks.get(req.ip);
+  const current = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + EMAIL_CHECKS_WINDOW_MS };
+  if (current.count >= EMAIL_CHECKS_MAX) {
+    return res.status(429).json({ message: "Too many tries. Please wait a few minutes and try again." });
+  }
+  current.count += 1;
+  emailChecks.set(req.ip, current);
+
+  const email = String(req.body?.email || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ message: "Enter a valid email address." });
+  }
+  try {
+    const [user] = await runQuery(db, "SELECT email_verified, google_id FROM users WHERE email=?", [email]);
+    // a sign-up that was never confirmed counts as new: signing up again takes it over
+    res.json({ exists: Boolean(user && (user.email_verified || user.google_id)), google: Boolean(user?.google_id) });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
    USER LOGIN
 */
 app.post("/users/login", limitLoginAttempts, (req, res) => {
@@ -865,38 +898,52 @@ app.post("/users/forgot-password", (req, res) => {
   });
 });
 
-app.post("/users/reset-password", (req, res) => {
-  const { id, token, password } = req.body || {};
-  const invalid = () =>
-    res.status(400).json({ message: "This reset link is invalid or has expired. Please request a new one." });
+// The reset link's user, if the link is still good (expired, tampered with or already used: null)
+const resetLinkUser = async (id, token) => {
+  if (!id || !token) return null;
+  const [user] = await runQuery(db, "SELECT * FROM users WHERE id=?", [id]);
+  if (!user) return null;
+  try {
+    const payload = jwt.verify(String(token), resetSecretFor(user));
+    return payload.purpose === "password-reset" && Number(payload.id) === Number(user.id) ? user : null;
+  } catch {
+    return null;
+  }
+};
+const RESET_LINK_BROKEN = "This reset link is invalid or has expired. Please request a new one.";
 
-  if (!id || !token) return invalid();
+// The reset page checks its link first: says straight away if it expired, and shows (and tells
+// the browser's password manager) which account the new password is for
+app.post("/users/reset-password/check", async (req, res) => {
+  try {
+    const user = await resetLinkUser(req.body?.id, req.body?.token);
+    if (!user) return res.status(400).json({ message: RESET_LINK_BROKEN });
+    res.json({ email: user.email });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// New password, then signed in straight away (like Google or Apple): the link proved they own the inbox
+app.post("/users/reset-password", async (req, res) => {
+  const { id, token, password } = req.body || {};
   if (!password || String(password).length < 8) {
     return res.status(400).json({ message: "Password must be at least 8 characters" });
   }
-
-  db.query("SELECT id, password FROM users WHERE id=?", [id], async (err, rows) => {
-    if (err) return serverError(res, err);
-    if (!rows.length) return invalid();
-
-    let payload;
-    try {
-      payload = jwt.verify(String(token), resetSecretFor(rows[0]));
-    } catch {
-      return invalid(); // expired, tampered with, or already used (password changed)
-    }
-    if (payload.purpose !== "password-reset" || Number(payload.id) !== Number(rows[0].id)) return invalid();
-
-    try {
-      const hashed = await bcrypt.hash(String(password), 10);
-      db.query("UPDATE users SET password=? WHERE id=?", [hashed, rows[0].id], (err2) => {
-        if (err2) return serverError(res, err2);
-        res.json({ message: "Your password was changed. You can sign in now." });
-      });
-    } catch (e) {
-      serverError(res, e);
-    }
-  });
+  try {
+    const user = await resetLinkUser(id, token);
+    if (!user) return res.status(400).json({ message: RESET_LINK_BROKEN });
+    const hashed = await bcrypt.hash(String(password), 10);
+    // the old password stops working here, and so does this link (it was signed with the old hash)
+    await runQuery(db, "UPDATE users SET password=?, email_verified=1 WHERE id=?", [hashed, user.id]);
+    res.json({
+      message: "Your password was changed.",
+      token: signUserToken(user, wantsRemember(req)),
+      user: publicUser(user),
+    });
+  } catch (err) {
+    serverError(res, err);
+  }
 });
 
 /*
@@ -1241,7 +1288,7 @@ app.get("/banners", (req, res) => {
   db.query(
     `SELECT id, image, eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y
      FROM banners
-     WHERE active=1 AND (starts_on IS NULL OR starts_on <= CURDATE()) AND (ends_on IS NULL OR ends_on >= CURDATE())
+     WHERE section_id IS NULL AND active=1 AND (starts_on IS NULL OR starts_on <= CURDATE()) AND (ends_on IS NULL OR ends_on >= CURDATE())
      ORDER BY sort_order, id`,
     (err, rows) => {
       if (err) return serverError(res, err);
@@ -1254,7 +1301,7 @@ app.get("/admin/banners", verifyAdmin, (req, res) => {
   // dates as plain YYYY-MM-DD, so the admin form shows the day that was picked
   const sql = `SELECT *, DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, DATE_FORMAT(ends_on, '%Y-%m-%d') AS ends_on,
     (starts_on IS NOT NULL AND starts_on > CURDATE()) AS not_started, (ends_on IS NOT NULL AND ends_on < CURDATE()) AS has_ended
-    FROM banners ORDER BY sort_order, id`;
+    FROM banners WHERE section_id IS NULL ORDER BY sort_order, id`;
   db.query(sql, (err, rows) => {
     if (err) return serverError(res, err);
     res.json(rows);
@@ -1272,7 +1319,7 @@ app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, a
     const result = await runQuery(
       db,
       `INSERT INTO banners (image, ${BANNER_COLUMNS}, sort_order)
-       SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM banners`,
+       SELECT ?, ${BANNER_COLUMNS.split(", ").map(() => "?").join(", ")}, COALESCE(MAX(sort_order), 0) + 1 FROM banners WHERE section_id IS NULL`,
       [req.file.filename, ...bannerValues(fields)]
     );
     res.json({ message: "Banner added", id: result.insertId });
@@ -1342,6 +1389,208 @@ app.delete("/banners/:id", verifyAdmin, async (req, res) => {
     await runQuery(db, "DELETE FROM banners WHERE id=?", [req.params.id]);
     removeImageIfUnused(banner.image);
     res.json({ message: "Banner deleted" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+/*
+   PROMO SECTIONS (Admin → Banners → Promo sections)
+   A row of 1-3 promo banners between the home page sections. Each slot is a banners row
+   (placement 'promo', section_id, slot), so it has the same design settings and pictures.
+   The admin form sends "data" (JSON) plus the new pictures as image_0, image_1, image_2.
+*/
+const PROMO_LAYOUTS = { wide: 1, halves: 2, thirds: 3 };
+const PROMO_POSITIONS = ["after_trust", "after_categories", "after_best", "after_new", "bottom"];
+const promoUpload = multer({
+  storage,
+  limits: { fileSize: MAX_UPLOAD_SIZE, files: 3 },
+  fileFilter: imageFileFilter,
+}).fields([{ name: "image_0" }, { name: "image_1" }, { name: "image_2" }]);
+
+const promoPosition = (value) => {
+  const v = String(value || "");
+  return PROMO_POSITIONS.includes(v) || /^cat:.{1,60}$/.test(v) ? v : "after_new";
+};
+
+// A slot's text is optional (the picture may already say it all); its link is not
+const slotFields = (body = {}) => ({
+  eyebrow: cleanText(body.eyebrow, 60) || null,
+  title: cleanText(body.title, 120),
+  subtitle: cleanText(body.subtitle, 220) || null,
+  button_text: cleanText(body.button_text, 40),
+  link: cleanLink(body.link),
+  text_align: pick(body.text_align, ["left", "center", "right"], "left"),
+  text_color: pick(body.text_color, ["light", "dark"], "light"),
+  shade: pick(body.shade, ["none", "light", "medium", "strong"], "medium"),
+  focus_x: percent(body.focus_x ?? 50),
+  focus_y: percent(body.focus_y ?? 50),
+});
+
+const SLOT_COLUMNS = "eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y";
+const slotValues = (f) => [f.eyebrow, f.title, f.subtitle, f.button_text, f.link, f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y];
+
+// Sections with their slots, in the admin's order. live=true: only what customers should see today.
+const loadPromos = async (live) => {
+  const sections = await runQuery(
+    db,
+    `SELECT id, layout, position, active, DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, DATE_FORMAT(ends_on, '%Y-%m-%d') AS ends_on,
+            (starts_on IS NOT NULL AND starts_on > CURDATE()) AS not_started, (ends_on IS NOT NULL AND ends_on < CURDATE()) AS has_ended
+       FROM promo_sections
+      ${live ? "WHERE active=1 AND (starts_on IS NULL OR starts_on <= CURDATE()) AND (ends_on IS NULL OR ends_on >= CURDATE())" : ""}
+      ORDER BY sort_order, id`
+  );
+  if (!sections.length) return [];
+  const slots = await runQuery(
+    db,
+    `SELECT id, section_id, slot, image, ${SLOT_COLUMNS} FROM banners WHERE section_id IN (?) ORDER BY slot`,
+    [sections.map((x) => x.id)]
+  );
+  return sections
+    .map((x) => ({
+      ...x,
+      active: Number(x.active) === 1,
+      not_started: Number(x.not_started) === 1,
+      has_ended: Number(x.has_ended) === 1,
+      slots: slots.filter((b) => b.section_id === x.id),
+    }))
+    .filter((x) => !live || x.slots.length === PROMO_LAYOUTS[x.layout]);
+};
+
+app.get("/promos", async (req, res) => {
+  try {
+    const promos = await loadPromos(true);
+    res.json(promos.map(({ id, layout, position, slots }) => ({ id, layout, position, slots })));
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.get("/admin/promos", verifyAdmin, async (req, res) => {
+  try {
+    res.json(await loadPromos(false));
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// Create (no id) or replace (id) a section and all its slots in one go
+const savePromo = async (req, res, id) => {
+  let data;
+  try {
+    data = JSON.parse(req.body?.data || "{}");
+  } catch {
+    data = {};
+  }
+  const layout = PROMO_LAYOUTS[data.layout] ? data.layout : "halves";
+  const count = PROMO_LAYOUTS[layout];
+  const section = {
+    layout,
+    position: promoPosition(data.position),
+    active: data.active === false ? 0 : 1,
+    starts_on: cleanDay(data.starts_on),
+    ends_on: cleanDay(data.ends_on),
+  };
+  const slots = Array.from({ length: count }, (_, i) => slotFields(Array.isArray(data.slots) ? data.slots[i] : {}));
+  const files = Array.from({ length: count }, (_, i) => req.files?.[`image_${i}`]?.[0] || null);
+
+  try {
+    const old = id ? await runQuery(db, "SELECT slot, image FROM banners WHERE section_id=?", [id]) : [];
+    if (id && !(await runQuery(db, "SELECT id FROM promo_sections WHERE id=?", [id])).length) {
+      discardUpload(req);
+      return res.status(404).json({ message: "Promo section not found" });
+    }
+    const images = slots.map((_, i) => files[i]?.filename || old.find((o) => o.slot === i)?.image || null);
+
+    const missing = images.findIndex((img) => !img);
+    const badLink = slots.findIndex((f) => !f.link);
+    const problem =
+      missing >= 0
+        ? `Add a picture to banner ${missing + 1}.`
+        : badLink >= 0
+        ? `Banner ${badLink + 1}: choose where it goes (a page like /shop or a full https:// link).`
+        : section.starts_on && section.ends_on && section.ends_on < section.starts_on
+        ? "The end date is before the start date."
+        : "";
+    if (problem) {
+      discardUpload(req);
+      return res.status(400).json({ message: problem });
+    }
+
+    const sectionId = await withTransaction(async (conn) => {
+      let sid = id;
+      if (sid) {
+        await runQuery(conn, "UPDATE promo_sections SET layout=?, position=?, active=?, starts_on=?, ends_on=? WHERE id=?", [
+          section.layout, section.position, section.active, section.starts_on, section.ends_on, sid,
+        ]);
+        await runQuery(conn, "DELETE FROM banners WHERE section_id=?", [sid]);
+      } else {
+        const result = await runQuery(
+          conn,
+          `INSERT INTO promo_sections (layout, position, active, starts_on, ends_on, sort_order)
+           SELECT ?, ?, ?, ?, ?, COALESCE(MAX(sort_order), 0) + 1 FROM promo_sections`,
+          [section.layout, section.position, section.active, section.starts_on, section.ends_on]
+        );
+        sid = result.insertId;
+      }
+      for (const [i, f] of slots.entries()) {
+        await runQuery(
+          conn,
+          `INSERT INTO banners (image, ${SLOT_COLUMNS}, placement, section_id, slot, active, sort_order)
+           VALUES (?, ${SLOT_COLUMNS.split(", ").map(() => "?").join(", ")}, 'promo', ?, ?, 1, 0)`,
+          [images[i], ...slotValues(f), sid, i]
+        );
+      }
+      return sid;
+    });
+
+    // pictures that were replaced, or belonged to slots the new layout dropped
+    old.filter((o) => !images.includes(o.image)).forEach((o) => removeImageIfUnused(o.image));
+    res.json({ message: id ? "Promo section updated" : "Promo section added", id: sectionId });
+  } catch (err) {
+    discardUpload(req);
+    serverError(res, err);
+  }
+};
+
+app.post("/admin/promos", verifyAdmin, promoUpload, processPromoUploads, (req, res) => savePromo(req, res, null));
+
+// New order: { ids: [3, 1, 2] } (declared before /admin/promos/:id)
+app.put("/admin/promos/order", verifyAdmin, async (req, res) => {
+  const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(Number).filter(Number.isInteger) : [];
+  if (!ids.length) return res.status(400).json({ message: "Send the section ids in their new order" });
+  try {
+    await withTransaction(async (conn) => {
+      for (const [i, sid] of ids.entries()) await runQuery(conn, "UPDATE promo_sections SET sort_order=? WHERE id=?", [i + 1, sid]);
+    });
+    res.json({ message: "Order saved" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.put("/admin/promos/:id/active", verifyAdmin, async (req, res) => {
+  try {
+    const result = await runQuery(db, "UPDATE promo_sections SET active=? WHERE id=?", [req.body?.active ? 1 : 0, req.params.id]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Promo section not found" });
+    res.json({ message: "Saved" });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.put("/admin/promos/:id", verifyAdmin, promoUpload, processPromoUploads, (req, res) => savePromo(req, res, Number(req.params.id)));
+
+app.delete("/admin/promos/:id", verifyAdmin, async (req, res) => {
+  try {
+    const old = await runQuery(db, "SELECT image FROM banners WHERE section_id=?", [req.params.id]);
+    const result = await withTransaction(async (conn) => {
+      await runQuery(conn, "DELETE FROM banners WHERE section_id=?", [req.params.id]);
+      return runQuery(conn, "DELETE FROM promo_sections WHERE id=?", [req.params.id]);
+    });
+    if (!result.affectedRows) return res.status(404).json({ message: "Promo section not found" });
+    old.forEach((o) => removeImageIfUnused(o.image));
+    res.json({ message: "Promo section deleted" });
   } catch (err) {
     serverError(res, err);
   }

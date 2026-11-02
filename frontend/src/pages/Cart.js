@@ -21,7 +21,7 @@ import api from "../api";
 import { API_URL } from "../api";
 import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut, productPath } from "../utils/shop";
 import { useWishlist } from "../Context/WishlistContext";
-import { clearUserSession, getUser, getUserToken } from "../utils/auth";
+import { clearUserSession, getUser, getUserToken, openSignIn } from "../utils/auth";
 import usePageTitle from "../utils/usePageTitle";
 
 const PAYMENT_ICONS = { cash: PaymentsOutlinedIcon };
@@ -49,8 +49,8 @@ const Cart = () => {
   // Checkout needs a signed-in user; after login they come back here to confirm
   const token = getUserToken();
   const user = getUser();
-  const goToLogin = (mode) =>
-    navigate(`/login?redirect=/cart${mode === "register" ? "&mode=register" : ""}`);
+  // the sign-in popup; afterwards the cart reloads, signed in, ready to confirm
+  const goToLogin = (mode) => openSignIn({ mode: mode === "register" ? "register" : "login", context: "checkout" });
 
   const [customer, setCustomer] = useState({
     customer_name: user?.name || "",

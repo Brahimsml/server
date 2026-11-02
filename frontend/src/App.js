@@ -52,6 +52,7 @@ import AdminCustomer from "./pages/AdminCustomer";
 
 import { CartProvider } from "./Context/CartContext";
 import ChatBot from "./Components/ChatBot";
+import AuthModal from "./Components/AuthModal";
 import WishlistToast from "./Components/WishlistToast";
 import Analytics from "./Components/Analytics";
 import MyOrders from "./pages/MyOrders";
@@ -75,6 +76,7 @@ const SiteChrome = ({ children }) => {
         {!admin && <Footer />}
       </div>
       {!admin && !authPage && <ChatBot />}
+      {!admin && !authPage && <AuthModal />}
       {!admin && <WishlistToast />}
     </div>
   );

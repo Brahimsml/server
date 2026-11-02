@@ -85,3 +85,12 @@ export const updateStoredUser = (user) => {
     store.setItem(USER_KEY, JSON.stringify({ ...current, ...user }));
   } catch {}
 };
+
+/*
+  Open the sign-in popup (Components/AuthModal.js) instead of leaving the page.
+    mode      "login" or "register"
+    context   "checkout" or "wishlist": the title says why they're signing in
+    redirect  a page to go to afterwards (otherwise they stay where they are)
+*/
+export const openSignIn = ({ mode = "login", context = null, redirect = null } = {}) =>
+  window.dispatchEvent(new CustomEvent("megatech:sign-in", { detail: { mode, context, redirect } }));

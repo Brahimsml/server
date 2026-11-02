@@ -204,4 +204,17 @@ const processBannerUpload = async (req, res, next) => {
   }
 };
 
-module.exports = { standardizeProductImage, processProductUpload, processProductUploads, processBannerUpload };
+// Middleware for the promo section form (up to 3 pictures: image_0, image_1, image_2)
+const processPromoUploads = async (req, res, next) => {
+  const files = req.files ? Object.values(req.files).flat() : [];
+  try {
+    for (const file of files) await standardizeBannerImage(file.path);
+    next();
+  } catch (err) {
+    console.error("❌ Could not process promo image:", err.message);
+    files.forEach((file) => fs.unlink(file.path, () => {}));
+    res.status(400).json({ message: "One of the pictures couldn't be read. Please try another file." });
+  }
+};
+
+module.exports = { standardizeProductImage, processProductUpload, processProductUploads, processBannerUpload, processPromoUploads };

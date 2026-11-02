@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -63,6 +63,9 @@ const isNew = (p) => /^new/i.test(normalizeLabel(p.label));
 
 const ROW_SIZE = 8; // products per sideways row
 
+// Items per row so the rows come out even: 12 with at most 10 a row → 6 + 6, not 10 + 2
+const perRow = (count, max) => Math.ceil(count / Math.ceil(count / max)) || 1;
+
 const Home = () => {
   const navigate = useNavigate();
 
@@ -71,27 +74,6 @@ const Home = () => {
   const [loadError, setLoadError] = useState(false);
 
   // Products this visitor opened lately (newest first), saved in this browser
-  // "Shop by category" row: arrows on computers when there are more tiles to see
-  const catsRef = useRef(null);
-  const [catEnds, setCatEnds] = useState({ start: true, end: true });
-  const updateCatEnds = useCallback(() => {
-    const el = catsRef.current;
-    if (!el) return;
-    const start = el.scrollLeft <= 4;
-    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    setCatEnds((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
-  }, []);
-  useEffect(() => {
-    updateCatEnds();
-    window.addEventListener("resize", updateCatEnds);
-    return () => window.removeEventListener("resize", updateCatEnds);
-  }, [updateCatEnds, products]);
-
-  const scrollCats = (dir) => {
-    const el = catsRef.current;
-    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
-  };
-
   const [recentIds, setRecentIds] = useState(getRecentlyViewed);
   const recentRank = useMemo(() => {
     const order = new Map(recentIds.map((id, i) => [id, recentIds.length - i]));
@@ -108,6 +90,15 @@ const Home = () => {
     api
       .get("/banners")
       .then((res) => setBanners(Array.isArray(res.data) ? res.data : []))
+      .catch(() => {});
+  }, []);
+
+  // Promo sections (Admin → Banners → Promo sections): rows of 1-3 banners between the sections
+  const [promos, setPromos] = useState([]);
+  useEffect(() => {
+    api
+      .get("/promos")
+      .then((res) => setPromos(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
   }, []);
 
@@ -262,6 +253,23 @@ const Home = () => {
       </div>
     );
 
+
+  // Promo sections at one spot of the page. One placed after a category row that isn't
+  // showing (too few products) moves to the bottom instead of disappearing.
+  const shownRows = loading ? null : new Set(categories.filter((c) => c.count >= 2).map((c) => c.name));
+  const spotOf = (p) => (p.position.startsWith("cat:") && shownRows && !shownRows.has(p.position.slice(4)) ? "bottom" : p.position);
+  const promosAt = (spot) =>
+    promos
+      .filter((p) => spotOf(p) === spot)
+      .map((p) => (
+        <section key={`promo-${p.id}`} className={`mt-section hp-promos hp-promos--${p.layout}`} aria-label="Offers">
+          {p.slots.map((slot) => (
+            <div key={slot.id} className="hp-promo">
+              <BannerSlide banner={slot} placeholder={false} />
+            </div>
+          ))}
+        </section>
+      ));
   return (
     <div className="mt-page hp hp-home">
       <div className="mt-container">
@@ -330,6 +338,8 @@ const Home = () => {
           ))}
         </section>
 
+        {promosAt("after_trust")}
+
         {/* ===== RECENTLY VIEWED (only for visitors who opened products before) ===== */}
         {hasRecent && (
           <section className="mt-section mt-box hp-recent" id="recently-viewed">
@@ -377,42 +387,27 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="hp-cats-wrap">
-            <div className="hp-cats" ref={catsRef} onScroll={updateCatEnds}>
+            {/* Round pictures in even rows, like big electronics stores (9 → one row on computers, 5 + 4 on tablets; phones swipe) */}
+            <div
+              className="hp-circles"
+              style={{
+                "--per-row-desktop": perRow(categories.length, 10),
+                "--per-row-tablet": perRow(categories.length, 5),
+              }}
+            >
               {categories.map((cat) => (
-                <Link key={cat.name} to={shopLink(cat.name)} className="hp-cat">
-                  <div className="hp-cat__media">
-                    {cat.image && (
-                      <img src={imageUrl(cat.image)} alt="" loading="lazy" onError={onImageError} />
-                    )}
-                  </div>
-                  <div className="hp-cat__body">
-                    <div>
-                      <h3>{cat.name}</h3>
-                      <span className="hp-cat__meta">
-                        {cat.count} {cat.count === 1 ? "product" : "products"}
-                      </span>
-                    </div>
-                    <span className="hp-cat__go" aria-hidden="true">
-                      <ArrowForwardIcon fontSize="inherit" />
-                    </span>
-                  </div>
+                <Link key={cat.name} to={shopLink(cat.name)} className="hp-circle">
+                  <span className="hp-circle__pic">
+                    {cat.image && <img src={imageUrl(cat.image)} alt="" loading="lazy" onError={onImageError} />}
+                  </span>
+                  <span className="hp-circle__name">{cat.name}</span>
                 </Link>
               ))}
             </div>
-            {!(catEnds.start && catEnds.end) && (
-              <div className="pc-row-arrows">
-                <button type="button" onClick={() => scrollCats(-1)} disabled={catEnds.start} aria-label="Previous categories">
-                  <ChevronLeftIcon />
-                </button>
-                <button type="button" onClick={() => scrollCats(1)} disabled={catEnds.end} aria-label="More categories">
-                  <ChevronRightIcon />
-                </button>
-              </div>
-            )}
-            </div>
           </section>
         )}
+
+        {promosAt("after_categories")}
 
         {/* ===== BEST SELLERS ===== */}
         {(loading || products.some(isBestSeller)) && (
@@ -439,6 +434,8 @@ const Home = () => {
           </section>
         )}
 
+        {promosAt("after_best")}
+
         {/* ===== NEW ARRIVALS ===== */}
         {(loading || newArrivalIds.size > 0) && (
           <section className="mt-section mt-box" id="new-arrivals">
@@ -463,6 +460,8 @@ const Home = () => {
             />
           </section>
         )}
+
+        {promosAt("after_new")}
 
         {/* ===== NEED HELP CHOOSING? ===== */}
         <section className="mt-section hp-help" aria-labelledby="hp-help-title">
@@ -504,28 +503,33 @@ const Home = () => {
           categories
             .filter((cat) => cat.count >= 2)
             .map((cat) => (
-              <section className="mt-section mt-box hp-catrow" key={cat.name}>
-                <div className="mt-section-head">
-                  <div>
-                    <h2>{cat.name}</h2>
+              <Fragment key={cat.name}>
+                <section className="mt-section mt-box hp-catrow">
+                  <div className="mt-section-head">
+                    <div>
+                      <h2>{cat.name}</h2>
+                    </div>
+                    <Link to={shopLink(cat.name)} className="mt-link">
+                      See all {cat.count} <ArrowForwardIcon fontSize="inherit" />
+                    </Link>
                   </div>
-                  <Link to={shopLink(cat.name)} className="mt-link">
-                    See all {cat.count} <ArrowForwardIcon fontSize="inherit" />
-                  </Link>
-                </div>
 
-                <ProductsItem
-                  products={products}
-                  category={cat.name}
-                  rank={notShownAbove}
-                  limit={ROW_SIZE}
-                  row
-                  showToolbar={false}
-                  showCategories={false}
-                  showPagination={false}
-                />
-              </section>
+                  <ProductsItem
+                    products={products}
+                    category={cat.name}
+                    rank={notShownAbove}
+                    limit={ROW_SIZE}
+                    row
+                    showToolbar={false}
+                    showCategories={false}
+                    showPagination={false}
+                  />
+                </section>
+                {promosAt(`cat:${cat.name}`)}
+              </Fragment>
             ))}
+
+        {promosAt("bottom")}
 
         {/* ===== CLOSING CTA ===== */}
         <section className="mt-cta">

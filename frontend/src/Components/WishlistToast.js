@@ -1,16 +1,14 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import CloseIcon from "@mui/icons-material/Close";
 import { useWishlist } from "../Context/WishlistContext";
+import SignInLink from "./SignInLink";
 
 // The message that pops up after tapping a heart
 const WishlistToast = () => {
   const { toast, dismissToast } = useWishlist();
-  const { pathname, search } = useLocation();
   if (!toast) return null;
-
-  const here = encodeURIComponent(pathname + search);
 
   return (
     <div className="wl-toast" role="status" aria-live="polite" key={toast.key}>
@@ -26,9 +24,9 @@ const WishlistToast = () => {
           </>
         ) : (
           <>
-            <Link to={`/login?redirect=${here}`} onClick={dismissToast}>
+            <SignInLink context="wishlist" onClick={dismissToast}>
               Sign in
-            </Link>{" "}
+            </SignInLink>{" "}
             to keep your wishlist on all your devices.
           </>
         )}
