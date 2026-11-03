@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import api from "../api";
-import { PageHeader, SearchBox, FilterTabs } from "../Components/admin/AdminUI";
+import { useAdmin } from "../Components/admin/AdminLayout";
+import { PageHeader, SearchBox, FilterTabs, apiError } from "../Components/admin/AdminUI";
 import { formatMoney, formatOrderDate } from "../utils/shop";
 import { downloadCsv } from "../utils/csv";
 
@@ -19,7 +21,8 @@ const startOfMonth = () => {
 
 function AdminCustomers() {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState([]);
+  const { notify, confirm } = useAdmin();
+  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -31,12 +34,36 @@ function AdminCustomers() {
     document.title = "Customers | MegaTech Admin";
     api
       .get("/admin/customers")
-      .then((res) => setCustomers(Array.isArray(res.data) ? res.data : []))
+      .then((res) => setAccounts(Array.isArray(res.data) ? res.data : []))
       .catch(() => setError("We couldn't load your customers. Please refresh the page."))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => setVisible(PAGE_SIZE), [search, tab, sortBy]);
+
+  // A customer is someone who confirmed their email (or used Google). Sign-ups that never
+  // entered the email code are kept apart, and removed by the server after 48 hours.
+  const confirmed = (c) => c.email_verified || c.google_linked;
+  const customers = useMemo(() => accounts.filter(confirmed), [accounts]);
+  const unconfirmed = useMemo(() => accounts.filter((c) => !confirmed(c)), [accounts]);
+
+  // Delete an account with no orders (old test accounts, unconfirmed sign-ups)
+  const removeCustomer = async (c) => {
+    const ok = await confirm({
+      title: "Delete this account?",
+      message: `${c.name || c.email} (${c.email}) will be removed for good. Accounts with orders can't be deleted.`,
+      confirmLabel: "Delete account",
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/admin/customers/${c.id}`);
+      setAccounts((list) => list.filter((x) => x.id !== c.id));
+      notify("Account deleted");
+    } catch (err) {
+      notify(apiError(err, "We couldn't delete this account."), "error");
+    }
+  };
 
   // Biggest spenders (who actually ordered) get a badge
   const topIds = useMemo(
@@ -69,7 +96,7 @@ function AdminCustomers() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const digits = q.replace(/\D/g, "");
-    const list = customers.filter((c) => {
+    const list = (tab === "unconfirmed" ? unconfirmed : customers).filter((c) => {
       if (tab === "ordered" && c.orders_count === 0) return false;
       if (tab === "returning" && c.orders_count < 2) return false;
       if (tab === "none" && c.orders_count > 0) return false;
@@ -87,7 +114,7 @@ function AdminCustomers() {
       name: (a, b) => String(a.name).localeCompare(String(b.name)),
     };
     return list.sort(sorters[sortBy]);
-  }, [customers, search, tab, sortBy]);
+  }, [customers, unconfirmed, search, tab, sortBy]);
 
   const exportCsv = () => {
     downloadCsv(
@@ -154,6 +181,7 @@ function AdminCustomers() {
             { value: "ordered", label: "Have ordered", count: stats.ordered },
             { value: "returning", label: "Returning", count: stats.returning },
             { value: "none", label: "No orders yet", count: stats.none },
+            ...(unconfirmed.length ? [{ value: "unconfirmed", label: "Unconfirmed sign-ups", count: unconfirmed.length }] : []),
           ]}
         />
 
@@ -167,6 +195,13 @@ function AdminCustomers() {
             <option value="name">Name A–Z</option>
           </select>
         </div>
+
+        {tab === "unconfirmed" && (
+          <p className="ad-hint" style={{ margin: "0 20px 12px" }}>
+            People who started signing up but never entered the code from their email. They aren't customers and can't sign in; they're removed by
+            themselves 48 hours after signing up.
+          </p>
+        )}
 
         {loading ? (
           <div className="ad-panel-body" style={{ display: "grid", gap: 10 }}>
@@ -196,7 +231,8 @@ function AdminCustomers() {
                     <th className="ad-num">Orders</th>
                     <th className="ad-num">Total spent</th>
                     <th>Last order</th>
-                    <th>Customer since</th>
+                    <th>{tab === "unconfirmed" ? "Signed up" : "Customer since"}</th>
+                    <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
@@ -228,6 +264,22 @@ function AdminCustomers() {
                         {c.last_order_at ? shortDate(c.last_order_at) : <span className="ad-muted">No orders yet</span>}
                       </td>
                       <td data-label="Customer since">{shortDate(c.created_at)}</td>
+                      <td data-label="" className="ad-num">
+                        {c.orders_count === 0 && (
+                          <button
+                            type="button"
+                            className="ad-icon-btn ad-icon-btn--danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeCustomer(c);
+                            }}
+                            aria-label={`Delete ${c.email}`}
+                            title="Delete account (no orders)"
+                          >
+                            <DeleteOutlineIcon />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

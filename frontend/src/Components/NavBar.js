@@ -122,6 +122,7 @@ const NavBar = () => {
   const accountRef = useRef(null);
   const adminRef = useRef(null);
   const cartRef = useRef(null);
+  const moreRef = useRef(null);
   const prevCount = useRef(cartCount);
 
   const { items: wishlist } = useWishlist();
@@ -144,6 +145,7 @@ const NavBar = () => {
     const onDown = (e) => {
       if (openMenu === "account" && !accountRef.current?.contains(e.target)) setOpenMenu(null);
       if (openMenu === "admin" && !adminRef.current?.contains(e.target)) setOpenMenu(null);
+      if (openMenu === "more" && !moreRef.current?.contains(e.target)) setOpenMenu(null);
       if (miniCart.open && !cartRef.current?.contains(e.target)) closeMiniCart();
     };
     const onKey = (e) => {
@@ -441,13 +443,20 @@ const NavBar = () => {
             ))}
           </nav>
           {hiddenCats.length > 0 && (
-            <div className="nb-dropdown nb-more">
-              <button type="button" className="nb-sublink" aria-haspopup="menu">
+            // opens on hover (mouse) and on click / tap (touch screens, keyboards)
+            <div className={`nb-dropdown nb-more ${openMenu === "more" ? "is-open" : ""}`} ref={moreRef}>
+              <button
+                type="button"
+                className="nb-sublink"
+                aria-haspopup="menu"
+                aria-expanded={openMenu === "more"}
+                onClick={() => toggleMenu("more")}
+              >
                 More <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
               </button>
               <div className="nb-menu nb-more__menu" role="menu">
                 {hiddenCats.map((name) => (
-                  <Link key={name} to={`/shop?category=${encodeURIComponent(name)}`} role="menuitem">
+                  <Link key={name} to={`/shop?category=${encodeURIComponent(name)}`} role="menuitem" onClick={() => setOpenMenu(null)}>
                     {name}
                   </Link>
                 ))}

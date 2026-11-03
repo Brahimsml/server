@@ -1575,7 +1575,7 @@ body.nb-menu-open .cb-launch {
 
 .nb-mega__inner {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr) 230px;
+  grid-template-columns: 190px minmax(0, 1fr);
   gap: 28px;
   max-width: 1200px;
   margin: 0 auto;
@@ -1626,7 +1626,7 @@ body.nb-menu-open .cb-launch {
 
 .nb-mega__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--mega-cols, 3), minmax(0, 1fr));
   gap: 10px;
   align-content: start;
 }
@@ -1694,71 +1694,14 @@ body.nb-menu-open .cb-launch {
 }
 
 /* best seller spotlight */
-.nb-mega__spot {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--mt-border);
-  background:
-    radial-gradient(120% 80% at 100% 0%, rgba(196, 154, 52, 0.14), transparent 60%),
-    var(--mt-surface);
-  color: var(--mt-text);
-  text-decoration: none;
-  transition: border-color 0.2s ease;
-}
-
-.nb-mega__spot:hover {
-  border-color: var(--mt-border-strong);
-}
-
-.nb-mega__spot-label {
-  color: var(--mt-accent-bright);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.nb-mega__spot-img {
-  height: 110px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  padding: 10px;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.nb-mega__spot-img img {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
-.nb-mega__spot strong {
-  font-size: 0.9rem;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.nb-mega__spot-price {
-  font-family: var(--mt-font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-/* smaller laptops: drop the spotlight, 3 categories across */
+/* smaller laptops: a narrower side column, at most 3 categories across */
 @media (max-width: 1180px) {
   .nb-mega__inner {
     grid-template-columns: 170px minmax(0, 1fr);
   }
 
-  .nb-mega__spot {
-    display: none;
+  .nb-mega__grid {
+    grid-template-columns: repeat(min(var(--mega-cols, 3), 3), minmax(0, 1fr));
   }
 }
 
@@ -2277,8 +2220,22 @@ body.nb-menu-open .cb-launch {
     animation: none;
   }
 
-  .nb-more:hover .nb-more__menu,
+  .nb-more.is-open .nb-more__menu,
   .nb-more:has(:focus-visible) .nb-more__menu {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .nb-more.is-open .nb-chevron {
+    transform: rotate(180deg);
+  }
+}
+
+/* opening on hover is only for a real mouse: touch screens keep a "hover" after a tap,
+   which made the list stick open or need several taps */
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  .nb-more:hover .nb-more__menu {
     visibility: visible;
     opacity: 1;
     transform: none;

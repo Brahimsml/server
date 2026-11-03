@@ -4,14 +4,18 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api";
-import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, productPath, FALLBACK_IMG } from "../utils/shop";
+import { imageUrl, normalizeLabel, onImageError, FALLBACK_IMG } from "../utils/shop";
 
 const categoryLink = (name) => `/shop?category=${encodeURIComponent(name)}`;
 
+// a real mouse (hover works); touch screens and pens don't hover
+const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
 /*
   "All categories" in the second menu row on computers: hover (or press the arrow) to open a panel with
-  quick links, every category with a photo (in the admin's order) and a best seller.
-  Products load the first time it opens.
+  quick links and every category with a photo (in the admin's order); a click opens the Shop.
+  Touch screens have no hover, so there a tap opens the panel instead (its "All products" link
+  goes to the Shop). Products load the first time it opens.
 */
 const ShopMegaMenu = ({ linkClass }) => {
   const { pathname, search } = useLocation();
@@ -37,8 +41,14 @@ const ShopMegaMenu = ({ linkClass }) => {
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => e.key === "Escape" && setOpen(false);
+    // touch screens: a tap anywhere else closes it (there's no "mouse leaving")
+    const onDown = (e) => !wrap.current?.contains(e.target) && setOpen(false);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
   }, [open]);
 
   // Load once, the first time the panel opens
@@ -65,20 +75,28 @@ const ShopMegaMenu = ({ linkClass }) => {
       .filter((c) => c.count > 0);
   }, [categories, products]);
 
-  const spotlight = useMemo(() => {
-    const list = (products || []).filter((p) => p.image && Number(p.stock_quantity) > 0);
-    return list.filter(isBestSeller).sort((a, b) => Number(b.price) - Number(a.price))[0] || list[0];
-  }, [products]);
+  // categories per row: up to 4, with even rows (9 → 3 × 3, 12 → 4 × 3)
+  const count = products === null ? 8 : tiles.length;
+  const columns = Math.min(4, Math.ceil(count / Math.ceil(count / 4))) || 1;
 
   return (
     <div
       className={`nb-mega ${open ? "is-open" : ""}`}
       ref={wrap}
-      onMouseEnter={() => show()}
-      onMouseLeave={() => hide()}
+      onMouseEnter={() => canHover() && show()}
+      onMouseLeave={() => canHover() && hide()}
       onBlur={(e) => !wrap.current?.contains(e.relatedTarget) && hide(0)}
     >
-      <NavLink to="/shop" className={(s) => `${linkClass(s, "/shop")} nb-mega__link`}>
+      <NavLink
+        to="/shop"
+        className={(s) => `${linkClass(s, "/shop")} nb-mega__link`}
+        aria-expanded={open}
+        onClick={(e) => {
+          if (canHover()) return; // mouse: go to the Shop (the panel opened on hover)
+          e.preventDefault(); // touch: show the categories first
+          setOpen((v) => !v);
+        }}
+      >
         <MenuIcon fontSize="small" /> All categories
       </NavLink>
       <button
@@ -105,7 +123,7 @@ const ShopMegaMenu = ({ linkClass }) => {
             <Link to="/menu">Visit a store</Link>
           </div>
 
-          <div className="nb-mega__grid">
+          <div className="nb-mega__grid" style={{ "--mega-cols": columns }}>
             {products === null
               ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="mt-skeleton nb-mega__skeleton" />)
               : tiles.map((c) => (
@@ -123,16 +141,6 @@ const ShopMegaMenu = ({ linkClass }) => {
                 ))}
           </div>
 
-          {spotlight && (
-            <Link to={productPath(spotlight)} className="nb-mega__spot">
-              <span className="nb-mega__spot-label">{isBestSeller(spotlight) ? "Best seller" : "Featured"}</span>
-              <span className="nb-mega__spot-img">
-                <img src={imageUrl(spotlight.image)} alt="" onError={onImageError} />
-              </span>
-              <strong>{spotlight.name}</strong>
-              <span className="nb-mega__spot-price">{formatMoney(spotlight.price)}</span>
-            </Link>
-          )}
         </div>
       </div>
     </div>

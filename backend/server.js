@@ -2361,6 +2361,30 @@ app.delete("/contacts/:id", verifyAdmin, (req, res) => {
    ADMIN DASHBOARD STATS
 */
 /*
+   UNCONFIRMED SIGN-UPS: someone typed their details but never entered the email code.
+   That's not a customer yet; after 48 hours the sign-up is removed (they can simply sign up
+   again). Accounts with Google or with orders are never touched. Checked at start and hourly.
+*/
+const UNCONFIRMED_KEEP_HOURS = 48;
+const removeOldUnconfirmedSignups = async () => {
+  try {
+    const result = await runQuery(
+      db,
+      `DELETE FROM users
+        WHERE email_verified = 0 AND google_id IS NULL
+          AND created_at < NOW() - INTERVAL ? HOUR
+          AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = users.id)`,
+      [UNCONFIRMED_KEEP_HOURS]
+    );
+    if (result.affectedRows) console.log(`🧹 Removed ${result.affectedRows} unconfirmed sign-up(s) older than ${UNCONFIRMED_KEEP_HOURS} hours`);
+  } catch (err) {
+    console.error("❌ Could not clean up unconfirmed sign-ups:", err.message);
+  }
+};
+setTimeout(removeOldUnconfirmedSignups, 10 * 1000);
+setInterval(removeOldUnconfirmedSignups, 60 * 60 * 1000).unref();
+
+/*
    ADMIN CUSTOMERS
    Spent / orders count only orders that weren't cancelled.
    Phone / address: what the customer saved in their account, else their latest order.
@@ -2390,6 +2414,24 @@ app.get("/admin/customers", verifyAdmin, async (req, res) => {
         open_orders: Number(r.open_orders),
       }))
     );
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// Delete a customer account, only if it has no orders (orders are the shop's records and must stay)
+app.delete("/admin/customers/:id", verifyAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) return res.status(404).json({ message: "Customer not found" });
+  try {
+    const [user] = await runQuery(db, "SELECT id FROM users WHERE id=?", [id]);
+    if (!user) return res.status(404).json({ message: "Customer not found" });
+    const [{ n }] = await runQuery(db, "SELECT COUNT(*) AS n FROM orders WHERE user_id=?", [id]);
+    if (Number(n) > 0) {
+      return res.status(400).json({ message: "This customer has orders, so the account can't be deleted (the orders must stay on record)." });
+    }
+    await runQuery(db, "DELETE FROM users WHERE id=?", [id]); // their wishlist goes with it
+    res.json({ message: "Customer deleted" });
   } catch (err) {
     serverError(res, err);
   }
