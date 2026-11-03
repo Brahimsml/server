@@ -11,7 +11,7 @@ import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomi
 import api from "../../api";
 import { useAdmin } from "./AdminLayout";
 import { apiError } from "./AdminUI";
-import BannerSlide from "../BannerSlide";
+import BannerSlide, { PROMO_ASPECT } from "../BannerSlide";
 import { imageUrl } from "../../utils/shop";
 import { IMAGE_TYPES, ScaledStage, LinkField, DesignFields, formatDay, imageProblem } from "./BannerParts";
 
@@ -46,13 +46,15 @@ const EMPTY_SLOT = {
   eyebrow: "",
   title: "",
   subtitle: "",
-  button_text: "Shop now",
+  button_text: "", // promos look cleanest without one: the whole picture is the link
   link: "/shop",
   text_align: "left",
   text_color: "light",
   shade: "medium",
   focus_x: 50,
   focus_y: 50,
+  img_zoom: 100,
+  img_fill: "dark",
 };
 const EMPTY = { layout: "halves", position: "after_new", active: true, starts_on: "", ends_on: "" };
 const three = (value) => [0, 1, 2].map(() => value);
@@ -136,6 +138,8 @@ function PromoSections({ categories, onCount }) {
               shade: b.shade || "medium",
               focus_x: b.focus_x ?? 50,
               focus_y: b.focus_y ?? 50,
+              img_zoom: b.img_zoom ?? 100,
+              img_fill: b.img_fill || "dark",
             }
           : EMPTY_SLOT;
       }),
@@ -267,7 +271,7 @@ function PromoSections({ categories, onCount }) {
           onClick={() => setCurrent(i)}
           onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setCurrent(i))}
         >
-          <BannerSlide banner={slots[i]} image={image(i)} preview placeholder={false} />
+          <BannerSlide banner={slots[i]} image={image(i)} preview placeholder={false} aspect={PROMO_ASPECT[values.layout]} />
         </div>
       ) : (
         <label className="ad-promo-slot__empty" onClick={() => setCurrent(i)}>
@@ -426,7 +430,7 @@ function PromoSections({ categories, onCount }) {
               <div className="ad-form-row">
                 <label className="mt-field">
                   <span>Button text (optional)</span>
-                  <input value={slot.button_text} onChange={(e) => setSlot(current, { button_text: e.target.value })} maxLength={40} placeholder="Leave empty for no button" />
+                  <input value={slot.button_text} onChange={(e) => setSlot(current, { button_text: e.target.value })} maxLength={40} placeholder="e.g. Shop now (or leave empty)" />
                 </label>
                 <LinkField label="Goes to" value={slot.link} onChange={(link) => setSlot(current, { link })} categories={categories} />
               </div>
@@ -434,7 +438,7 @@ function PromoSections({ categories, onCount }) {
                 The whole banner is clickable. No text at all? Then the picture alone is the link, handy for pictures made in Canva with the text already on them.
               </small>
 
-              <DesignFields values={slot} onChange={(change) => setSlot(current, change)} image={image(current)} />
+              <DesignFields values={slot} onChange={(change) => setSlot(current, change)} image={image(current)} aspect={PROMO_ASPECT[values.layout]} />
             </div>
 
             {/* 4. When */}

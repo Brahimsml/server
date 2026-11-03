@@ -638,3 +638,25 @@ select.mt-input option {
   background: none;
   object-fit: contain;
 }
+
+/* ===== A picture placed in its box by the crop tool (Components/FramedImage.js) ===== */
+.mt-frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.mt-frame .mt-frame__img {
+  position: absolute;
+  max-width: none;
+  max-height: none;
+}
+
+.mt-frame .mt-frame__blur {
+  position: absolute;
+  inset: -8%;
+  width: 116%;
+  height: 116%;
+  object-fit: cover;
+  filter: blur(22px) brightness(0.55) saturate(1.2);
+}

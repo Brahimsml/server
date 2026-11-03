@@ -2,20 +2,26 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { imageUrl } from "../utils/shop";
+import FramedImage from "./FramedImage";
+
+// The shape (width / height) of each banner box: the top slider, and promo banners by layout
+export const TOP_BANNER_ASPECT = 32 / 9;
+export const PROMO_ASPECT = { wide: 4, halves: 2, thirds: 4 / 3 };
 
 /*
   One home page banner (Admin → Banners): the picture, the fade behind the text and the text.
   Used on the home page and in the admin's live preview, so both always look the same.
   Design settings: text_align (left/center/right), text_color (light/dark),
-  shade (none/light/medium/strong), focus_x/focus_y (the spot of the picture that stays visible).
+  shade (none/light/medium/strong), and how the picture sits in its box (crop tool):
+  img_zoom, focus_x/focus_y (left/right, up/down), img_fill (dark or blurred around it).
+  Top banners can have a picture made for phones (image_mobile), shown there instead of a crop.
   Top banners always have a headline and a button ("Your headline" / "Shop now" while being made);
   promo banners (placeholder=false) may have neither, then the picture alone is the link.
 */
-const BannerSlide = ({ banner, image, preview = false, placeholder = true, children }) => {
+const BannerSlide = ({ banner, image, phoneImage, preview = false, placeholder = true, aspect = TOP_BANNER_ASPECT, children }) => {
   const align = banner.text_align || "left";
   const color = banner.text_color || "light";
   const shade = banner.shade || "medium";
-  const focus = `${banner.focus_x ?? 50}% ${banner.focus_y ?? 50}%`;
   const buttonText = banner.button_text || (placeholder ? "Shop now" : "");
   const title = banner.title || (placeholder ? "Your headline" : "");
   const hasText = Boolean(banner.eyebrow || title || banner.subtitle || buttonText || children);
@@ -36,17 +42,19 @@ const BannerSlide = ({ banner, image, preview = false, placeholder = true, child
     <Link to={banner.link} className="hp-banner__hit" {...hitProps} />
   );
 
-  // A page on this site, or an outside link in a new tab (just a look-alike in the preview)
+  // A page on this site, or an outside link in a new tab (just a look-alike in the preview).
+  // The top banner has a big gold button; promo banners a small gold text link, like Apple or Samsung.
+  const buttonClass = placeholder ? "mt-btn mt-btn--primary" : "hp-promo-link";
   const button = !buttonText ? null : preview ? (
-    <span className="mt-btn mt-btn--primary">
+    <span className={buttonClass}>
       {buttonText} <ArrowForwardIcon />
     </span>
   ) : external ? (
-    <a href={banner.link} className="mt-btn mt-btn--primary" target="_blank" rel="noopener noreferrer">
+    <a href={banner.link} className={buttonClass} target="_blank" rel="noopener noreferrer">
       {buttonText} <ArrowForwardIcon />
     </a>
   ) : (
-    <Link to={banner.link} className="mt-btn mt-btn--primary">
+    <Link to={banner.link} className={buttonClass}>
       {buttonText} <ArrowForwardIcon />
     </Link>
   );
@@ -58,7 +66,17 @@ const BannerSlide = ({ banner, image, preview = false, placeholder = true, child
       }`}
     >
       {(image || banner.image) && (
-        <img className="hp-banner__img" src={image || imageUrl(banner.image)} alt="" style={{ objectPosition: focus }} />
+        <FramedImage
+          className="hp-banner__img"
+          src={image || imageUrl(banner.image)}
+          phoneSrc={phoneImage || (banner.image_mobile ? imageUrl(banner.image_mobile) : undefined)}
+          aspect={aspect}
+          zoom={banner.img_zoom ?? 100}
+          x={banner.focus_x ?? 50}
+          y={banner.focus_y ?? 50}
+          fill={banner.img_fill || "dark"}
+          loading={placeholder ? "eager" : "lazy"}
+        />
       )}
       {hit}
       {hasText && (

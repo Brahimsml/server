@@ -14,12 +14,12 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, FilterTabs, apiError } from "../Components/admin/AdminUI";
-import BannerSlide from "../Components/BannerSlide";
+import BannerSlide, { TOP_BANNER_ASPECT } from "../Components/BannerSlide";
 import PromoSections from "../Components/admin/PromoSections";
 import { IMAGE_TYPES, ScaledStage, LinkField, DesignFields, formatDay, imageProblem } from "../Components/admin/BannerParts";
 import { imageUrl } from "../utils/shop";
 
-const DESIGN = { text_align: "left", text_color: "light", shade: "medium", focus_x: 50, focus_y: 50, starts_on: "", ends_on: "" };
+const DESIGN = { text_align: "left", text_color: "light", shade: "medium", focus_x: 50, focus_y: 50, img_zoom: 100, img_fill: "dark", starts_on: "", ends_on: "" };
 const EMPTY = { eyebrow: "", title: "", subtitle: "", button_text: "Shop now", link: "/shop", active: true, ...DESIGN };
 
 // The real home page banner, drawn at big-screen size and scaled down to fit,
@@ -46,11 +46,13 @@ const ComputerPreview = ({ banner, image }) => (
   </ScaledStage>
 );
 
-const PhonePreview = ({ banner, image }) => (
+// The phone layout; shows the phone picture when there is one (the preview isn't a real phone
+// screen, so it's passed in as the picture itself)
+const PhonePreview = ({ banner, image, phoneImage }) => (
   <div className="ad-bprev ad-bprev--phone">
     <div className="ad-bprev__phone mt-scope">
       <section className="hp-slider">
-        <BannerSlide banner={banner} image={image} preview />
+        <BannerSlide banner={phoneImage ? { ...banner, img_zoom: 100, focus_x: 50, focus_y: 50 } : banner} image={phoneImage || image} preview />
       </section>
     </div>
   </div>
@@ -73,6 +75,10 @@ function AdminBanners() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [existingImage, setExistingImage] = useState("");
+  // optional picture made for phones (shown there instead of a crop of the wide picture)
+  const [phoneFile, setPhoneFile] = useState(null);
+  const [phonePreview, setPhonePreview] = useState("");
+  const [existingPhone, setExistingPhone] = useState("");
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -94,6 +100,13 @@ function AdminBanners() {
   }, []);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
+  useEffect(() => () => phonePreview && URL.revokeObjectURL(phonePreview), [phonePreview]);
+
+  const resetPhone = (existing = "") => {
+    setPhoneFile(null);
+    setPhonePreview("");
+    setExistingPhone(existing);
+  };
 
   const set = (name) => (e) => {
     setValues((v) => ({ ...v, [name]: e.target.value }));
@@ -106,6 +119,7 @@ function AdminBanners() {
     setFile(null);
     setPreview("");
     setExistingImage("");
+    resetPhone();
     setFormError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -124,12 +138,15 @@ function AdminBanners() {
       shade: b.shade || DESIGN.shade,
       focus_x: b.focus_x ?? 50,
       focus_y: b.focus_y ?? 50,
+      img_zoom: b.img_zoom ?? 100,
+      img_fill: b.img_fill || "dark",
       starts_on: b.starts_on || "",
       ends_on: b.ends_on || "",
     });
     setFile(null);
     setPreview("");
     setExistingImage(b.image);
+    resetPhone(b.image_mobile || "");
     setFormError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -150,6 +167,18 @@ function AdminBanners() {
     setFormError("");
   };
 
+  const pickPhoneFile = (e) => {
+    const picked = e.target.files?.[0];
+    e.target.value = "";
+    if (!picked) return;
+    const problem = imageProblem(picked);
+    if (problem) return setFormError(problem);
+    setPhoneFile(picked);
+    setPhonePreview(URL.createObjectURL(picked));
+    setDevice("phone");
+    setFormError("");
+  };
+
   const save = async (e) => {
     e.preventDefault();
     if (editing === "new" && !file) return setFormError("Choose a banner image.");
@@ -161,6 +190,8 @@ function AdminBanners() {
     const form = new FormData();
     Object.entries(values).forEach(([k, v]) => form.append(k, k === "active" ? (v ? "1" : "0") : String(v).trim()));
     if (file) form.append("image", file);
+    if (phoneFile) form.append("image_mobile", phoneFile);
+    else if (!existingPhone) form.append("remove_image_mobile", "1");
 
     try {
       setSaving(true);
@@ -223,6 +254,7 @@ function AdminBanners() {
   };
 
   const shownImage = preview || (existingImage ? imageUrl(existingImage) : "");
+  const shownPhone = phonePreview || (existingPhone ? imageUrl(existingPhone) : "");
   const liveCount = banners.filter((b) => b.active).length;
 
   return (
@@ -292,12 +324,42 @@ function AdminBanners() {
                   {device === "computer" ? (
                     <ComputerPreview banner={values} image={shownImage} />
                   ) : (
-                    <PhonePreview banner={values} image={shownImage} />
+                    <PhonePreview banner={values} image={shownImage} phoneImage={shownPhone} />
                   )}
                   <small className="ad-hint">
                     Live preview: the banner has the same shape on every computer, so this is what customers see (bigger or smaller). On phones the text sits under the picture.
                     Best picture size: <strong>2400 × 675 px</strong> (for example a Canva custom size); then nothing is trimmed.
                   </small>
+
+                  {/* optional picture made for phones */}
+                  <div className="ad-phone-pic">
+                    {shownPhone ? (
+                      <img src={shownPhone} alt="" className="ad-phone-pic__thumb" />
+                    ) : (
+                      <span className="ad-phone-pic__thumb ad-phone-pic__thumb--empty" aria-hidden="true">
+                        <PhoneIphoneOutlinedIcon />
+                      </span>
+                    )}
+                    <div className="ad-phone-pic__text">
+                      <strong>Phone picture (optional)</strong>
+                      <small className="ad-hint">
+                        {shownPhone
+                          ? "Phones show this picture. Best size 1200 × 600 px."
+                          : "A picture made for phones, e.g. in Canva at 1200 × 600 px. Without one, phones show the middle of the main picture."}
+                      </small>
+                    </div>
+                    <div className="ad-phone-pic__actions">
+                      <label className="mt-btn mt-btn--secondary mt-btn--sm">
+                        <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickPhoneFile} hidden />
+                        <AddPhotoAlternateOutlinedIcon /> {shownPhone ? "Replace" : "Add phone picture"}
+                      </label>
+                      {shownPhone && (
+                        <button type="button" className="mt-btn mt-btn--ghost mt-btn--sm" onClick={() => resetPhone()}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="ad-banner-preview" aria-label="Preview">
@@ -339,7 +401,7 @@ function AdminBanners() {
                 <LinkField value={values.link} onChange={(link) => setValues((v) => ({ ...v, link }))} categories={categories} />
               </div>
 
-              <DesignFields values={values} onChange={(change) => setValues((v) => ({ ...v, ...change }))} image={shownImage} />
+              <DesignFields values={values} onChange={(change) => setValues((v) => ({ ...v, ...change }))} image={shownImage} aspect={TOP_BANNER_ASPECT} phoneAspect={shownPhone ? null : 2} />
 
               <div className="ad-banner-design">
                 <h3 className="ad-banner-design__title">Schedule (optional)</h3>

@@ -13,7 +13,8 @@ import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
-import { imageUrl, normalizeLabel, onImageError, FALLBACK_IMG } from "../utils/shop";
+import CropTool from "../Components/admin/CropTool";
+import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_MB = 5;
@@ -36,6 +37,7 @@ function AdminCategories() {
   const [picking, setPicking] = useState(null); // the category whose picture is being chosen
   const [pictureBusy, setPictureBusy] = useState(false);
   const [pictureError, setPictureError] = useState("");
+  const [frame, setFrame] = useState(null); // how the picture sits in the home page circle (crop tool)
 
   useEffect(() => {
     Promise.all([api.get("/categories"), api.get("/products")])
@@ -113,9 +115,30 @@ function AdminCategories() {
       .sort((a, b) => Number(!!normalizeLabel(b.label)) - Number(!!normalizeLabel(a.label)) || Number(b.price) - Number(a.price));
   const autoPicture = (categoryId) => photosOf(categoryId)[0]?.image || "";
 
+  const frameOf = (c) => ({ zoom: c.pic_zoom ?? 100, x: c.pic_x ?? 50, y: c.pic_y ?? 50, fill: c.pic_fill || "dark" });
+  const DEFAULT_FRAME = { zoom: 100, x: 50, y: 50, fill: "dark" };
+
   const openPicker = (c) => {
     setPicking(c);
+    setFrame(frameOf(c));
     setPictureError("");
+  };
+
+  // Save how the picture sits in its circle
+  const saveFrame = async () => {
+    setPictureBusy(true);
+    setPictureError("");
+    try {
+      await api.put(`/categories/${picking.id}/framing`, frame);
+      const saved = { pic_zoom: frame.zoom, pic_x: frame.x, pic_y: frame.y, pic_fill: frame.fill };
+      setCategories((list) => list.map((x) => (x.id === picking.id ? { ...x, ...saved } : x)));
+      setPicking((p) => ({ ...p, ...saved }));
+      notify(`Picture position for "${picking.name}" saved`);
+    } catch (err) {
+      setPictureError(apiError(err, "We couldn't save the picture position."));
+    } finally {
+      setPictureBusy(false);
+    }
   };
 
   const savePicture = async (c, { file, fromProduct, automatic }) => {
@@ -131,9 +154,12 @@ function AdminCategories() {
         if (fromProduct) form.append("fromProduct", fromProduct);
         image = (await api.put(`/categories/${c.id}/image`, form)).data.image;
       }
-      setCategories((list) => list.map((x) => (x.id === c.id ? { ...x, image } : x)));
-      setPicking(null);
-      notify(automatic ? `"${c.name}" uses an automatic picture again` : `New picture for "${c.name}" saved`);
+      // a new picture starts centred and filling the circle; the dialog stays open to adjust it
+      const reset = { image, pic_zoom: 100, pic_x: 50, pic_y: 50, pic_fill: "dark" };
+      setCategories((list) => list.map((x) => (x.id === c.id ? { ...x, ...reset } : x)));
+      setPicking((p) => ({ ...p, ...reset }));
+      setFrame(DEFAULT_FRAME);
+      notify(automatic ? `"${c.name}" uses an automatic picture again` : `New picture for "${c.name}" saved. Adjust how it sits in the circle below.`);
     } catch (err) {
       setPictureError(apiError(err, "We couldn't save this picture."));
     } finally {
@@ -391,13 +417,34 @@ function AdminCategories() {
           >
             <h2 id="ad-picture-title">Picture for {picking.name}</h2>
             <p className="ad-hint" style={{ marginTop: 4 }}>
-              Shown on the home page tiles and in the shop menus. A clean product photo on white looks best.
+              Shown in the home page circles and in the shop menus. A clean product photo on white looks best.
             </p>
 
-            <div className="ad-picture-current">
-              <img src={imageUrl(picking.image || autoPicture(picking.id)) || FALLBACK_IMG} alt="" onError={onImageError} />
-              <span>{picking.image ? "Chosen picture" : "Automatic (its top product)"}</span>
-            </div>
+            {(picking.image || autoPicture(picking.id)) && frame && (
+              <div className="ad-picture-crop">
+                <span className="ad-seg-field__label">
+                  How it shows on the home page · {picking.image ? "chosen picture" : "automatic (its top product)"}
+                </span>
+                <CropTool
+                  src={imageUrl(picking.image || autoPicture(picking.id))}
+                  aspect={1}
+                  shape="circle"
+                  value={frame}
+                  onChange={(c) => setFrame((f) => ({ ...f, ...c }))}
+                />
+                <div className="ad-picture-crop__foot">
+                  <small className="ad-hint">“Whole picture” keeps the full product in the circle, like big electronics stores.</small>
+                  <button
+                    type="button"
+                    className="mt-btn mt-btn--primary mt-btn--sm"
+                    onClick={saveFrame}
+                    disabled={pictureBusy || JSON.stringify(frame) === JSON.stringify(frameOf(picking))}
+                  >
+                    {pictureBusy ? "Saving…" : "Save position"}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <label className={`mt-btn mt-btn--primary ad-picture-upload ${pictureBusy ? "is-disabled" : ""}`}>
               <input type="file" accept={IMAGE_TYPES.join(",")} onChange={pickFile(picking)} hidden disabled={pictureBusy} />

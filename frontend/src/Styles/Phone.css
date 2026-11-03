@@ -785,13 +785,13 @@
     aspect-ratio: auto;
   }
 
-  /* the banner picture in a box of the same 32:9 shape, so the whole picture shows */
+  /* the top banner picture is taller on phones (2:1) so the product looks big: it shows the
+     middle of the picture (the part chosen with the crop tool); computers show it whole */
   .hp-slide--banner .hp-banner__img {
     position: relative;
     display: block;
     height: auto;
-    aspect-ratio: 32 / 9;
-    object-position: center;
+    aspect-ratio: 2 / 1;
   }
 
   .hp-slide--banner::after {
@@ -850,5 +850,199 @@
 @media (max-width: 900px) {
   body.nb-hidden .pc--shop .pc-toolbar {
     top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Shop on phones: search is the menu bar's box (same place on every page, like big store apps),
+   so the Shop's own box hides and its sticky bar is just Filters + Sort, under the taller bar */
+@media (max-width: 640px) {
+  .pc--shop .pc-toolbar .pc-search {
+    display: none;
+  }
+
+  body.nb-has-search .pc--shop .pc-toolbar {
+    top: calc(98px + env(safe-area-inset-top, 0px));
+  }
+
+  body.nb-has-search.nb-hidden .pc--shop .pc-toolbar {
+    top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Shop on phones: Sort | Filters side by side, then a sideways row of one-tap filters
+   (In stock, prices, top brands), like the Amazon or Noon apps */
+.pc-sort-btn,
+.pc-quick {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .pc--shop .pc-toolbar {
+    gap: 8px;
+  }
+
+  .pc-sort-btn {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid var(--mt-border-strong);
+    background: var(--mt-surface);
+    color: var(--mt-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .pc-sort-btn span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .pc-sort-btn svg {
+    flex-shrink: 0;
+    color: var(--mt-accent-bright);
+  }
+
+  /* the real list sits invisibly on top, so a tap opens the phone's own picker */
+  .pc-sort-btn select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .pc--shop .pc-toolbar .pc-filters-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .pc-quick {
+    display: flex;
+    gap: 8px;
+    margin: 0 -16px 12px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pc-quick::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pc-quick__chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--mt-border);
+    background: var(--mt-surface);
+    color: var(--mt-text);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .pc-quick__chip.is-on {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    color: #131313;
+  }
+
+  /* the quick row already shows what's on; the "Filters in use" row keeps the rest (search, category) */
+  .pc--shop .pc-chips {
+    margin-bottom: 12px;
+  }
+
+  .pc--shop .pc-chips .pc-chip--quick {
+    display: none;
+  }
+
+  /* nothing left to show in the row (only hidden chips, maybe "Clear all"): hide the row */
+  .pc--shop .pc-chips:not(:has(.pc-chip:not(.pc-chip--quick))) {
+    display: none;
+  }
+
+  /* the title already says how many ("47 items"), so no second count on phones
+     (search results keep it: their title has no count) */
+  .pc--shop .pc-results:not(.pc-results--search) {
+    display: none;
+  }
+}
+
+/* Filters panel footer on phones: "Show N products" keeps its full size; "Clear all" is a
+   smaller button beside it, so nothing jumps or wraps when a filter is picked */
+@media (max-width: 900px) {
+  .pc-sheet-foot .mt-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .pc-sheet-foot .mt-btn--primary {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pc-sheet-foot .mt-btn--secondary {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* Shop on phones: compact top so the first products show sooner, like the Amazon or Noon apps:
+   no breadcrumb, a small one-line title with the count, tighter Sort / Filters and chips */
+@media (max-width: 640px) {
+  .mt-page.hp-shop {
+    padding-top: 14px;
+  }
+
+  .hp-shop .sh-crumbs {
+    display: none;
+  }
+
+  .hp-shop .sh-head {
+    margin-bottom: 4px;
+  }
+
+  .hp-shop .sh-head .mt-title.sh-title {
+    margin-top: 0;
+    font-size: 1.25rem;
+    line-height: 1.25;
+  }
+
+  .hp-shop .sh-total {
+    font-size: 0.85rem;
+  }
+
+  .pc--shop .pc-toolbar {
+    margin-bottom: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .pc--shop .pc-toolbar .pc-filters-btn,
+  .pc--shop .pc-toolbar .pc-sort-btn {
+    min-height: 40px;
+  }
+
+  .pc-quick {
+    margin-bottom: 10px;
+  }
+
+  .pc-quick__chip {
+    height: 32px;
   }
 }

@@ -2758,3 +2758,150 @@ body.nb-hidden {
     border-top: none; /* the last folding section already has a line */
   }
 }
+
+/* ===================== PHONES: SEARCH BAR UNDER THE TOP ROW ===================== */
+/* Like the Amazon or Noon apps: always-visible search on phones (it slides away with the bar
+   while scrolling down). The magnifying-glass button is only for in-between screen sizes. */
+.nb-phone-search {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .nb-phone-search {
+    display: block;
+    padding: 0 16px 8px;
+  }
+
+  /* with the search bar under it, the top row can be shorter */
+  body.nb-has-search .nb > .nb-inner {
+    height: 50px;
+  }
+
+  body.nb-has-search .nb-brand img {
+    width: 28px;
+    height: 28px;
+  }
+
+  body.nb-has-search .nb-brand span {
+    font-size: 1.05rem;
+  }
+
+  .nb-actions .ns {
+    display: none;
+  }
+
+  .ns--bar .ns-form,
+  .ns--bar .ns-form:focus-within {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 38px;
+    padding: 0 0 0 12px;
+    border-radius: 10px;
+    border-color: rgba(255, 255, 255, 0.14);
+    background: #161616;
+    box-shadow: none;
+  }
+
+  .ns--bar .ns-form:focus-within {
+    border-color: var(--mt-accent);
+    box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.16);
+  }
+
+  .ns--bar .ns-scope,
+  .ns--bar .ns-kbd {
+    display: none;
+  }
+
+  .ns--bar .ns-form input {
+    font-size: 16px; /* 16px stops iPhones zooming in when you tap the box */
+  }
+
+  .ns--bar .ns-form .ns-icon {
+    display: none; /* the gold button already shows it's search */
+  }
+
+  .ns--bar .ns-submit {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 100%;
+    border: none;
+    border-radius: 0 9px 9px 0;
+    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    color: #131313;
+  }
+
+  .ns--bar .ns-panel {
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  /* things that stick under the bar (page headings) know it's taller: 52px row + 46px search */
+  body.nb-has-search {
+    --nb-h: 98px;
+  }
+
+  body.nb-has-search.nb-hidden {
+    --nb-h: 0px;
+  }
+}
+
+/* ===================== PHONE MENU, BIG-APP ORDER ===================== */
+/* "Hello, sign in" line, then the categories (tighter, all visible), the account links,
+   and small Help & info links at the bottom, like the Amazon or Noon apps */
+.nb-drawer__user--guest {
+  padding: 10px 12px;
+}
+
+.nb-avatar--guest {
+  display: grid;
+  place-items: center;
+  background: rgba(196, 154, 52, 0.16);
+  color: var(--mt-accent-bright);
+}
+
+.nb-drawer__user strong {
+  font-size: 0.98rem;
+}
+
+.nb-drawer__labelrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nb-drawer__labelrow .nb-drawer__label {
+  flex: 1;
+}
+
+.nb-drawer__seeall {
+  margin-right: 8px;
+  color: var(--mt-accent-bright);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nb-drawer__label {
+  margin-top: 18px;
+}
+
+.nb-drawer__list--plain .nb-drawer__link {
+  min-height: 46px;
+  color: var(--mt-text);
+}
+
+.nb-drawer__list--plain .nb-drawer__link > span.nb-drawer__thumb {
+  flex-basis: 40px;
+  width: 40px;
+  height: 32px;
+}
+
+.nb-drawer__help a {
+  min-height: 38px;
+  font-size: 0.88rem;
+}

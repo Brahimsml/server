@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -10,7 +10,8 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import BannerSlide from "../Components/BannerSlide";
+import BannerSlide, { PROMO_ASPECT } from "../Components/BannerSlide";
+import FramedImage from "../Components/FramedImage";
 import ProductsItem from "../Components/ProductsItem";
 import SHOP_INFO from "../utils/shopInfo";
 import { clearRecentlyViewed, getRecentlyViewed } from "../utils/recentlyViewed";
@@ -104,6 +105,8 @@ const Home = () => {
 
   const [featureIndex, setFeatureIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  // phones: swipe the top banner left / right to change it (like shopping apps)
+  const swipeStart = useRef(null);
 
   // Load the catalog once and share it with every section
   useEffect(() => {
@@ -161,7 +164,17 @@ const Home = () => {
     const map = new Map();
     products.forEach((p) => {
       const name = p.category_name || "Other";
-      if (!map.has(name)) map.set(name, { name, order: p.category_order, chosen: p.category_image, count: 0, image: "", pick: null });
+      if (!map.has(name))
+        map.set(name, {
+          name,
+          order: p.category_order,
+          chosen: p.category_image,
+          // how the picture sits in its circle (Admin → Categories → crop tool)
+          frame: { zoom: p.category_pic_zoom ?? 100, x: p.category_pic_x ?? 50, y: p.category_pic_y ?? 50, fill: p.category_pic_fill || "dark" },
+          count: 0,
+          image: "",
+          pick: null,
+        });
       const entry = map.get(name);
       entry.count += 1;
       if (!p.image) return;
@@ -265,7 +278,7 @@ const Home = () => {
         <section key={`promo-${p.id}`} className={`mt-section hp-promos hp-promos--${p.layout}`} aria-label="Offers">
           {p.slots.map((slot) => (
             <div key={slot.id} className="hp-promo">
-              <BannerSlide banner={slot} placeholder={false} />
+              <BannerSlide banner={slot} placeholder={false} aspect={PROMO_ASPECT[p.layout]} />
             </div>
           ))}
         </section>
@@ -284,6 +297,15 @@ const Home = () => {
           onMouseLeave={() => setPaused(false)}
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
+          onTouchStart={(e) => (swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+          onTouchEnd={(e) => {
+            const start = swipeStart.current;
+            swipeStart.current = null;
+            if (!start || slideCount < 2) return;
+            const dx = e.changedTouches[0].clientX - start.x;
+            const dy = e.changedTouches[0].clientY - start.y;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+          }}
         >
           {currentBanner ? (
             <BannerSlide key={`banner-${currentBanner.id}`} banner={currentBanner}>
@@ -398,7 +420,7 @@ const Home = () => {
               {categories.map((cat) => (
                 <Link key={cat.name} to={shopLink(cat.name)} className="hp-circle">
                   <span className="hp-circle__pic">
-                    {cat.image && <img src={imageUrl(cat.image)} alt="" loading="lazy" onError={onImageError} />}
+                    {cat.image && <FramedImage src={imageUrl(cat.image)} aspect={1} {...cat.frame} onError={onImageError} />}
                   </span>
                   <span className="hp-circle__name">{cat.name}</span>
                 </Link>
@@ -530,22 +552,6 @@ const Home = () => {
             ))}
 
         {promosAt("bottom")}
-
-        {/* ===== CLOSING CTA ===== */}
-        <section className="mt-cta">
-          <div>
-            <h2>Prefer to see it in person?</h2>
-            <p>Visit one of our stores, or ask our team anything about your next build.</p>
-          </div>
-          <div className="mt-cta__actions">
-            <Link to="/menu" className="mt-btn mt-btn--primary">
-              Find a store
-            </Link>
-            <Link to="/contact" className="mt-btn mt-btn--secondary">
-              Contact us
-            </Link>
-          </div>
-        </section>
       </div>
     </div>
   );

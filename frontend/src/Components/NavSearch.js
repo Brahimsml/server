@@ -24,7 +24,8 @@ const matches = (product, words) => {
   return words.every((w) => text.includes(w));
 };
 
-const NavSearch = () => {
+// bar: the phone version, always open under the menu bar (no category picker, no toggle)
+const NavSearch = ({ bar = false }) => {
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
   const listId = useId();
@@ -139,20 +140,22 @@ const NavSearch = () => {
   };
 
   return (
-    <div className={`ns ${open ? "is-open" : ""}`} ref={wrapRef}>
-      <button
-        type="button"
-        className="nb-icon-btn ns-toggle"
-        onClick={() => {
-          setOpen((v) => !v);
-          ensureProducts();
-          setTimeout(() => inputRef.current?.focus(), 30);
-        }}
-        aria-label={open ? "Close search" : "Search products"}
-        aria-expanded={open}
-      >
-        {open ? <CloseIcon /> : <SearchIcon />}
-      </button>
+    <div className={`ns ${bar ? "ns--bar" : ""} ${open ? "is-open" : ""}`} ref={wrapRef}>
+      {!bar && (
+        <button
+          type="button"
+          className="nb-icon-btn ns-toggle"
+          onClick={() => {
+            setOpen((v) => !v);
+            ensureProducts();
+            setTimeout(() => inputRef.current?.focus(), 30);
+          }}
+          aria-label={open ? "Close search" : "Search products"}
+          aria-expanded={open}
+        >
+          {open ? <CloseIcon /> : <SearchIcon />}
+        </button>
+      )}
 
       <form className="ns-form" role="search" onSubmit={onSubmit}>
         <label className="ns-scope">
@@ -180,7 +183,7 @@ const NavSearch = () => {
           ref={inputRef}
           type="search"
           value={text}
-          placeholder={scope === "All" ? "Search graphics cards, monitors, laptops…" : `Search in ${scope}…`}
+          placeholder={bar && scope === "All" ? "Search products, brands…" : scope === "All" ? "Search graphics cards, monitors, laptops…" : `Search in ${scope}…`}
           aria-label="Search products"
           role="combobox"
           aria-expanded={showList}

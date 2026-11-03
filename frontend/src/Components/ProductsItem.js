@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import TuneIcon from "@mui/icons-material/Tune";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
 import CloseIcon from "@mui/icons-material/Close";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import CheckIcon from "@mui/icons-material/Check";
@@ -73,6 +74,7 @@ const ProductsItem = ({
   emptyTitle = "No products found",
   emptyText = "Try another category, or clear the search.",
   initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
+  onQueryClear, // Shop page: the search was cleared here, so take it out of the address (and the menu bar's box)
   sortHost = null, // Shop page: a spot on the title row where "Sort by" is shown on computers
   row = false, // one sideways-scrolling row instead of a grid (home, related products)
   rank, // optional: products where rank(p) is true come first (keeps the rest in order)
@@ -260,31 +262,64 @@ const ProductsItem = ({
 
   const resetFilters = () => {
     setQuery("");
+    if (query) onQueryClear?.();
     clearFilters();
   };
 
+  const SORTS = [
+    ...(showCategories ? [{ value: "featured", label: "Featured" }] : []),
+    { value: "newest", label: "Newest first" },
+    { value: "best", label: "Best sellers first" },
+    { value: "price-asc", label: "Price: low to high" },
+    { value: "price-desc", label: "Price: high to low" },
+    { value: "name", label: "Name: A to Z" },
+  ];
   const sortSelect = (className) => (
     <select className={`mt-input ${className}`} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort products">
-      {showCategories && <option value="featured">Featured</option>}
-      <option value="newest">Newest first</option>
-      <option value="best">Best sellers first</option>
-      <option value="price-asc">Price: low to high</option>
-      <option value="price-desc">Price: high to low</option>
-      <option value="name">Name: A to Z</option>
+      {SORTS.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
     </select>
   );
 
+  // Phones: one-tap filters in a sideways row under Sort / Filters, like the Amazon or Noon apps
+  const quickFilters = showCategories
+    ? [
+        { key: "stock", label: "In stock", on: inStockOnly, toggle: () => setInStockOnly((v) => !v) },
+        // only price ranges that have products here (no tapping a chip and getting nothing)
+        ...PRICE_RANGES.filter((r) => r.key !== "all" && (priceRange === r.key || inCategory.some((p) => inPriceRange(p, r.key)))).map((r) => ({
+          key: r.key,
+          label: r.label,
+          on: priceRange === r.key,
+          toggle: () => setPriceRange((cur) => (cur === r.key ? "all" : r.key)),
+        })),
+        ...brandList
+          .filter((b) => b.count > 0 || brands.includes(b.name))
+          .slice(0, 5)
+          .map((b) => ({ key: `b-${b.name}`, label: b.name, on: brands.includes(b.name), toggle: () => toggleBrand(b.name) })),
+      ]
+    : [];
+
   // How many filters differ from the default (shown on the phone "Filters" button)
+  // (sort isn't counted: it has its own button next to Filters)
   const activeFilters =
     (category !== "All" ? 1 : 0) +
     (inStockOnly ? 1 : 0) +
-    (sort !== defaultSort ? 1 : 0) +
     (priceRange !== "all" ? 1 : 0) +
     brands.length;
 
   // Removable tags for every filter that's on ("Graphics Cards ×")
   const chips = [
-    query.trim() && { key: "q", label: `“${query.trim()}”`, clear: () => setQuery("") },
+    query.trim() && {
+      key: "q",
+      label: `“${query.trim()}”`,
+      clear: () => {
+        setQuery("");
+        onQueryClear?.();
+      },
+    },
     category !== "All" && { key: "cat", label: category, clear: () => setCategory("All") },
     priceRange !== "all" && {
       key: "price",
@@ -321,6 +356,21 @@ const ProductsItem = ({
 
           {sortSelect("pc-sort")}
 
+          {/* phones: Sort and Filters side by side; Sort opens the phone's own list of choices */}
+          {showCategories && (
+            <label className="pc-sort-btn">
+              <SwapVertIcon fontSize="small" />
+              <span>{SORTS.find((o) => o.value === sort)?.label === "Featured" ? "Sort" : SORTS.find((o) => o.value === sort)?.label}</span>
+              <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort products">
+                {SORTS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           {showCategories && (
             <button
               type="button"
@@ -337,17 +387,36 @@ const ProductsItem = ({
       )}
 
       {showToolbar && !loading && (
-        <p className="pc-results" aria-live="polite">
+        <p className={`pc-results ${query.trim() ? "pc-results--search" : ""}`} aria-live="polite">
           {filtered.length === 0
             ? "No products match"
             : `Showing ${visibleProducts.length} of ${filtered.length} ${filtered.length === 1 ? "product" : "products"}`}
         </p>
       )}
 
+      {quickFilters.length > 0 && (
+        <div className="pc-quick" role="group" aria-label="Quick filters">
+          {quickFilters.map((f) => (
+            <button key={f.key} type="button" className={`pc-quick__chip ${f.on ? "is-on" : ""}`} aria-pressed={f.on} onClick={f.toggle}>
+              {f.on && <CheckIcon fontSize="inherit" />}
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {showCategories && chips.length > 0 && (
         <div className="pc-chips" aria-label="Filters in use">
           {chips.map((c) => (
-            <button key={c.key} type="button" className="pc-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+            <button
+              key={c.key}
+              type="button"
+              // on phones: price, brand and in-stock show as gold quick filters, the category as the
+              // title and the search word in the search bar
+              className={`pc-chip ${/^(price|stock|brand-|cat|q$)/.test(c.key) ? "pc-chip--quick" : ""}`}
+              onClick={c.clear}
+              aria-label={`Remove filter ${c.label}`}
+            >
               {c.label} <CloseIcon />
             </button>
           ))}
@@ -501,7 +570,7 @@ const ProductsItem = ({
   const shownBrands = showAllBrands
     ? brandList
     : brandList.filter((b, i) => i < BRAND_LIMIT || brands.includes(b.name));
-  const filterCount = activeFilters - (sort !== defaultSort ? 1 : 0); // sort isn't a filter
+  const filterCount = activeFilters;
 
   // One foldable section: title (with a dot when it's in use) and its options
   const section = (id, title, inUse, body) => (

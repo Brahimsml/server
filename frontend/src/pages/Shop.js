@@ -41,7 +41,9 @@ const Shop = () => {
     const next = {};
     if (name !== "All") next.category = name;
     if (query) next.q = query;
-    setSearchParams(next);
+    // replace, not a new history entry: tapping through categories doesn't fill the Back button,
+    // and iPhones stop a page that changes its address more than 100 times in 30 seconds
+    setSearchParams(next, { replace: true });
   };
 
   const isAll = category === "All";
@@ -91,6 +93,11 @@ const Shop = () => {
           category={category}
           onCategoryChange={changeCategory}
           initialQuery={query}
+          onQueryClear={() => {
+            const next = {};
+            if (category !== "All") next.category = category;
+            setSearchParams(next, { replace: true });
+          }}
           sortHost={sortHost}
         />
       </div>

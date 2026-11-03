@@ -20,8 +20,6 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -35,14 +33,6 @@ import SignInLink, { AccountLink } from "./SignInLink";
 import api from "../api";
 import SHOP_INFO from "../utils/shopInfo";
 import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
-
-const MAIN_LINKS = [
-  { to: "/home", label: "Home", icon: HomeOutlinedIcon },
-  { to: "/shop", label: "Shop", icon: StorefrontOutlinedIcon },
-  { to: "/menu", label: "Locations", icon: PlaceOutlinedIcon },
-  { to: "/about", label: "About", icon: InfoOutlinedIcon },
-  { to: "/contact", label: "Contact", icon: ChatBubbleOutlineIcon },
-];
 
 const ADMIN_LINKS = [
   { to: "/admin/dashboard", label: "Dashboard", icon: DashboardOutlinedIcon },
@@ -230,7 +220,8 @@ const NavBar = () => {
   useEffect(() => {
     document.body.classList.toggle("nb-hidden", barHidden);
     document.body.classList.toggle("nb-compact", compact);
-    return () => document.body.classList.remove("nb-hidden", "nb-compact");
+    document.body.classList.add("nb-has-search"); // phones: the bar is taller (search row)
+    return () => document.body.classList.remove("nb-hidden", "nb-compact", "nb-has-search");
   }, [barHidden, compact]);
 
   const toggleMenu = (name) => setOpenMenu((cur) => (cur === name ? null : name));
@@ -428,6 +419,11 @@ const NavBar = () => {
         </div>
       </div>
 
+      {/* ===== Phones: a search bar under the top row on every page, like big store apps ===== */}
+      <div className="nb-phone-search">
+        <NavSearch bar />
+      </div>
+
       {/* ===== Second row (computers): every category one click away, like big stores ===== */}
       <div className="nb-sub">
         <div className="nb-sub__inner">
@@ -490,35 +486,27 @@ const NavBar = () => {
                   <ChevronRightIcon fontSize="small" />
                 </Link>
               ) : (
-                <div className="nb-drawer__welcome">
-                  <strong>Welcome to MegaTech</strong>
-                  <span>Sign in to track orders, save a wishlist and check out faster.</span>
-                  <div className="nb-drawer__auth">
-                    <SignInLink className="mt-btn mt-btn--primary mt-btn--sm" onClick={() => setMobileOpen(false)}>
-                      Sign in
-                    </SignInLink>
-                    <SignInLink mode="register" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={() => setMobileOpen(false)}>
-                      Create account
-                    </SignInLink>
-                  </div>
-                </div>
+                // one slim line, like the Amazon app ("Hello, sign in"); new customers sign up from there too
+                <SignInLink className="nb-drawer__user nb-drawer__user--guest" onClick={() => setMobileOpen(false)}>
+                  <span className="nb-avatar nb-avatar--guest" aria-hidden="true">
+                    <PersonOutlineIcon fontSize="small" />
+                  </span>
+                  <span className="nb-drawer__user-text">
+                    <strong>Hello, sign in</strong>
+                    <small>Track orders, save a wishlist</small>
+                  </span>
+                  <ChevronRightIcon fontSize="small" />
+                </SignInLink>
               )}
-
-              <ul className="nb-drawer__list">
-                {MAIN_LINKS.map(({ to, label, icon: Icon }) => (
-                  <li key={to}>
-                    <NavLink to={to} className={(st) => `nb-drawer__link ${st.isActive || (to === "/home" && isHome) ? "is-active" : ""}`}>
-                      <Icon fontSize="small" />
-                      <span>{label}</span>
-                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
 
               {categories.length > 0 && (
                 <>
-                  <p className="nb-drawer__label">Shop by category</p>
+                  <div className="nb-drawer__labelrow">
+                    <p className="nb-drawer__label">Shop by category</p>
+                    <Link to="/shop" className="nb-drawer__seeall">
+                      All products
+                    </Link>
+                  </div>
                   <ul className="nb-drawer__list nb-drawer__list--plain">
                     {categories
                       .filter((c) => !catInfo || catInfo[c.id]?.count) // hide empty categories once counts are known
@@ -548,7 +536,7 @@ const NavBar = () => {
 
               {user && (
                 <>
-                  <p className="nb-drawer__label">My account</p>
+                  <p className="nb-drawer__label">Your account</p>
                   <ul className="nb-drawer__list">
                     <li>
                       <NavLink to="/my-orders" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
@@ -577,23 +565,26 @@ const NavBar = () => {
               )}
 
               {!user && (
-                <ul className="nb-drawer__list">
-                  <li>
-                    <AccountLink to="/my-orders" className="nb-drawer__link" onClick={() => setMobileOpen(false)}>
-                      <ReceiptLongOutlinedIcon fontSize="small" />
-                      <span>My orders</span>
-                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                    </AccountLink>
-                  </li>
-                  <li>
-                    <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
-                      <FavoriteBorderIcon fontSize="small" />
-                      <span>Wishlist</span>
-                      {savedCount > 0 && <span className="nb-drawer__count">{savedCount}</span>}
-                      <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
-                    </NavLink>
-                  </li>
-                </ul>
+                <>
+                  <p className="nb-drawer__label">Your account</p>
+                  <ul className="nb-drawer__list">
+                    <li>
+                      <AccountLink to="/my-orders" className="nb-drawer__link" onClick={() => setMobileOpen(false)}>
+                        <ReceiptLongOutlinedIcon fontSize="small" />
+                        <span>My orders</span>
+                        <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
+                      </AccountLink>
+                    </li>
+                    <li>
+                      <NavLink to="/wishlist" className={(st) => `nb-drawer__link ${st.isActive ? "is-active" : ""}`}>
+                        <FavoriteBorderIcon fontSize="small" />
+                        <span>Wishlist</span>
+                        {savedCount > 0 && <span className="nb-drawer__count">{savedCount}</span>}
+                        <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
+                      </NavLink>
+                    </li>
+                  </ul>
+                </>
               )}
 
               {isAdmin && (
@@ -619,8 +610,18 @@ const NavBar = () => {
                 </>
               )}
 
+              {/* smaller links at the bottom, like big store apps */}
               <div className="nb-drawer__help">
-                <p className="nb-drawer__label">Need help?</p>
+                <p className="nb-drawer__label">Help &amp; info</p>
+                <Link to="/menu">
+                  <PlaceOutlinedIcon fontSize="small" /> Find a store
+                </Link>
+                <Link to="/contact">
+                  <ChatBubbleOutlineIcon fontSize="small" /> Contact us
+                </Link>
+                <Link to="/about">
+                  <InfoOutlinedIcon fontSize="small" /> About MegaTech
+                </Link>
                 <a href={`tel:${SHOP_INFO.phoneLink}`}>
                   <PhoneOutlinedIcon fontSize="small" /> {SHOP_INFO.phone}
                 </a>

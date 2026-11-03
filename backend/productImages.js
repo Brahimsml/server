@@ -191,15 +191,15 @@ async function standardizeBannerImage(filePath) {
   return true;
 }
 
-// Middleware for the banner form (one optional "image")
-const processBannerUpload = async (req, res, next) => {
-  if (!req.file) return next();
+// Middleware for the banner form: the picture and an optional phone picture (image, image_mobile)
+const processBannerUploads = async (req, res, next) => {
+  const files = req.files ? Object.values(req.files).flat() : [];
   try {
-    await standardizeBannerImage(req.file.path);
+    for (const file of files) await standardizeBannerImage(file.path);
     next();
   } catch (err) {
     console.error("❌ Could not process banner image:", err.message);
-    fs.unlink(req.file.path, () => {});
+    files.forEach((file) => fs.unlink(file.path, () => {}));
     res.status(400).json({ message: "That image couldn't be read. Please try another file." });
   }
 };
@@ -217,4 +217,4 @@ const processPromoUploads = async (req, res, next) => {
   }
 };
 
-module.exports = { standardizeProductImage, processProductUpload, processProductUploads, processBannerUpload, processPromoUploads };
+module.exports = { standardizeProductImage, processProductUpload, processProductUploads, processBannerUploads, processPromoUploads };

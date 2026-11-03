@@ -14,7 +14,7 @@ const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
 const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
-const { processProductUpload, processProductUploads, processBannerUpload, processPromoUploads } = require("./productImages");
+const { processProductUpload, processProductUploads, processBannerUploads, processPromoUploads } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -110,9 +110,9 @@ const removeImageIfUnused = (image) => {
 
   db.query(
     `SELECT (SELECT COUNT(*) FROM products WHERE image=?) + (SELECT COUNT(*) FROM places WHERE image=?)
-          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=?)
+          + (SELECT COUNT(*) FROM product_images WHERE image=?) + (SELECT COUNT(*) FROM banners WHERE image=? OR image_mobile=?)
           + (SELECT COUNT(*) FROM categories WHERE image=?) AS n`,
-    [file, file, file, file, file],
+    [file, file, file, file, file, file],
     (err, rows) => {
       if (err || rows[0].n > 0) return;
       fs.unlink(path.join(imagesDir, file), (unlinkErr) => {
@@ -1070,11 +1070,26 @@ app.put("/categories/:id/image", verifyAdmin, upload.single("image"), processPro
     }
     if (!image) return res.status(400).json({ message: "Choose a picture." });
 
-    await runQuery(db, "UPDATE categories SET image=? WHERE id=?", [image, req.params.id]);
+    // a new picture starts centred and filling the circle
+    await runQuery(db, "UPDATE categories SET image=?, pic_zoom=100, pic_x=50, pic_y=50, pic_fill='dark' WHERE id=?", [image, req.params.id]);
     if (category.image && category.image !== image) removeImageIfUnused(category.image);
     res.json({ message: "Category picture saved", image });
   } catch (err) {
     discardUpload(req);
+    serverError(res, err);
+  }
+});
+
+// How the picture sits in its circle (crop tool: zoom, left/right, up/down, what fills the space)
+app.put("/categories/:id/framing", verifyAdmin, async (req, res) => {
+  const b = req.body || {};
+  try {
+    const result = await runQuery(db, "UPDATE categories SET pic_zoom=?, pic_x=?, pic_y=?, pic_fill=? WHERE id=?", [
+      zoomPercent(b.zoom), percent(b.x ?? 50), percent(b.y ?? 50), fillChoice(b.fill), req.params.id,
+    ]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Category not found" });
+    res.json({ message: "Saved" });
+  } catch (err) {
     serverError(res, err);
   }
 });
@@ -1084,7 +1099,7 @@ app.delete("/categories/:id/image", verifyAdmin, async (req, res) => {
   try {
     const [category] = await runQuery(db, "SELECT image FROM categories WHERE id=?", [req.params.id]);
     if (!category) return res.status(404).json({ message: "Category not found" });
-    await runQuery(db, "UPDATE categories SET image=NULL WHERE id=?", [req.params.id]);
+    await runQuery(db, "UPDATE categories SET image=NULL, pic_zoom=100, pic_x=50, pic_y=50, pic_fill='dark' WHERE id=?", [req.params.id]);
     if (category.image) removeImageIfUnused(category.image);
     res.json({ message: "The picture is automatic again" });
   } catch (err) {
@@ -1248,6 +1263,13 @@ const percent = (value) => {
   const n = Math.round(Number(value));
   return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
 };
+// Crop tool: zoom in % of "fills the box" (10 = far out, 300 = close in) and what shows around a zoomed-out picture
+const zoomPercent = (value) => {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.min(300, Math.max(10, n)) : 100;
+};
+const fillChoice = (value) => pick(value, ["dark", "blur"], "dark");
+
 const cleanDay = (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value) : null);
 
 const bannerFields = (body) => ({
@@ -1263,6 +1285,8 @@ const bannerFields = (body) => ({
   shade: pick(body.shade, ["none", "light", "medium", "strong"], "medium"),
   focus_x: percent(body.focus_x ?? 50),
   focus_y: percent(body.focus_y ?? 50),
+  img_zoom: zoomPercent(body.img_zoom ?? 100),
+  img_fill: fillChoice(body.img_fill),
   // optional schedule (e.g. a weekend sale)
   starts_on: cleanDay(body.starts_on),
   ends_on: cleanDay(body.ends_on),
@@ -1277,16 +1301,16 @@ const bannerError = (fields) =>
     ? "The end date is before the start date."
     : "";
 
-const BANNER_COLUMNS = "eyebrow, title, subtitle, button_text, link, active, text_align, text_color, shade, focus_x, focus_y, starts_on, ends_on";
+const BANNER_COLUMNS = "eyebrow, title, subtitle, button_text, link, active, text_align, text_color, shade, focus_x, focus_y, img_zoom, img_fill, starts_on, ends_on";
 const bannerValues = (f) => [
   f.eyebrow, f.title, f.subtitle, f.button_text, f.link, f.active,
-  f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y, f.starts_on, f.ends_on,
+  f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y, f.img_zoom, f.img_fill, f.starts_on, f.ends_on,
 ];
 
 // Shown on the home page, in the admin's order (only on their scheduled days, if any)
 app.get("/banners", (req, res) => {
   db.query(
-    `SELECT id, image, eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y
+    `SELECT id, image, image_mobile, eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y, img_zoom, img_fill
      FROM banners
      WHERE section_id IS NULL AND active=1 AND (starts_on IS NULL OR starts_on <= CURDATE()) AND (ends_on IS NULL OR ends_on >= CURDATE())
      ORDER BY sort_order, id`,
@@ -1308,9 +1332,18 @@ app.get("/admin/banners", verifyAdmin, (req, res) => {
   });
 });
 
-app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+// The banner picture, plus an optional picture made for phones (shown there instead of a crop of the wide one)
+const bannerUpload = multer({
+  storage,
+  limits: { fileSize: MAX_UPLOAD_SIZE, files: 2 },
+  fileFilter: imageFileFilter,
+}).fields([{ name: "image", maxCount: 1 }, { name: "image_mobile", maxCount: 1 }]);
+const uploaded = (req, name) => req.files?.[name]?.[0] || null;
+
+app.post("/banners", verifyAdmin, bannerUpload, processBannerUploads, async (req, res) => {
   const fields = bannerFields(req.body);
-  const problem = !req.file ? "Choose a banner image." : bannerError(fields);
+  const image = uploaded(req, "image");
+  const problem = !image ? "Choose a banner image." : bannerError(fields);
   if (problem) {
     discardUpload(req);
     return res.status(400).json({ message: problem });
@@ -1318,9 +1351,9 @@ app.post("/banners", verifyAdmin, upload.single("image"), processBannerUpload, a
   try {
     const result = await runQuery(
       db,
-      `INSERT INTO banners (image, ${BANNER_COLUMNS}, sort_order)
-       SELECT ?, ${BANNER_COLUMNS.split(", ").map(() => "?").join(", ")}, COALESCE(MAX(sort_order), 0) + 1 FROM banners WHERE section_id IS NULL`,
-      [req.file.filename, ...bannerValues(fields)]
+      `INSERT INTO banners (image, image_mobile, ${BANNER_COLUMNS}, sort_order)
+       SELECT ?, ?, ${BANNER_COLUMNS.split(", ").map(() => "?").join(", ")}, COALESCE(MAX(sort_order), 0) + 1 FROM banners WHERE section_id IS NULL`,
+      [image.filename, uploaded(req, "image_mobile")?.filename || null, ...bannerValues(fields)]
     );
     res.json({ message: "Banner added", id: result.insertId });
   } catch (err) {
@@ -1355,7 +1388,7 @@ app.put("/banners/:id/active", verifyAdmin, (req, res) => {
   });
 });
 
-app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload, async (req, res) => {
+app.put("/banners/:id", verifyAdmin, bannerUpload, processBannerUploads, async (req, res) => {
   const fields = bannerFields(req.body);
   const problem = bannerError(fields);
   if (problem) {
@@ -1363,18 +1396,21 @@ app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload
     return res.status(400).json({ message: problem });
   }
   try {
-    const [current] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    const [current] = await runQuery(db, "SELECT image, image_mobile FROM banners WHERE id=?", [req.params.id]);
     if (!current) {
       discardUpload(req);
       return res.status(404).json({ message: "Banner not found" });
     }
-    const image = req.file ? req.file.filename : current.image;
+    const image = uploaded(req, "image")?.filename || current.image;
+    // phone picture: a new one, removed ("remove_image_mobile"), or unchanged
+    const imageMobile = uploaded(req, "image_mobile")?.filename || (req.body.remove_image_mobile === "1" ? null : current.image_mobile);
     await runQuery(
       db,
-      `UPDATE banners SET image=?, ${BANNER_COLUMNS.split(", ").map((c) => `${c}=?`).join(", ")} WHERE id=?`,
-      [image, ...bannerValues(fields), req.params.id]
+      `UPDATE banners SET image=?, image_mobile=?, ${BANNER_COLUMNS.split(", ").map((c) => `${c}=?`).join(", ")} WHERE id=?`,
+      [image, imageMobile, ...bannerValues(fields), req.params.id]
     );
-    if (req.file && current.image !== image) removeImageIfUnused(current.image);
+    if (current.image !== image) removeImageIfUnused(current.image);
+    if (current.image_mobile && current.image_mobile !== imageMobile) removeImageIfUnused(current.image_mobile);
     res.json({ message: "Banner updated" });
   } catch (err) {
     discardUpload(req);
@@ -1384,10 +1420,11 @@ app.put("/banners/:id", verifyAdmin, upload.single("image"), processBannerUpload
 
 app.delete("/banners/:id", verifyAdmin, async (req, res) => {
   try {
-    const [banner] = await runQuery(db, "SELECT image FROM banners WHERE id=?", [req.params.id]);
+    const [banner] = await runQuery(db, "SELECT image, image_mobile FROM banners WHERE id=?", [req.params.id]);
     if (!banner) return res.status(404).json({ message: "Banner not found" });
     await runQuery(db, "DELETE FROM banners WHERE id=?", [req.params.id]);
     removeImageIfUnused(banner.image);
+    if (banner.image_mobile) removeImageIfUnused(banner.image_mobile);
     res.json({ message: "Banner deleted" });
   } catch (err) {
     serverError(res, err);
@@ -1425,10 +1462,14 @@ const slotFields = (body = {}) => ({
   shade: pick(body.shade, ["none", "light", "medium", "strong"], "medium"),
   focus_x: percent(body.focus_x ?? 50),
   focus_y: percent(body.focus_y ?? 50),
+  img_zoom: zoomPercent(body.img_zoom ?? 100),
+  img_fill: fillChoice(body.img_fill),
 });
 
-const SLOT_COLUMNS = "eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y";
-const slotValues = (f) => [f.eyebrow, f.title, f.subtitle, f.button_text, f.link, f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y];
+const SLOT_COLUMNS = "eyebrow, title, subtitle, button_text, link, text_align, text_color, shade, focus_x, focus_y, img_zoom, img_fill";
+const slotValues = (f) => [
+  f.eyebrow, f.title, f.subtitle, f.button_text, f.link, f.text_align, f.text_color, f.shade, f.focus_x, f.focus_y, f.img_zoom, f.img_fill,
+];
 
 // Sections with their slots, in the admin's order. live=true: only what customers should see today.
 const loadPromos = async (live) => {
@@ -1603,7 +1644,8 @@ app.delete("/admin/promos/:id", verifyAdmin, async (req, res) => {
 app.get("/products", (req, res) => {
   const all = req.query.all === "1" && isAdminRequest(req);
   const q = `
-    SELECT p.*, c.name AS category_name, c.sort_order AS category_order, c.image AS category_image
+    SELECT p.*, c.name AS category_name, c.sort_order AS category_order, c.image AS category_image,
+           c.pic_zoom AS category_pic_zoom, c.pic_x AS category_pic_x, c.pic_y AS category_pic_y, c.pic_fill AS category_pic_fill
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ${all ? "" : "WHERE p.active = 1"}

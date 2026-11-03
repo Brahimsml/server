@@ -2612,7 +2612,7 @@ a.ad-kpi:hover {
   position: relative;
   display: block;
   height: auto;
-  aspect-ratio: 32 / 9;
+  aspect-ratio: 2 / 1; /* the top banner is taller on phones (HomePage / Phone.css) */
 }
 
 .ad-bprev__phone .hp-slide--banner::after {
@@ -3495,9 +3495,7 @@ a.ad-kpi:hover {
   margin: 0;
 }
 
-.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-slide__actions .mt-btn {
-  width: auto;
-  padding: 8px 12px;
+.ad-bprev__phone .hp-promos .hp-promo .hp-slide--banner .hp-promo-link {
   font-size: 0.8rem;
 }
 
@@ -3526,4 +3524,237 @@ a.ad-kpi:hover {
   .ad-layouts {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===================== CROP TOOL (Components/admin/CropTool.js) ===================== */
+.ad-crop-field {
+  display: grid;
+  gap: 10px;
+}
+
+.ad-crop {
+  display: grid;
+  gap: 12px;
+}
+
+.ad-crop__box {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--mt-border-strong);
+  background: #0a0a0a;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.ad-crop__box:active {
+  cursor: grabbing;
+}
+
+.ad-crop__box:focus-visible {
+  outline: 2px solid var(--mt-accent);
+  outline-offset: 3px;
+}
+
+.ad-crop--circle .ad-crop__box {
+  max-width: 220px;
+  border-radius: 50%;
+}
+
+.ad-crop__box .mt-frame {
+  width: 100%;
+  height: 100%;
+}
+
+.ad-crop__box img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.ad-crop__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.ad-crop__box:hover .ad-crop__hint,
+.ad-crop__box:focus-visible .ad-crop__hint {
+  opacity: 1;
+}
+
+.ad-crop--circle .ad-crop__hint {
+  bottom: 18px;
+}
+
+.ad-crop__controls {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.ad-crop__zoom {
+  display: grid;
+  grid-template-columns: auto 1fr 48px;
+  align-items: center;
+  gap: 12px;
+  color: var(--mt-muted);
+  font-size: 0.88rem;
+}
+
+.ad-crop__zoom input {
+  width: 100%;
+  accent-color: var(--mt-accent);
+}
+
+.ad-crop__zoom output {
+  color: var(--mt-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ad-crop__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* category picture dialog: the circle crop next to the picture choices */
+.ad-picture-crop {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--mt-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ad-picture-crop .ad-crop__box {
+  margin: 0 auto;
+}
+
+.ad-picture-crop__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* top banner in the phone preview: the slim phone look (see HomePage.css) */
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 10px 12px 12px;
+  font-size: 16px;
+  text-align: left;
+}
+
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__cat {
+  grid-column: 1;
+  font-size: 0.66rem;
+}
+
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__title {
+  grid-column: 1;
+  margin: 2px 0 0;
+  font-size: 1.1rem;
+}
+
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__desc {
+  display: none;
+}
+
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__actions {
+  display: block;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: auto;
+  margin: 0;
+}
+
+.ad-bprev__phone .hp-slider .hp-slide--banner .hp-slide__actions .mt-btn {
+  width: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--mt-accent-bright);
+  font-size: 0.8rem;
+}
+
+/* banner editor: the phone shape (drag only) under the main crop */
+.ad-crop-phone {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ad-crop--move .ad-crop__box {
+  max-width: 320px;
+}
+
+/* banner editor: the optional phone picture */
+.ad-phone-pic {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--mt-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ad-phone-pic__thumb {
+  width: 96px;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--mt-border);
+}
+
+.ad-phone-pic__thumb--empty {
+  display: grid;
+  place-items: center;
+  color: var(--mt-faint);
+  border-style: dashed;
+}
+
+.ad-phone-pic__text {
+  flex: 1 1 220px;
+  display: grid;
+  gap: 2px;
+}
+
+.ad-phone-pic__text strong {
+  font-size: 0.9rem;
+}
+
+.ad-phone-pic__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ad-phone-pic__actions .mt-btn {
+  cursor: pointer;
 }

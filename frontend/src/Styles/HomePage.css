@@ -1651,21 +1651,59 @@
   }
 }
 
-/* phones: one tidy list, icon left, arrow right */
+/* phones: just three small shortcut tiles in a row (icon on top, name under it), like shopping
+   apps. The title and the box around them go; screen readers still hear the title. */
 @media (max-width: 640px) {
   .hp-help {
-    padding: 18px 16px;
-    gap: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  /* the phone styles (Phone.css) give every section 44px above; these small tiles need less */
+  .hp-help.mt-section {
+    margin-top: 18px;
+  }
+
+  .hp-help__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .hp-help__options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 
   .hp-help__option {
-    height: 52px;
-    padding: 0 14px 0 9px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    height: auto;
+    padding: 10px 4px;
+    background: var(--mt-surface);
+  }
+
+  .hp-help__icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .hp-help__icon svg {
+    font-size: 1.05rem;
+  }
+
+  .hp-help__option strong {
+    font-size: 0.76rem;
+  }
+
+  .hp-help__option .hp-help__arrow {
+    display: none;
   }
 }
 
@@ -1680,13 +1718,12 @@
   overflow: hidden;
 }
 
+/* the picture's box (FramedImage places the picture inside it, as set with the crop tool) */
 .hp-banner__img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: right center;
   animation: hp-fade 0.6s ease;
 }
 
@@ -2568,9 +2605,7 @@
     margin: 0;
   }
 
-  .hp-promo .hp-slide--banner .hp-slide__actions .mt-btn {
-    width: auto;
-    padding: 9px 14px;
+  .hp-promo .hp-slide--banner .hp-promo-link {
     font-size: 0.85rem;
   }
 }
@@ -2611,11 +2646,9 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.hp-circle__pic img {
-  display: block;
+.hp-circle__pic .mt-frame {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   transition: transform 0.4s ease;
 }
 
@@ -2635,7 +2668,7 @@
   transform: translateY(-3px);
 }
 
-.hp-circle:hover .hp-circle__pic img {
+.hp-circle:hover .hp-circle__pic .mt-frame {
   transform: scale(1.06);
 }
 
@@ -2650,12 +2683,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hp-circle__pic,
-  .hp-circle__pic img {
+  .hp-circle__pic .mt-frame {
     transition: none;
   }
 
   .hp-circle:hover .hp-circle__pic,
-  .hp-circle:hover .hp-circle__pic img {
+  .hp-circle:hover .hp-circle__pic .mt-frame {
     transform: none;
   }
 }
@@ -2710,5 +2743,133 @@
   /* no lift on touch screens (it would be cut off by the swipe row) */
   .hp-circle:hover .hp-circle__pic {
     transform: none;
+  }
+}
+
+/* promo banners: a small gold text link instead of a big button (the whole picture is clickable too) */
+.hp-promo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  color: var(--mt-accent-bright);
+  font-size: 0.95em;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hp-promo-link svg {
+  font-size: 1.1em;
+  transition: transform 0.2s ease;
+}
+
+.hp-slide--banner:hover .hp-promo-link svg,
+.hp-promo-link:focus-visible svg {
+  transform: translateX(3px);
+}
+
+.hp-promo-link:focus-visible {
+  outline: 2px solid var(--mt-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.hp-banner--text-dark .hp-promo-link {
+  color: #7a5a12;
+}
+
+/* ===================== TOP BANNER ON PHONES: SLIM, LIKE SHOPPING APPS ===================== */
+/* The whole picture, then one slim line: the headline and a small gold "Shop now →" link.
+   Swipe to change banners (Home.js); small dots instead of the big arrows. Computers unchanged. */
+@media (max-width: 860px) {
+  .hp-slider .hp-slide--banner .hp-slide__copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 14px;
+    max-width: none;
+    padding: 12px 16px 12px;
+    text-align: left;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slide__cat {
+    grid-column: 1;
+    font-size: 0.68rem;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slide__title {
+    grid-column: 1;
+    margin: 2px 0 0;
+    font-size: 1.2rem;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slide__desc {
+    display: none;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slide__actions {
+    display: block;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: auto;
+    margin: 0;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slide__actions .mt-btn,
+  .hp-slider .hp-slide--banner .hp-slide__actions .mt-btn:hover {
+    width: auto;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--mt-accent-bright);
+    font-size: 0.88rem;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slider__controls {
+    grid-column: 1 / -1;
+    justify-content: center;
+    gap: 0;
+    margin-top: 10px;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slider__arrow {
+    display: none;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slider__dots button {
+    width: 16px;
+    height: 3px;
+  }
+
+  .hp-slider .hp-slide--banner .hp-slider__dots button.is-active {
+    width: 28px;
+  }
+}
+
+/* phones: no trust bar on the home page (it's on the product page, in the cart and the footer),
+   so the categories and products come right after the banner. Computers keep it. */
+@media (max-width: 640px) {
+  .hp-home .hp-trust {
+    display: none;
+  }
+}
+
+/* phones: the top banner goes edge to edge (no side gap, square corners) right under the menu
+   bar, like the Amazon or Shein apps; the rest of the page keeps its margins. Computers unchanged. */
+@media (max-width: 640px) {
+  .mt-page.hp-home {
+    padding-top: 0;
+  }
+
+  .hp-home .hp-slider {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(196, 154, 52, 0.22);
+    box-shadow: none;
   }
 }

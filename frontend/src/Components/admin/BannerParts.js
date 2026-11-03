@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
 import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
 import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
-import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
+import CropOutlinedIcon from "@mui/icons-material/CropOutlined";
+import CropTool from "./CropTool";
 
 /*
   Pieces shared by the two banner editors in Admin → Banners:
@@ -122,8 +123,8 @@ export const LinkField = ({ label = "Button goes to", value, onChange, categorie
   );
 };
 
-// Text position, text color, fade and focus point of one banner
-export const DesignFields = ({ values, onChange, image }) => (
+// Text position, text color, fade, and the picture's crop (zoom and position in its box) of one banner
+export const DesignFields = ({ values, onChange, image, aspect, phoneAspect }) => (
   <div className="ad-banner-design">
     <h3 className="ad-banner-design__title">Design</h3>
     <Segmented label="Text position" options={ALIGN_OPTIONS} value={values.text_align} onChange={(v) => onChange({ text_align: v })} />
@@ -132,33 +133,44 @@ export const DesignFields = ({ values, onChange, image }) => (
     <small className="ad-hint">Black text is for bright pictures. Use a stronger fade if the text is hard to read.</small>
 
     {image && (
-      <div className="ad-focus">
+      <div className="ad-crop-field">
         <span className="ad-seg-field__label">
-          <CenterFocusStrongOutlinedIcon fontSize="small" /> Focus point
+          <CropOutlinedIcon fontSize="small" /> Picture
         </span>
-        <button
-          type="button"
-          className="ad-focus__pick"
-          aria-label="Click the most important part of the picture"
-          onClick={(e) => {
-            const r = e.currentTarget.getBoundingClientRect();
+        <CropTool
+          src={image}
+          aspect={aspect}
+          value={{ zoom: values.img_zoom, x: values.focus_x, y: values.focus_y, fill: values.img_fill }}
+          onChange={(c) =>
             onChange({
-              focus_x: Math.round(((e.clientX - r.left) / r.width) * 100),
-              focus_y: Math.round(((e.clientY - r.top) / r.height) * 100),
-            });
-          }}
-        >
-          <img src={image} alt="" />
-          <span className="ad-focus__dot" style={{ left: `${values.focus_x}%`, top: `${values.focus_y}%` }} />
-        </button>
+              ...(c.zoom !== undefined && { img_zoom: c.zoom }),
+              ...(c.x !== undefined && { focus_x: c.x }),
+              ...(c.y !== undefined && { focus_y: c.y }),
+              ...(c.fill !== undefined && { img_fill: c.fill }),
+            })
+          }
+        />
         <small className="ad-hint">
-          Click the most important part (e.g. the product). Every screen trims the picture around it.{" "}
-          {(values.focus_x !== 50 || values.focus_y !== 50) && (
-            <button type="button" className="ad-linkbtn" onClick={() => onChange({ focus_x: 50, focus_y: 50 })}>
-              Reset to the middle
-            </button>
-          )}
+          Zoom out to show the whole picture, or zoom in and drag to choose the part that shows. The live preview above updates as you go.
         </small>
+        {phoneAspect && (
+          <div className="ad-crop-phone">
+            <span className="ad-seg-field__label">On phones</span>
+            <CropTool
+              src={image}
+              aspect={phoneAspect}
+              moveOnly
+              value={{ zoom: values.img_zoom, x: values.focus_x, y: values.focus_y, fill: values.img_fill }}
+              onChange={(c) =>
+                onChange({
+                  ...(c.x !== undefined && { focus_x: c.x }),
+                  ...(c.y !== undefined && { focus_y: c.y }),
+                })
+              }
+            />
+            <small className="ad-hint">Phones show a taller part of the picture so the product looks big. Drag to choose which part.</small>
+          </div>
+        )}
       </div>
     )}
   </div>
