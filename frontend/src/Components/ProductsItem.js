@@ -23,7 +23,10 @@ import {
   onImageError,
   productPath,
   toCartProduct,
-  byCategoryOrder,
+  categoryTree,
+  imageSrcSet,
+  saleOf,
+  inCategoryOf,
   FALLBACK_IMG,
 } from "../utils/shop";
 
@@ -75,6 +78,8 @@ const ProductsItem = ({
   emptyText = "Try another category, or clear the search.",
   initialQuery = "", // e.g. from the navbar search (/shop?q=rtx)
   onQueryClear, // Shop page: the search was cleared here, so take it out of the address (and the menu bar's box)
+  initialSale = false, // Shop page: only products on sale (/shop?sale=1, "See all deals")
+  onSaleChange, // Shop page: keep the address in step when "On sale" is turned on or off
   sortHost = null, // Shop page: a spot on the title row where "Sort by" is shown on computers
   row = false, // one sideways-scrolling row instead of a grid (home, related products)
   rank, // optional: products where rank(p) is true come first (keeps the rest in order)
@@ -90,6 +95,13 @@ const ProductsItem = ({
   const defaultSort = showCategories ? "featured" : "newest";
   const [sort, setSort] = useState(defaultSort);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [saleOnly, setSaleOnlyState] = useState(initialSale);
+  useEffect(() => setSaleOnlyState(initialSale), [initialSale]);
+  const setSaleOnly = (v) => {
+    const next = typeof v === "function" ? v(saleOnly) : v;
+    setSaleOnlyState(next);
+    onSaleChange?.(next);
+  };
   const [priceRange, setPriceRange] = useState("all");
   const [brands, setBrands] = useState([]); // chosen brands (any of them)
   const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
@@ -139,17 +151,13 @@ const ProductsItem = ({
   // Back to the first rows whenever what's shown changes (or the screen size changes)
   useEffect(() => {
     setShown(pageSize);
-  }, [category, query, sort, inStockOnly, priceRange, brands, pageSize]);
+  }, [category, query, sort, inStockOnly, saleOnly, priceRange, brands, pageSize]);
 
-  const categories = useMemo(() => {
-    const map = new Map();
-    products.forEach((p) => {
-      const name = p.category_name || "Other";
-      if (!map.has(name)) map.set(name, { name, order: p.category_order, count: 0 });
-      map.get(name).count += 1;
-    });
-    return Array.from(map.values()).sort(byCategoryOrder);
-  }, [products]);
+  // the category list: main entries in order, a group's categories right under it (indented)
+  const categories = useMemo(
+    () => categoryTree(products).flatMap((m) => [m, ...m.children.map((c) => ({ ...c, sub: true, group: m.name }))]),
+    [products]
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -158,11 +166,12 @@ const ProductsItem = ({
       .filter((p) => {
         if (filter && !filter(p)) return false;
         if (inStockOnly && isSoldOut(p)) return false;
+        if (saleOnly && !saleOf(p)) return false;
         if (!inPriceRange(p, priceRange)) return false;
         if (brands.length && !brands.includes(brandOf(p))) return false;
 
         const catName = p.category_name || "Other";
-        if (category !== "All" && catName !== category) return false;
+        if (!inCategoryOf(p, category)) return false;
 
         if (!q) return true;
         return `${p.name || ""} ${p.description || ""} ${catName}`.toLowerCase().includes(q);
@@ -187,11 +196,11 @@ const ProductsItem = ({
         return Number(b.id || 0) - Number(a.id || 0);
       })
       .sort((a, b) => (rank ? Number(rank(b)) - Number(rank(a)) : 0));
-  }, [products, filter, category, query, sort, inStockOnly, priceRange, brands, rank]);
+  }, [products, filter, category, query, sort, inStockOnly, saleOnly, priceRange, brands, rank]);
 
   // Counts next to the price and brand choices: products in the chosen category
   const inCategory = useMemo(
-    () => products.filter((p) => (!filter || filter(p)) && (category === "All" || (p.category_name || "Other") === category)),
+    () => products.filter((p) => (!filter || filter(p)) && inCategoryOf(p, category)),
     [products, filter, category]
   );
 
@@ -255,6 +264,7 @@ const ProductsItem = ({
   const clearFilters = () => {
     setSort(defaultSort);
     setInStockOnly(false);
+    if (saleOnly) setSaleOnly(false);
     setPriceRange("all");
     setBrands([]);
     setCategory("All");
@@ -287,6 +297,7 @@ const ProductsItem = ({
   // Phones: one-tap filters in a sideways row under Sort / Filters, like the Amazon or Noon apps
   const quickFilters = showCategories
     ? [
+        ...(saleOnly || inCategory.some((p) => saleOf(p)) ? [{ key: "sale", label: "On sale", on: saleOnly, toggle: () => setSaleOnly((v) => !v) }] : []),
         { key: "stock", label: "In stock", on: inStockOnly, toggle: () => setInStockOnly((v) => !v) },
         // only price ranges that have products here (no tapping a chip and getting nothing)
         ...PRICE_RANGES.filter((r) => r.key !== "all" && (priceRange === r.key || inCategory.some((p) => inPriceRange(p, r.key)))).map((r) => ({
@@ -307,6 +318,7 @@ const ProductsItem = ({
   const activeFilters =
     (category !== "All" ? 1 : 0) +
     (inStockOnly ? 1 : 0) +
+    (saleOnly ? 1 : 0) +
     (priceRange !== "all" ? 1 : 0) +
     brands.length;
 
@@ -328,6 +340,7 @@ const ProductsItem = ({
     },
     ...brands.map((b) => ({ key: `brand-${b}`, label: b, clear: () => toggleBrand(b) })),
     inStockOnly && { key: "stock", label: "In stock", clear: () => setInStockOnly(false) },
+    saleOnly && { key: "sale", label: "On sale", clear: () => setSaleOnly(false) },
   ].filter(Boolean);
 
   const content = (
@@ -413,7 +426,7 @@ const ProductsItem = ({
               type="button"
               // on phones: price, brand and in-stock show as gold quick filters, the category as the
               // title and the search word in the search bar
-              className={`pc-chip ${/^(price|stock|brand-|cat|q$)/.test(c.key) ? "pc-chip--quick" : ""}`}
+              className={`pc-chip ${/^(price|stock|sale|brand-|cat|q$)/.test(c.key) ? "pc-chip--quick" : ""}`}
               onClick={c.clear}
               aria-label={`Remove filter ${c.label}`}
             >
@@ -458,22 +471,27 @@ const ProductsItem = ({
               const soldOut = isSoldOut(product);
               const stock = Number(product.stock_quantity);
               const label = normalizeLabel(product.label);
+              const sale = saleOf(product);
               const justAdded = addedId === product.id;
 
               return (
                 <article className={`pc-card ${soldOut ? "is-soldout" : ""}`} key={product.id}>
                   <div className="pc-media">
+                    {/* Best Seller / New at the top; the sale badge ("-20%") in the bottom corner, so they never crowd */}
                     {label && !soldOut && (
                       <span className={`pc-label ${/best/i.test(label) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""}`}>
                         {/best/i.test(label) ? "Best Seller" : label}
                       </span>
                     )}
+                    {sale && !soldOut && <span className="pc-label pc-label--sale pc-sale">-{sale.percent}%</span>}
                     {soldOut && <span className="pc-label pc-label--out">Sold out</span>}
                     <WishlistButton product={product} className="pc-wish" />
 
                     <Link to={productPath(product)} className="pc-media__link" tabIndex={-1} aria-hidden="true">
                       <img
                         src={imageUrl(product.image) || FALLBACK_IMG}
+                        srcSet={imageSrcSet(product.image)}
+                        sizes="(max-width: 640px) 46vw, (max-width: 1280px) 25vw, 260px"
                         alt=""
                         loading="lazy"
                         onError={onImageError}
@@ -489,7 +507,10 @@ const ProductsItem = ({
                     </h3>
 
                     <div className="pc-price-row">
-                      <span className="pc-price">{formatMoney(product.price)}</span>
+                      <span className={`pc-price ${sale ? "pc-price--sale" : ""}`}>
+                        {formatMoney(product.price)}
+                        {sale && <s className="pc-old">{formatMoney(sale.old)}</s>}
+                      </span>
                       {/* stock only when it matters, like big shops */}
                       {soldOut ? (
                         <span className="pc-stock pc-stock--out">Out of stock</span>
@@ -566,7 +587,7 @@ const ProductsItem = ({
   const BRAND_LIMIT = 5;
   const shownCats = showAllCats
     ? sideItems
-    : sideItems.filter((c, i) => i < CAT_LIMIT || c.name === category);
+    : sideItems.filter((c, i) => i < CAT_LIMIT || c.name === category || c.group === category);
   const shownBrands = showAllBrands
     ? brandList
     : brandList.filter((b, i) => i < BRAND_LIMIT || brands.includes(b.name));
@@ -591,8 +612,8 @@ const ProductsItem = ({
     </section>
   );
 
-  const radio = (key, label, count, on, onClick) => (
-    <button key={key} type="button" role="radio" aria-checked={on} className={`pc-opt ${on ? "is-on" : ""}`} onClick={onClick}>
+  const radio = (key, label, count, on, onClick, sub = false) => (
+    <button key={key} type="button" role="radio" aria-checked={on} className={`pc-opt ${on ? "is-on" : ""} ${sub ? "pc-opt--sub" : ""}`} onClick={onClick}>
       <span className="pc-opt__radio" aria-hidden="true" />
       <span className="pc-opt__label">{label}</span>
       <span className="pc-opt__count">{count}</span>
@@ -644,11 +665,11 @@ const ProductsItem = ({
           category !== "All",
           <div role="radiogroup" aria-label="Category" ref={sideList}>
             {shownCats.map((cat) =>
-              radio(cat.name, cat.label || cat.name, cat.count, category === cat.name, () => setCategory(cat.name))
+              radio(cat.name, cat.label || cat.name, cat.count, category === cat.name, () => setCategory(cat.name), cat.sub)
             )}
             {sideItems.length > CAT_LIMIT && (
               <button type="button" className="pc-fs__more" onClick={() => setShowAllCats((v) => !v)}>
-                {showAllCats ? "Show less" : `Show all ${sideItems.length - 1} categories`}
+                {showAllCats ? "Show less" : `Show all ${sideItems.length - 1}`}
               </button>
             )}
           </div>
@@ -696,11 +717,17 @@ const ProductsItem = ({
         {section(
           "stock",
           "Availability",
-          inStockOnly,
-          <label className="pc-switch">
-            <span>In stock only</span>
-            <input type="checkbox" role="switch" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
-          </label>
+          inStockOnly || saleOnly,
+          <>
+            <label className="pc-switch">
+              <span>In stock only</span>
+              <input type="checkbox" role="switch" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
+            </label>
+            <label className="pc-switch">
+              <span>On sale only</span>
+              <input type="checkbox" role="switch" checked={saleOnly} onChange={(e) => setSaleOnly(e.target.checked)} />
+            </label>
+          </>
         )}
 
         <div className="pc-sheet-foot">

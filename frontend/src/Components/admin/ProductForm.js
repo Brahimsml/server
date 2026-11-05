@@ -21,7 +21,7 @@ const cleanLabel = (label) => {
   return l;
 };
 
-const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: "", price: "", stock_quantity: "0", label: "", active: true };
+const EMPTY = { name: "", brand: "", category_id: "", description: "", specs: "", price: "", old_price: "", sale_ends: "", stock_quantity: "0", label: "", active: true };
 
 /*
   Shared form for "Add product" and "Edit product".
@@ -68,6 +68,8 @@ const ProductForm = ({ productId, copyFromId }) => {
           description: p.description || "",
           specs: p.specs || "",
           price: String(p.price ?? ""),
+          old_price: p.old_price && Number(p.old_price) > Number(p.price) ? String(Number(p.old_price)) : "",
+          sale_ends: p.sale_ends || "",
           stock_quantity: String(p.stock_quantity ?? 0),
           label: isCopy ? "" : cleanLabel(p.label), // a copy doesn't inherit "Best Seller"
           active: p.active === undefined ? true : !!Number(p.active),
@@ -156,6 +158,8 @@ const ProductForm = ({ productId, copyFromId }) => {
     if (values.price === "" || !Number.isFinite(price) || price <= 0) e.price = "Enter a price above 0.";
     const stock = Number(values.stock_quantity);
     if (!Number.isInteger(stock) || stock < 0) e.stock_quantity = "Enter a whole number, 0 or more.";
+    if (values.old_price !== "" && !(Number(values.old_price) > price))
+      e.old_price = "The old price must be higher than the price (or leave it empty).";
     return e;
   };
 
@@ -172,6 +176,8 @@ const ProductForm = ({ productId, copyFromId }) => {
     formData.append("name", values.name.trim());
     formData.append("brand", values.brand.trim());
     formData.append("price", values.price);
+    formData.append("old_price", values.old_price);
+    formData.append("sale_ends", values.old_price ? values.sale_ends : "");
     formData.append("label", values.label);
     formData.append("description", values.description.trim());
     formData.append("stock_quantity", values.stock_quantity);
@@ -339,6 +345,44 @@ const ProductForm = ({ productId, copyFromId }) => {
                       {errors.stock_quantity && (
                         <small className="mt-field__error">{errors.stock_quantity}</small>
                       )}
+                    </label>
+                  </div>
+
+                  {/* sale: the old price shows crossed out with a "-20%" badge, until the end day */}
+                  <div className="ad-form-row">
+                    <label className={fieldClass("old_price")}>
+                      <span>Old price (optional, for a sale)</span>
+                      <div className="ad-prefix">
+                        <em>$</em>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          inputMode="decimal"
+                          value={values.old_price}
+                          onChange={set("old_price")}
+                          placeholder="e.g. 1799"
+                        />
+                      </div>
+                      {errors.old_price ? (
+                        <small className="mt-field__error">{errors.old_price}</small>
+                      ) : (
+                        Number(values.old_price) > Number(values.price) &&
+                        Number(values.price) > 0 && (
+                          <small className="ad-hint">
+                            Shows as{" "}
+                            <strong>
+                              -{Math.round((1 - Number(values.price) / Number(values.old_price)) * 100)}%
+                            </strong>{" "}
+                            · saves ${(Number(values.old_price) - Number(values.price)).toFixed(2).replace(/\.00$/, "")}
+                          </small>
+                        )
+                      )}
+                    </label>
+                    <label className="mt-field">
+                      <span>Sale ends (optional)</span>
+                      <input type="date" value={values.sale_ends} onChange={set("sale_ends")} disabled={!values.old_price} />
+                      <small className="ad-hint">After this day the price goes back to the old (normal) price by itself.</small>
                     </label>
                   </div>
 

@@ -3426,6 +3426,7 @@ a.ad-kpi:hover {
   pointer-events: auto;
 }
 
+.ad-bprev__phone .hp-promos--halves,
 .ad-bprev__phone .hp-promos--thirds {
   grid-template-columns: none;
   grid-auto-flow: column;
@@ -3757,4 +3758,73 @@ a.ad-kpi:hover {
 
 .ad-phone-pic__actions .mt-btn {
   cursor: pointer;
+}
+
+/* Categories: groups and the categories inside them */
+.ad-cat-sub .ad-strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 18px;
+  font-weight: 500;
+}
+
+.ad-cat-sub__mark {
+  color: var(--mt-faint);
+}
+
+.ad-cat-group td {
+  background: rgba(196, 154, 52, 0.04);
+}
+
+.ad-cat-groupsel {
+  min-width: 150px;
+  height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.86rem;
+}
+
+.ad-table td[data-label="Products"] {
+  white-space: nowrap;
+}
+
+/* Products list: a product on sale shows "-20% $1,599", the old price crossed out and its end day */
+.ad-sale-price {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.ad-sale-price__badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+.ad-sale-price s {
+  color: var(--mt-faint);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.ad-sale-price small {
+  color: var(--mt-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.ad-bulk__ends {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mt-muted);
+  font-size: 0.85rem;
 }

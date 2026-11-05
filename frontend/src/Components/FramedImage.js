@@ -11,6 +11,8 @@ import React, { useEffect, useRef, useState } from "react";
             (a soft, blurred copy of the same picture, like Instagram)
     phoneSrc  an optional picture made for phones: shown instead of `src` on screens up to 860px
               wide (the browser only downloads the one it shows)
+    srcSet, sizes, phoneSrcSet  smaller copies of the pictures (utils/shop imageSrcSet), so the
+              browser downloads the smallest one that still looks sharp
   The picture file is never changed. Until the picture has loaded it shows like a plain cover photo.
 */
 
@@ -34,7 +36,7 @@ export const framePlacement = (ratio, aspect, zoom = 100, x = 50, y = 50) => {
 
 const PHONE_SCREEN = "(max-width: 860px)";
 
-const FramedImage = ({ src, phoneSrc, aspect, zoom = 100, x = 50, y = 50, fill = "dark", className = "", alt = "", loading = "lazy", onError, ...rest }) => {
+const FramedImage = ({ src, srcSet, sizes, phoneSrc, phoneSrcSet, aspect, zoom = 100, x = 50, y = 50, fill = "dark", className = "", alt = "", loading = "lazy", onError, ...rest }) => {
   const [ratio, setRatio] = useState(null);
   const [shown, setShown] = useState(src); // the picture the browser picked (phone or computer one)
   const [boxAspect, setBoxAspect] = useState(null);
@@ -71,6 +73,8 @@ const FramedImage = ({ src, phoneSrc, aspect, zoom = 100, x = 50, y = 50, fill =
       ref={imgRef}
       className="mt-frame__img"
       src={src}
+      srcSet={srcSet}
+      sizes={srcSet ? sizes : undefined}
       alt={alt}
       loading={loading}
       onError={onError}
@@ -88,7 +92,7 @@ const FramedImage = ({ src, phoneSrc, aspect, zoom = 100, x = 50, y = 50, fill =
       {zoomedOut && fill === "blur" && <img className="mt-frame__blur" src={shown || src} alt="" aria-hidden="true" />}
       {phoneSrc ? (
         <picture>
-          <source media={PHONE_SCREEN} srcSet={phoneSrc} />
+          <source media={PHONE_SCREEN} srcSet={phoneSrcSet || phoneSrc} sizes={phoneSrcSet ? "100vw" : undefined} />
           {img}
         </picture>
       ) : (

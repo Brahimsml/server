@@ -30,6 +30,8 @@ import {
   toCartProduct,
   whatsappLink,
   FALLBACK_IMG,
+  imageSrcSet,
+  saleOf,
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
@@ -48,6 +50,12 @@ const parseSpecs = (text) =>
         ? { name: line.slice(0, at).trim(), value: line.slice(at + 1).trim() }
         : { name: "", value: line };
     });
+
+// "Nov 30" (this year) or "Nov 30, 2027"
+const formatSaleEnd = (day) => {
+  const d = new Date(`${day}T00:00:00`);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(d.getFullYear() !== new Date().getFullYear() && { year: "numeric" }) });
+};
 
 // How many specs show before "See all"
 const KEY_SPECS = 6;
@@ -172,6 +180,7 @@ const Product = () => {
   const soldOut = isSoldOut(product);
   const restockLink = whatsappLink(SHOP_INFO.phone, `Hi MegaTech, when will "${product.name}" be back in stock?`);
   const label = normalizeLabel(product.label);
+  const sale = saleOf(product);
   const categoryLink = `/shop?category=${encodeURIComponent(product.category_name)}`;
 
   const changeQty = (next) => setQty(Math.min(Math.max(1, next), Math.max(1, stock)));
@@ -225,7 +234,15 @@ const Product = () => {
                   {isBestSeller(product) ? "Best Seller" : label}
                 </span>
               )}
-              <img key={shown} src={imageUrl(shown) || FALLBACK_IMG} alt={product.name} onError={onImageError} />
+              {sale && <span className="pc-label pc-label--sale pc-sale">-{sale.percent}%</span>}
+              <img
+                key={shown}
+                src={imageUrl(shown) || FALLBACK_IMG}
+                srcSet={imageSrcSet(shown)}
+                sizes="(max-width: 900px) 100vw, 640px"
+                alt={product.name}
+                onError={onImageError}
+              />
 
               {photos.length > 1 && (
                 <>
@@ -254,7 +271,7 @@ const Product = () => {
                     className={i === photo ? "is-active" : ""}
                     onClick={() => setPhoto(i)}
                   >
-                    <img src={imageUrl(img)} alt="" loading="lazy" onError={onImageError} />
+                    <img src={imageUrl(img)} srcSet={imageSrcSet(img, 320)} sizes="90px" alt="" loading="lazy" onError={onImageError} />
                   </button>
                 ))}
               </div>
@@ -269,7 +286,8 @@ const Product = () => {
             <h1 className="pd-title">{product.name}</h1>
 
             <div className="pd-price-row">
-              <span className="pd-price">{formatMoney(product.price)}</span>
+              <span className={`pd-price ${sale ? "pd-price--sale" : ""}`}>{formatMoney(product.price)}</span>
+              {sale && <s className="mt-old-price pd-old">{formatMoney(sale.old)}</s>}
               {soldOut ? (
                 <span className="pc-stock pc-stock--out">Out of stock</span>
               ) : isLowStock(stock) ? (
@@ -278,6 +296,13 @@ const Product = () => {
                 <span className="pc-stock pc-stock--in">In stock</span>
               )}
             </div>
+            {sale && (
+              <p className="pd-save">
+                <span className="mt-sale-badge pd-save__badge">-{sale.percent}%</span>
+                You save {formatMoney(sale.save)}
+                {product.sale_ends && <span className="pd-save__ends"> · Sale ends {formatSaleEnd(product.sale_ends)}</span>}
+              </p>
+            )}
 
             {product.description && <p className="pd-desc">{product.description}</p>}
 
@@ -414,7 +439,10 @@ const Product = () => {
         <div className={`pd-buybar ${showBuyBar ? "is-shown" : ""}`} aria-hidden={!showBuyBar}>
           <div className="pd-buybar__info">
             <strong>{product.name}</strong>
-            <span>{formatMoney(product.price)}</span>
+            <span>
+              {formatMoney(product.price)}
+              {sale && <s className="mt-old-price"> {formatMoney(sale.old)}</s>}
+            </span>
           </div>
           <button type="button" className="mt-btn mt-btn--secondary" onClick={handleAdd} tabIndex={showBuyBar ? 0 : -1} aria-label="Add to cart">
             <AddShoppingCartIcon />

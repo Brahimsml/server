@@ -2455,7 +2455,7 @@
      halves  2 side by side, 2:1 each (1200 × 600)
      thirds  3 tiles, 4:3 each (800 × 600)
    Like the top banner, smaller screens show them smaller, text included. On phones: the whole
-   picture with one slim line of text under it; the three tiles become a sideways swipe row. */
+   picture with one slim line of text under it; two or three banners become a swipe row with dots. */
 .hp-promos {
   display: grid;
   gap: 18px;
@@ -2523,13 +2523,13 @@
 }
 
 @media (max-width: 860px) {
-  .hp-promos,
-  .hp-promos--halves {
+  .hp-promos {
     grid-template-columns: 1fr;
     gap: 14px;
   }
 
-  /* three tiles: a sideways swipe row, the next tile peeking in */
+  /* two or three banners: a sideways swipe row, the next one peeking in (dots below) */
+  .hp-promos--halves,
   .hp-promos--thirds {
     grid-template-columns: none;
     grid-auto-flow: column;
@@ -2540,10 +2540,12 @@
     scrollbar-width: none;
   }
 
+  .hp-promos--halves::-webkit-scrollbar,
   .hp-promos--thirds::-webkit-scrollbar {
     display: none;
   }
 
+  .hp-promos--halves .hp-promo,
   .hp-promos--thirds .hp-promo {
     scroll-snap-align: start;
   }
@@ -2872,4 +2874,141 @@
     border-bottom: 1px solid rgba(196, 154, 52, 0.22);
     box-shadow: none;
   }
+}
+
+/* Shop by category with more than 10 categories (computers and tablets): sets of 9 on top and up
+   to 8 below; the arrows switch sets (9 columns at a time on computers, tablets swipe) */
+.hp-circles-wrap {
+  position: relative;
+}
+
+@media (min-width: 641px) {
+  .hp-circles.hp-circles--row {
+    --cols: 9;
+    display: grid;
+    grid-template-rows: repeat(2, auto);
+    /* half-columns (two per circle), so a shorter second row can sit centred */
+    column-gap: 0;
+    grid-template-columns: repeat(var(--total-cols, 18), calc(100% / (var(--cols) * 2)));
+    justify-content: start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding-top: 6px; /* room for the lift on hover */
+  }
+
+  .hp-circles.hp-circles--row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-circles--row .hp-circle {
+    flex: none;
+    min-width: 0;
+    padding: 0 calc(var(--gap) / 2); /* the space between circles (the columns have no gap) */
+    scroll-snap-align: start;
+  }
+
+  .hp-circles-wrap .hp-circles__arrows button {
+    top: calc(50% - 21px);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hp-circles.hp-circles--row {
+    --cols: 6;
+  }
+}
+
+/* phones swipe; no arrows */
+@media (max-width: 640px) {
+  .hp-circles__arrows {
+    display: none;
+  }
+}
+
+/* Shop filters: a group's categories sit indented under it */
+.pc-opt.pc-opt--sub {
+  padding-left: 22px;
+  font-size: 0.94em;
+}
+
+/* dots under a promo swipe row (phones), following the swipe */
+.hp-promo-dots {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .hp-promo-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .hp-promo-dots button {
+    width: 16px;
+    height: 4px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(245, 245, 245, 0.2);
+    cursor: pointer;
+    transition: width 0.25s ease, background 0.25s ease;
+  }
+
+  .hp-promo-dots button.is-active {
+    width: 28px;
+    background: var(--mt-accent-bright);
+  }
+}
+
+/* ===================== SALE PRICES ===================== */
+/* "-20%" badge in the bottom-left corner of the photo (Best Seller / New stay at the top),
+   and the old price crossed out */
+.pc-label.pc-sale {
+  top: auto;
+  bottom: 12px;
+  left: 12px;
+  right: auto;
+  max-width: none;
+}
+
+.pc-label--sale,
+.mt-sale-badge {
+  background: #e5484d;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.pc-price--sale {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  color: var(--mt-accent-bright);
+}
+
+.pc-old,
+.mt-old-price {
+  color: var(--mt-faint);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: line-through;
+}
+
+/* Home "Deals" row: a small red "Save up to 25%" next to the title */
+.hp-deals__tag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
 }

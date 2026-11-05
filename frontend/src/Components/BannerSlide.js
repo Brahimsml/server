@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { imageUrl } from "../utils/shop";
+import { imageSrcSet, imageUrl } from "../utils/shop";
 import FramedImage from "./FramedImage";
 
 // The shape (width / height) of each banner box: the top slider, and promo banners by layout
@@ -69,7 +69,10 @@ const BannerSlide = ({ banner, image, phoneImage, preview = false, placeholder =
         <FramedImage
           className="hp-banner__img"
           src={image || imageUrl(banner.image)}
+          srcSet={image ? undefined : imageSrcSet(banner.image, 2400)}
+          sizes={placeholder ? "100vw" : aspect >= 4 ? "100vw" : "(max-width: 860px) 85vw, 50vw"}
           phoneSrc={phoneImage || (banner.image_mobile ? imageUrl(banner.image_mobile) : undefined)}
+          phoneSrcSet={phoneImage ? undefined : imageSrcSet(banner.image_mobile, 1200)}
           aspect={aspect}
           zoom={banner.img_zoom ?? 100}
           x={banner.focus_x ?? 50}

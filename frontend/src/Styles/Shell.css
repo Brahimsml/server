@@ -1693,15 +1693,10 @@ body.nb-menu-open .cb-launch {
   border-radius: 12px;
 }
 
-/* best seller spotlight */
-/* smaller laptops: a narrower side column, at most 3 categories across */
+/* smaller laptops: a narrower side column */
 @media (max-width: 1180px) {
   .nb-mega__inner {
     grid-template-columns: 170px minmax(0, 1fr);
-  }
-
-  .nb-mega__grid {
-    grid-template-columns: repeat(min(var(--mega-cols, 3), 3), minmax(0, 1fr));
   }
 }
 
@@ -2861,4 +2856,242 @@ body.nb-hidden {
 .nb-drawer__help a {
   min-height: 38px;
   font-size: 0.88rem;
+}
+
+/* ===================== "ALL CATEGORIES" MENU: COMPACT TILES ===================== */
+/* Like Noon / Amazon / Best Buy menus: compact tiles (56px square photo), 6 per row on big screens, 5 on laptops,
+   4 on small laptops (even rows, worked out in ShopMegaMenu.js). Lots of categories scroll
+   inside the panel instead of covering the page. */
+@media (min-width: 901px) {
+  .nb-mega__grid {
+    --mega-cols: var(--cols-md, 4);
+    grid-template-columns: repeat(var(--mega-cols), minmax(0, 1fr));
+    gap: 6px;
+    max-height: min(268px, calc(100vh - 230px)); /* 3½ rows: the half row shows there's more */
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196, 154, 52, 0.4) transparent;
+  }
+
+  .nb-mega__cat {
+    gap: 10px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .nb-mega__thumb,
+  .nb-mega__cat > .nb-mega__thumb {
+    width: 56px;
+    height: 56px;
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .nb-mega__name strong {
+    font-size: 0.86rem;
+  }
+
+  .nb-mega__name small {
+    font-size: 0.74rem;
+  }
+
+  .nb-mega__skeleton {
+    height: 68px;
+  }
+}
+
+@media (min-width: 1181px) {
+  .nb-mega__grid {
+    --mega-cols: var(--cols-lg, 5);
+  }
+}
+
+/* laptops and up: the panel lines up with the menu bar and the wide pages (40px sides) */
+@media (min-width: 1280px) {
+  .nb-mega__inner {
+    max-width: 1680px;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+/* big screens: room for 6 across */
+@media (min-width: 1600px) {
+  .nb-mega__grid {
+    --mega-cols: var(--cols-xl, 6);
+  }
+}
+
+/* the category list scrolls inside the panel: a fade at the bottom and a small hint */
+@media (min-width: 901px) {
+  .nb-mega__cats {
+    min-width: 0;
+  }
+
+  .nb-mega__grid.has-more {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 56px), transparent);
+  }
+
+  .nb-mega__more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 6px 0 0;
+    color: var(--mt-muted);
+    font-size: 0.8rem;
+  }
+}
+
+/* Phone menu: a group opens in place to show its categories */
+.nb-drawer__chev--down {
+  transition: transform 0.2s ease;
+}
+
+.nb-drawer__cat.is-open {
+  background: rgba(196, 154, 52, 0.08);
+}
+
+.nb-drawer__cat.is-open .nb-drawer__chev--down {
+  transform: rotate(180deg);
+  color: var(--mt-accent-bright);
+}
+
+.nb-drawer__sub {
+  margin: 2px 0 6px 62px;
+  padding: 0 0 0 12px;
+  list-style: none;
+  border-left: 1px solid var(--mt-border);
+}
+
+.nb-drawer__sublink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px 0 6px;
+  color: var(--mt-text);
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.nb-drawer__sublink small {
+  color: var(--mt-faint);
+  font-size: 0.76rem;
+}
+
+.nb-drawer__sublink--all {
+  color: var(--mt-accent-bright);
+  font-weight: 600;
+}
+
+/* "All categories" with groups: groups on the left, the chosen group's categories on the right */
+@media (min-width: 901px) {
+  .nb-mega__inner.has-groups {
+    grid-template-columns: 170px 220px minmax(0, 1fr);
+  }
+
+  .nb-mega__groups {
+    margin: 0;
+    padding: 0 16px 0 0;
+    list-style: none;
+    border-right: 1px solid var(--mt-border);
+  }
+
+  .nb-mega__group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 10px 0 12px;
+    border-radius: 10px;
+    color: var(--mt-text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .nb-mega__group svg {
+    color: var(--mt-faint);
+  }
+
+  .nb-mega__group.is-active {
+    background: rgba(196, 154, 52, 0.12);
+    color: var(--mt-accent-bright);
+  }
+
+  .nb-mega__group.is-active svg {
+    color: var(--mt-accent-bright);
+  }
+
+  .nb-mega__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 10px;
+    padding: 0 6px;
+  }
+
+  .nb-mega__head strong {
+    font-family: var(--mt-font-display);
+    font-size: 1.05rem;
+  }
+
+  /* fewer tiles across: the group list takes room */
+  .has-groups .nb-mega__grid {
+    --mega-cols: min(var(--cols-md, 4), 3);
+  }
+}
+
+@media (min-width: 1181px) {
+  .has-groups .nb-mega__grid {
+    --mega-cols: min(var(--cols-lg, 5), 4);
+  }
+}
+
+@media (min-width: 1600px) {
+  .has-groups .nb-mega__grid {
+    --mega-cols: min(var(--cols-xl, 6), 5);
+  }
+}
+
+/* "Deals" in the menu: red, with a tag icon, like "Today's Deals" on big stores */
+.nb-sublink.nb-deals {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-right: 6px;
+  color: #ff6b6f;
+  font-weight: 700;
+}
+
+.nb-sublink.nb-deals:hover,
+.nb-sublink.nb-deals.is-active {
+  color: #ff8a8d;
+}
+
+.nb-sublink.nb-deals::after {
+  background: #e5484d;
+}
+
+.nb-sublink.nb-deals svg {
+  font-size: 1.05rem;
+}
+
+.nb-drawer__thumb.nb-drawer__thumb--deals,
+.nb-drawer__link > span.nb-drawer__thumb--deals {
+  background: rgba(229, 72, 77, 0.15);
+  color: #ff6b6f;
+}
+
+.nb-drawer__deals .nb-drawer__catname {
+  color: #ff8a8d;
+  font-weight: 700;
 }

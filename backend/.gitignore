@@ -36,3 +36,6 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+# Smaller WebP copies of pictures, made by the server when needed
+/image-cache/

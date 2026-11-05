@@ -1050,3 +1050,26 @@
     margin: 32px -16px 0;
   }
 }
+
+/* Sales in the cart: "-20%", the price in gold, the normal price crossed out, and the savings */
+.cart-row__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cart-row__price .cart-row__total.is-sale {
+  color: var(--mt-accent-bright, #e4c15a);
+}
+
+.cart-summary__saved {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(111, 213, 156, 0.1);
+  color: #6fd59c;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+}

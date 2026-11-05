@@ -10,7 +10,8 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import BannerSlide, { PROMO_ASPECT } from "../Components/BannerSlide";
+import BannerSlide from "../Components/BannerSlide";
+import PromoRow from "../Components/PromoRow";
 import FramedImage from "../Components/FramedImage";
 import ProductsItem from "../Components/ProductsItem";
 import SHOP_INFO from "../utils/shopInfo";
@@ -25,6 +26,8 @@ import {
   productPath,
   whatsappLink,
   byCategoryOrder,
+  imageSrcSet,
+  saleOf,
 } from "../utils/shop";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
@@ -160,17 +163,22 @@ const Home = () => {
 
   // Category tiles: photo of the category's flagship (most expensive) product that isn't
   // already in the Best sellers row, so tiles show real hero products and don't repeat that row
-  const categories = useMemo(() => {
+  // One entry per category (byGroup: per main entry, a group taking its categories' products),
+  // with its count and picture: the one chosen in Admin → Categories, else its top product's photo
+  const summarize = (byGroup) => {
     const map = new Map();
     products.forEach((p) => {
-      const name = p.category_name || "Other";
+      const group = byGroup && p.category_parent;
+      const name = group ? p.category_parent : p.category_name || "Other";
       if (!map.has(name))
         map.set(name, {
           name,
-          order: p.category_order,
-          chosen: p.category_image,
+          order: group ? p.category_parent_order : p.category_order,
+          chosen: group ? p.category_parent_image : p.category_image,
           // how the picture sits in its circle (Admin → Categories → crop tool)
-          frame: { zoom: p.category_pic_zoom ?? 100, x: p.category_pic_x ?? 50, y: p.category_pic_y ?? 50, fill: p.category_pic_fill || "dark" },
+          frame: group
+            ? { zoom: p.category_parent_pic_zoom ?? 100, x: p.category_parent_pic_x ?? 50, y: p.category_parent_pic_y ?? 50, fill: p.category_parent_pic_fill || "dark" }
+            : { zoom: p.category_pic_zoom ?? 100, x: p.category_pic_x ?? 50, y: p.category_pic_y ?? 50, fill: p.category_pic_fill || "dark" },
           count: 0,
           image: "",
           pick: null,
@@ -191,7 +199,49 @@ const Home = () => {
     return Array.from(map.values())
       .map((c) => (c.chosen ? { ...c, image: c.chosen } : c))
       .sort(byCategoryOrder);
-  }, [products]);
+  };
+  // every category (the product rows further down)
+  const categories = useMemo(() => summarize(false), [products]); // eslint-disable-line react-hooks/exhaustive-deps
+  // "Shop by category" circles: the main entries, so groups show as one circle (like big stores)
+  const circles = useMemo(() => summarize(true), [products]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "Shop by category" with more than 10 categories (computers): sets of 9 on the top row and up
+  // to 8 below; more than 17 → the arrows switch to the next set
+  const manyCats = circles.length > 10;
+  const PAGE_TOP = 9;
+  const PAGE_SIZE = 17; // 9 on top + 8 below
+  const circlePages = Math.ceil(circles.length / PAGE_SIZE);
+  const circlePlace = (i) => {
+    const page = Math.floor(i / PAGE_SIZE);
+    const k = i - page * PAGE_SIZE;
+    const top = Math.min(PAGE_TOP, circles.length - page * PAGE_SIZE);
+    if (k < top) return { gridRow: 1, gridColumn: `${page * PAGE_TOP * 2 + 2 * k + 1} / span 2` };
+    // the second row (up to 8) is centred under the 9 above, like before (half-column steps)
+    const below = Math.min(PAGE_SIZE, circles.length - page * PAGE_SIZE) - top;
+    const start = page * PAGE_TOP * 2 + (PAGE_TOP - below) + 2 * (k - top) + 1;
+    return { gridRow: 2, gridColumn: `${start} / span 2` };
+  };
+  const circlesRef = useRef(null);
+  const [circleEnds, setCircleEnds] = useState({ start: true, end: false });
+  const updateCircleEnds = useCallback(() => {
+    const el = circlesRef.current;
+    if (!el) return;
+    const start = el.scrollLeft <= 4;
+    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setCircleEnds((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+  }, []);
+  useEffect(() => {
+    updateCircleEnds();
+    window.addEventListener("resize", updateCircleEnds);
+    return () => window.removeEventListener("resize", updateCircleEnds);
+  }, [updateCircleEnds, circles.length]);
+  // slide one whole set at a time, so none is left cut in half
+  const scrollCircles = (dir) => {
+    const el = circlesRef.current;
+    if (!el) return;
+    // one set (9 across) is exactly the visible width
+    el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+  };
 
   // New arrivals: products labelled "New", topped up with the newest products
   // that aren't already in Best sellers, so the two rows don't repeat each other
@@ -274,15 +324,7 @@ const Home = () => {
   const promosAt = (spot) =>
     promos
       .filter((p) => spotOf(p) === spot)
-      .map((p) => (
-        <section key={`promo-${p.id}`} className={`mt-section hp-promos hp-promos--${p.layout}`} aria-label="Offers">
-          {p.slots.map((slot) => (
-            <div key={slot.id} className="hp-promo">
-              <BannerSlide banner={slot} placeholder={false} aspect={PROMO_ASPECT[p.layout]} />
-            </div>
-          ))}
-        </section>
-      ));
+      .map((p) => <PromoRow key={`promo-${p.id}`} promo={p} />);
   return (
     <div className="mt-page hp hp-home">
       <div className="mt-container">
@@ -334,7 +376,7 @@ const Home = () => {
               </div>
 
               <Link to={productPath(current)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
-                <img src={imageUrl(current.image)} alt="" onError={onImageError} />
+                <img src={imageUrl(current.image)} srcSet={imageSrcSet(current.image)} sizes="(max-width: 860px) 90vw, 600px" alt="" onError={onImageError} />
               </Link>
             </div>
           ) : (
@@ -401,7 +443,7 @@ const Home = () => {
         )}
 
         {/* ===== CATEGORIES ===== */}
-        {categories.length > 0 && (
+        {circles.length > 0 && (
           <section className="mt-section mt-box" id="categories">
             <div className="mt-section-head">
               <div>
@@ -409,27 +451,71 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Round pictures in even rows, like big electronics stores (9 → one row on computers, 5 + 4 on tablets; phones swipe) */}
-            <div
-              className="hp-circles"
-              style={{
-                "--per-row-desktop": perRow(categories.length, 10),
-                "--per-row-tablet": perRow(categories.length, 5),
-              }}
-            >
-              {categories.map((cat) => (
-                <Link key={cat.name} to={shopLink(cat.name)} className="hp-circle">
-                  <span className="hp-circle__pic">
-                    {cat.image && <FramedImage src={imageUrl(cat.image)} aspect={1} {...cat.frame} onError={onImageError} />}
-                  </span>
-                  <span className="hp-circle__name">{cat.name}</span>
-                </Link>
-              ))}
+            {/* Round pictures, like big electronics stores: up to 10 in one row; more → sets of 9 on top
+                and up to 8 below, the arrows switch sets, so it never grows past two rows. Phones swipe. */}
+            <div className={`hp-circles-wrap ${manyCats ? "is-row" : ""}`}>
+              <div
+                ref={circlesRef}
+                onScroll={updateCircleEnds}
+                className={`hp-circles ${manyCats ? "hp-circles--row" : ""}`}
+                style={{
+                  "--per-row-desktop": perRow(circles.length, 10),
+                  "--per-row-tablet": perRow(circles.length, 5),
+                  "--total-cols": circlePages * PAGE_TOP * 2, // half-columns, so a row can sit centred
+                }}
+              >
+                {circles.map((cat, i) => (
+                  <Link key={cat.name} to={shopLink(cat.name)} className="hp-circle" style={manyCats ? circlePlace(i) : undefined}>
+                    <span className="hp-circle__pic">
+                      {cat.image && (
+                        <FramedImage src={imageUrl(cat.image)} srcSet={imageSrcSet(cat.image, 480)} sizes="120px" aspect={1} {...cat.frame} onError={onImageError} />
+                      )}
+                    </span>
+                    <span className="hp-circle__name">{cat.name}</span>
+                  </Link>
+                ))}
+              </div>
+              {manyCats && !(circleEnds.start && circleEnds.end) && (
+                <div className="pc-row-arrows hp-circles__arrows">
+                  <button type="button" onClick={() => scrollCircles(-1)} disabled={circleEnds.start} aria-label="Previous categories">
+                    <ChevronLeftIcon />
+                  </button>
+                  <button type="button" onClick={() => scrollCircles(1)} disabled={circleEnds.end} aria-label="More categories">
+                    <ChevronRightIcon />
+                  </button>
+                </div>
+              )}
             </div>
           </section>
         )}
 
         {promosAt("after_categories")}
+
+        {/* ===== DEALS (products with an old price, Admin → Products) ===== */}
+        {!loading && products.some((p) => saleOf(p)) && (
+          <section className="mt-section mt-box hp-deals" id="deals">
+            <div className="mt-section-head">
+              <div>
+                <h2>
+                  Deals <span className="hp-deals__tag">Save up to {Math.max(...products.map((p) => saleOf(p)?.percent || 0))}%</span>
+                </h2>
+              </div>
+              <Link to="/shop?sale=1" className="mt-link">
+                See all deals <ArrowForwardIcon fontSize="inherit" />
+              </Link>
+            </div>
+
+            <ProductsItem
+              products={products}
+              filter={(p) => !!saleOf(p)}
+              limit={ROW_SIZE}
+              row
+              showToolbar={false}
+              showCategories={false}
+              showPagination={false}
+            />
+          </section>
+        )}
 
         {/* ===== BEST SELLERS ===== */}
         {(loading || products.some(isBestSeller)) && (

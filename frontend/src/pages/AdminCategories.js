@@ -14,7 +14,7 @@ import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, apiError } from "../Components/admin/AdminUI";
 import CropTool from "../Components/admin/CropTool";
-import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
+import { groupCategories, imageUrl, normalizeLabel, onImageError } from "../utils/shop";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_MB = 5;
@@ -178,18 +178,28 @@ function AdminCategories() {
     savePicture(c, { file });
   };
 
-  // Move a category up or down; the whole site shows categories in this order
-  const move = async (index, dir) => {
+  // The list as the site shows it: main entries in order, a group's categories right under it
+  const tree = groupCategories(categories);
+  const rows = tree.flatMap((g) => [{ ...g, level: 0, siblings: tree }, ...g.children.map((c) => ({ ...c, level: 1, siblings: g.children }))]);
+  const flatten = (t) => t.flatMap((g) => [g, ...g.children]);
+
+  // Move a category up or down among its neighbours (main entries, or the categories of its group);
+  // the whole site shows categories in this order
+  const move = async (row, dir) => {
+    const list = row.siblings;
+    const index = list.findIndex((x) => x.id === row.id);
     const to = index + dir;
-    if (to < 0 || to >= categories.length || savingOrder) return;
+    if (to < 0 || to >= list.length || savingOrder) return;
+    const swapped = [...list];
+    [swapped[index], swapped[to]] = [swapped[to], swapped[index]];
+    const nextTree = row.level === 0 ? swapped : tree.map((g) => (g.id === row.parent_id ? { ...g, children: swapped } : g));
     const before = categories;
-    const next = [...categories];
-    [next[index], next[to]] = [next[to], next[index]];
+    const next = flatten(nextTree).map(({ children, ...c }) => c);
     setCategories(next);
     setSavingOrder(true);
     try {
       await api.put("/categories/order", { ids: next.map((c) => c.id) });
-      notify(`"${next[to].name}" moved ${dir < 0 ? "up" : "down"}`);
+      notify(`"${row.name}" moved ${dir < 0 ? "up" : "down"}`);
     } catch (err) {
       setCategories(before);
       notify(apiError(err, "We couldn't save the new order."), "error");
@@ -198,10 +208,25 @@ function AdminCategories() {
     }
   };
 
+  // Put a category in a group, or make it a main entry again
+  const setGroup = async (c, value) => {
+    const parent_id = value ? Number(value) : null;
+    try {
+      await api.put(`/categories/${c.id}/group`, { parent_id });
+      setCategories((list) => list.map((x) => (x.id === c.id ? { ...x, parent_id } : x)));
+      const group = categories.find((x) => x.id === parent_id);
+      notify(group ? `"${c.name}" is now in ${group.name}` : `"${c.name}" is a main category again`);
+    } catch (err) {
+      notify(apiError(err, "We couldn't change the group."), "error");
+    }
+  };
+
   const handleDelete = async (c) => {
     const ok = await confirm({
       title: "Delete category?",
-      message: `"${c.name}" will be removed. This can't be undone.`,
+      message: categories.some((x) => x.parent_id === c.id)
+        ? `"${c.name}" will be removed. The categories inside it become main categories again. This can't be undone.`
+        : `"${c.name}" will be removed. This can't be undone.`,
       confirmLabel: "Delete category",
       danger: true,
     });
@@ -209,7 +234,7 @@ function AdminCategories() {
 
     try {
       await api.delete(`/categories/${c.id}`);
-      setCategories((list) => list.filter((x) => x.id !== c.id));
+      setCategories((list) => list.filter((x) => x.id !== c.id).map((x) => (x.parent_id === c.id ? { ...x, parent_id: null } : x)));
       notify(`Category "${c.name}" was deleted`);
     } catch (err) {
       notify(apiError(err, "We couldn't delete this category."), "error");
@@ -220,13 +245,17 @@ function AdminCategories() {
     <>
       <PageHeader
         title="Categories"
-        subtitle="Group your products. Use the arrows to set the order they appear in on the home page, shop and menus."
+        subtitle="Use the arrows to set the order they appear in on the home page, shop and menus. Lots of categories? Put them in groups, like big stores."
       />
 
       {error && <div className="mt-alert mt-alert--error">{error}</div>}
 
-      <div className="ad-form" style={{ gridTemplateColumns: "minmax(0, 760px)" }}>
+      <div className="ad-form" style={{ gridTemplateColumns: "minmax(0, 920px)" }}>
         <section className="mt-panel">
+          <p className="ad-hint" style={{ margin: "16px 20px 0" }}>
+            To make a group (like <strong>Gaming Gear</strong>), add it as a category below, then choose it as the <strong>Group</strong> of the
+            categories that go inside it (Keyboards, Mice…). Menus, the shop and the home page then show the groups.
+          </p>
           <form className="ad-toolbar" onSubmit={handleAdd} noValidate style={{ borderBottom: "none" }}>
             <label className={`mt-field ${addError ? "mt-field--invalid" : ""}`} style={{ flex: "1 1 260px", margin: 0 }}>
               <span>New category</span>
@@ -270,23 +299,26 @@ function AdminCategories() {
                     <th>Order</th>
                     <th>Photo</th>
                     <th>Name</th>
+                    <th>Group</th>
                     <th>Products</th>
                     <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((c, i) => {
+                  {rows.map((c) => {
                     const n = counts[c.id] || 0;
                     const editing = editId === c.id;
+                    const i = c.siblings.findIndex((x) => x.id === c.id);
+                    const inside = c.level === 0 ? c.children.length : 0; // categories in this group
                     return (
-                      <tr key={c.id}>
+                      <tr key={c.id} className={c.level ? "ad-cat-sub" : inside ? "ad-cat-group" : ""}>
                         <td data-label="Order">
                           <div className="ad-row-actions ad-order">
                             <span className="ad-order__pos">{i + 1}</span>
                             <button
                               type="button"
                               className="ad-icon-btn"
-                              onClick={() => move(i, -1)}
+                              onClick={() => move(c, -1)}
                               disabled={i === 0 || savingOrder}
                               aria-label={`Move ${c.name} up`}
                               title="Move up"
@@ -296,8 +328,8 @@ function AdminCategories() {
                             <button
                               type="button"
                               className="ad-icon-btn"
-                              onClick={() => move(i, 1)}
-                              disabled={i === categories.length - 1 || savingOrder}
+                              onClick={() => move(c, 1)}
+                              disabled={i === c.siblings.length - 1 || savingOrder}
                               aria-label={`Move ${c.name} down`}
                               title="Move down"
                             >
@@ -345,7 +377,34 @@ function AdminCategories() {
                               {editError && <small className="mt-field__error">{editError}</small>}
                             </form>
                           ) : (
-                            <span className="ad-strong">{c.name}</span>
+                            <span className="ad-strong">
+                              {c.level === 1 && <span className="ad-cat-sub__mark" aria-hidden="true">↳</span>}
+                              {c.name}
+                              {inside > 0 && <span className="ad-tag ad-tag--gold">Group · {inside}</span>}
+                            </span>
+                          )}
+                        </td>
+                        <td data-label="Group">
+                          {inside > 0 ? (
+                            <span className="ad-hint" style={{ margin: 0 }}>
+                              Main group
+                            </span>
+                          ) : (
+                            <select
+                              className="mt-input ad-cat-groupsel"
+                              value={c.parent_id || ""}
+                              onChange={(e) => setGroup(c, e.target.value)}
+                              aria-label={`Group for ${c.name}`}
+                            >
+                              <option value="">None (main)</option>
+                              {tree
+                                .filter((g) => g.id !== c.id)
+                                .map((g) => (
+                                  <option key={g.id} value={g.id}>
+                                    {g.name}
+                                  </option>
+                                ))}
+                            </select>
                           )}
                         </td>
                         <td data-label="Products">

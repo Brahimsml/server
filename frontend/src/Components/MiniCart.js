@@ -6,7 +6,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { CartContext } from "../Context/CartContext";
-import { formatMoney, imageUrl, onImageError, FALLBACK_IMG } from "../utils/shop";
+import { formatMoney, imageUrl, onImageError, FALLBACK_IMG, imageSrcSet } from "../utils/shop";
 
 const toNumber = (price) => Number(String(price).replace(/[$,]/g, "")) || 0;
 
@@ -84,6 +84,8 @@ const MiniCart = () => {
                   >
                     <img
                       src={imageUrl(item.image) || FALLBACK_IMG}
+                      srcSet={imageSrcSet(item.image, 320)}
+                      sizes="64px"
                       alt=""
                       onError={onImageError}
                     />

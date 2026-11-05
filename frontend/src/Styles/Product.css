@@ -39,6 +39,15 @@
   left: 16px;
 }
 
+/* the sale badge sits in the bottom corner (Best Seller / New stay at the top) */
+.pd-media .pc-label.pc-sale {
+  top: auto;
+  bottom: 16px;
+  left: 16px;
+  font-size: 0.85rem;
+  padding: 5px 12px;
+}
+
 .pd-cat {
   color: var(--mt-accent-bright);
   font-size: 0.78rem;
@@ -419,4 +428,36 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* sale: gold price, old price crossed out, "-20% You save $300 · Sale ends Nov 30" */
+.pd-price--sale {
+  color: var(--mt-accent-bright);
+}
+
+.pd-old {
+  font-size: 1.05rem;
+}
+
+.pd-save {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 10px 0 0;
+  color: var(--mt-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.pd-save__badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pd-save__ends {
+  color: var(--mt-muted);
+  font-weight: 500;
 }

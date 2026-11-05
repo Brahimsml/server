@@ -1,4 +1,5 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { imageUrl } from "../utils/shop";
 
 export const CartContext = createContext();
 
@@ -116,6 +117,31 @@ export const CartProvider = ({ children }) => {
     setCart([]);
   };
 
+  // Bring the saved items up to date with the shop (price, sale, stock, name, photo): a sale
+  // that started or ended after something was added shows correctly. Gone products stay as they are.
+  const syncCart = useCallback((products) => {
+    const byId = new Map((products || []).map((p) => [p.id, p]));
+    setCart((prev) => {
+      let changed = false;
+      const next = prev.map((item) => {
+        const p = byId.get(item.id);
+        if (!p) return item;
+        const fresh = {
+          price: `$${Number(p.price || 0).toFixed(2)}`,
+          old_price: p.old_price ?? null,
+          on_sale: p.on_sale ?? null,
+          stock_quantity: p.stock_quantity,
+          name: p.name,
+          image: imageUrl(p.image),
+        };
+        if (Object.keys(fresh).every((k) => String(item[k] ?? "") === String(fresh[k] ?? ""))) return item;
+        changed = true;
+        return { ...item, ...fresh };
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
   const cartCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
@@ -128,6 +154,7 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
+        syncCart,
         cartCount,
         miniCart,
         openMiniCart,

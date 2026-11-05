@@ -19,7 +19,7 @@ import "../Styles/HomePage.css";
 import ProductsItem from "../Components/ProductsItem";
 import api from "../api";
 import { API_URL } from "../api";
-import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut, productPath } from "../utils/shop";
+import { DEFAULT_DELIVERY_FEE, PAYMENT_METHODS, isBestSeller, isLowStock, isSoldOut, productPath, saleOf } from "../utils/shop";
 import { useWishlist } from "../Context/WishlistContext";
 import { clearUserSession, getUser, getUserToken, openSignIn } from "../utils/auth";
 import usePageTitle from "../utils/usePageTitle";
@@ -69,8 +69,13 @@ const Cart = () => {
   useEffect(() => {
     api
       .get("/products")
-      .then((res) => setAllProducts(Array.isArray(res.data) ? res.data : []))
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        setAllProducts(list);
+        ctx.syncCart?.(list); // up-to-date prices and sales for what's in the cart
+      })
       .catch(() => setAllProducts([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const suggestions = useMemo(() => {
@@ -148,6 +153,11 @@ const Cart = () => {
   }, [cart]);
 
   const total = subtotal + deliveryFee;
+  // what the sales in the cart save, compared with the normal prices
+  const savings = useMemo(
+    () => cart.reduce((sum, item) => sum + (saleOf({ ...item, price: toNumber(item.price) })?.save || 0) * (item.quantity || 1), 0),
+    [cart]
+  );
 
   const itemCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -344,6 +354,7 @@ const Cart = () => {
                   const stock = Number(item.stock_quantity) || 0;
                   const qty = item.quantity || 1;
                   const unit = toNumber(item.price);
+                  const sale = saleOf({ ...item, price: unit });
 
                   return (
                     <li className="cart-row" key={item.id}>
@@ -402,7 +413,9 @@ const Cart = () => {
                       </div>
 
                       <div className="cart-row__price">
-                        <strong className="cart-row__total">{formatMoney(unit * qty)}</strong>
+                        {sale && <span className="mt-sale-badge cart-row__badge">-{sale.percent}%</span>}
+                        <strong className={`cart-row__total ${sale ? "is-sale" : ""}`}>{formatMoney(unit * qty)}</strong>
+                        {sale && <s className="mt-old-price">{formatMoney(sale.old * qty)}</s>}
                         {qty > 1 && <span className="cart-row__unit">{formatMoney(unit)} each</span>}
                       </div>
                     </li>
@@ -516,6 +529,7 @@ const Cart = () => {
               <span>Total</span>
               <span>{formatMoney(total)}</span>
             </div>
+            {savings > 0 && <p className="cart-summary__saved">You save {formatMoney(savings)} on this order 🎉</p>}
 
             {!token ? (
               <div className="cart-signin">

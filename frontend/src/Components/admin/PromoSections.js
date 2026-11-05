@@ -376,7 +376,7 @@ function PromoSections({ categories, onCount }) {
               )}
               <small className="ad-hint">
                 Live preview: on computers this is exactly what customers see (bigger or smaller). On phones the banners stack with a slim line of text under
-                each picture{values.layout === "thirds" ? "; the three tiles become a sideways swipe row" : ""}.
+                each picture{values.layout !== "wide" ? "; the banners become a sideways swipe row with dots" : ""}.
               </small>
             </div>
 

@@ -23,6 +23,8 @@ import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 
 import logo from "../Assets/logo.svg";
@@ -32,7 +34,7 @@ import { clearUserSession, getUser } from "../utils/auth";
 import SignInLink, { AccountLink } from "./SignInLink";
 import api from "../api";
 import SHOP_INFO from "../utils/shopInfo";
-import { imageUrl, normalizeLabel, onImageError } from "../utils/shop";
+import { groupCategories, imageUrl, normalizeLabel, onImageError, imageSrcSet, saleOf } from "../utils/shop";
 
 const ADMIN_LINKS = [
   { to: "/admin/dashboard", label: "Dashboard", icon: DashboardOutlinedIcon },
@@ -56,6 +58,8 @@ const NavBar = () => {
   // Reloaded on every page change, so a category added in the admin shows up straight away.
   // Product counts come along, so empty categories stay out of the menus.
   const [catCounts, setCatCounts] = useState(null);
+  const [dealsCount, setDealsCount] = useState(0); // products on sale: "Deals" shows only when there are some
+  const onDeals = location.pathname === "/shop" && new URLSearchParams(location.search).get("sale") === "1";
   const [shopIds, setShopIds] = useState(null); // products customers can see right now
   useEffect(() => {
     api
@@ -71,11 +75,16 @@ const NavBar = () => {
           counts[p.category_id] = (counts[p.category_id] || 0) + 1;
         });
         setCatCounts(counts);
+        setDealsCount(list.filter((p) => saleOf(p)).length);
         setShopIds(new Set(list.map((p) => p.id)));
       })
       .catch(() => {});
   }, [location.pathname]);
-  const shownCategories = catCounts ? categories.filter((c) => catCounts[c.id]) : categories;
+  // Main entries only (groups and categories on their own), like big store menus; a group counts
+  // the products of its categories. Empty ones stay out once the counts are known.
+  const groupTotal = (g, counts) => (counts?.[g.id] || 0) + g.children.reduce((sum, c) => sum + (counts?.[c.id] || 0), 0);
+  const mainCategories = groupCategories(categories);
+  const shownCategories = catCounts ? mainCategories.filter((g) => groupTotal(g, catCounts)) : mainCategories;
 
   // Second row: categories that don't fit go into a "More" menu
   const catsRef = useRef(null);
@@ -98,6 +107,8 @@ const NavBar = () => {
 
   // Phone menu: a photo and product count for each category, loaded the first time it opens
   const [catInfo, setCatInfo] = useState(null);
+  const countsOf = (info) => Object.fromEntries(Object.entries(info || {}).map(([id, v]) => [id, v.count]));
+  const [openGroup, setOpenGroup] = useState(null); // the group opened in the phone menu
   useEffect(() => {
     if (!mobileOpen || catInfo) return;
     api
@@ -430,6 +441,12 @@ const NavBar = () => {
       <div className="nb-sub">
         <div className="nb-sub__inner">
           <ShopMegaMenu linkClass={linkClass} />
+          {/* Deals first, in red, like "Today's Deals" on big stores (only while something is on sale) */}
+          {dealsCount > 0 && (
+            <Link to="/shop?sale=1" className={`nb-sublink nb-deals ${onDeals ? "is-active" : ""}`} aria-current={onDeals ? "page" : undefined}>
+              <LocalOfferOutlinedIcon fontSize="small" /> Deals
+            </Link>
+          )}
           <nav className="nb-sub__cats" aria-label="Categories" ref={catsRef}>
             {shownCategories.map((c) => (
               <Link
@@ -517,28 +534,86 @@ const NavBar = () => {
                     </Link>
                   </div>
                   <ul className="nb-drawer__list nb-drawer__list--plain">
-                    {categories
-                      .filter((c) => !catInfo || catInfo[c.id]?.count) // hide empty categories once counts are known
-                      .map((c) => (
-                      <li key={c.id}>
-                        <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__link nb-drawer__cat">
-                          <span className="nb-drawer__thumb" aria-hidden="true">
-                            {(c.image || catInfo?.[c.id]?.pick) && (
-                              <img src={imageUrl(c.image || catInfo[c.id].pick.image)} alt="" loading="lazy" onError={onImageError} />
-                            )}
+                    {dealsCount > 0 && (
+                      <li>
+                        <Link to="/shop?sale=1" className="nb-drawer__link nb-drawer__cat nb-drawer__deals">
+                          <span className="nb-drawer__thumb nb-drawer__thumb--deals" aria-hidden="true">
+                            <LocalOfferOutlinedIcon />
                           </span>
                           <span className="nb-drawer__catname">
-                            {c.name}
-                            {catInfo?.[c.id] && (
-                              <small>
-                                {catInfo[c.id].count} {catInfo[c.id].count === 1 ? "product" : "products"}
-                              </small>
-                            )}
+                            Deals
+                            <small>
+                              {dealsCount} {dealsCount === 1 ? "product" : "products"} on sale
+                            </small>
                           </span>
                           <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
                         </Link>
                       </li>
-                    ))}
+                    )}
+                    {mainCategories
+                      .filter((g) => !catInfo || groupTotal(g, countsOf(catInfo))) // hide empty ones once counts are known
+                      .map((g) => {
+                        const kids = g.children.filter((c) => !catInfo || catInfo[c.id]?.count);
+                        const total = catInfo ? groupTotal(g, countsOf(catInfo)) : null;
+                        const pic = g.image || catInfo?.[g.id]?.pick?.image || kids.map((c) => c.image || catInfo?.[c.id]?.pick?.image).find(Boolean);
+                        const row = (
+                          <>
+                            <span className="nb-drawer__thumb" aria-hidden="true">
+                              {pic && <img src={imageUrl(pic)} srcSet={imageSrcSet(pic, 320)} sizes="48px" alt="" loading="lazy" onError={onImageError} />}
+                            </span>
+                            <span className="nb-drawer__catname">
+                              {g.name}
+                              {total !== null && (
+                                <small>
+                                  {total} {total === 1 ? "product" : "products"}
+                                </small>
+                              )}
+                            </span>
+                          </>
+                        );
+                        // a group opens in place to show its categories (like shopping apps)
+                        if (kids.length) {
+                          const open = openGroup === g.id;
+                          return (
+                            <li key={g.id}>
+                              <button
+                                type="button"
+                                className={`nb-drawer__link nb-drawer__cat ${open ? "is-open" : ""}`}
+                                aria-expanded={open}
+                                onClick={() => setOpenGroup(open ? null : g.id)}
+                              >
+                                {row}
+                                <ExpandMoreIcon fontSize="small" className="nb-drawer__chev nb-drawer__chev--down" />
+                              </button>
+                              {open && (
+                                <ul className="nb-drawer__sub">
+                                  <li>
+                                    <Link to={`/shop?category=${encodeURIComponent(g.name)}`} className="nb-drawer__sublink nb-drawer__sublink--all">
+                                      All {g.name}
+                                    </Link>
+                                  </li>
+                                  {kids.map((c) => (
+                                    <li key={c.id}>
+                                      <Link to={`/shop?category=${encodeURIComponent(c.name)}`} className="nb-drawer__sublink">
+                                        {c.name}
+                                        {catInfo?.[c.id] && <small>{catInfo[c.id].count}</small>}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </li>
+                          );
+                        }
+                        return (
+                          <li key={g.id}>
+                            <Link to={`/shop?category=${encodeURIComponent(g.name)}`} className="nb-drawer__link nb-drawer__cat">
+                              {row}
+                              <ChevronRightIcon fontSize="small" className="nb-drawer__chev" />
+                            </Link>
+                          </li>
+                        );
+                      })}
                   </ul>
                 </>
               )}

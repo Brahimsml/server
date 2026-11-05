@@ -9,7 +9,7 @@ import api from "../api";
 import { useAdmin } from "../Components/admin/AdminLayout";
 import { PageHeader, SearchBox, apiError } from "../Components/admin/AdminUI";
 import StockStepper from "../Components/admin/StockStepper";
-import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, FALLBACK_IMG, LOW_STOCK } from "../utils/shop";
+import { formatMoney, imageUrl, isBestSeller, normalizeLabel, onImageError, saleOf, FALLBACK_IMG, LOW_STOCK } from "../utils/shop";
 
 function AdminProducts() {
   const { notify, confirm } = useAdmin();
@@ -21,6 +21,8 @@ function AdminProducts() {
   const [category, setCategory] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all"); // all / live / hidden
+  const [saleFilter, setSaleFilter] = useState("all"); // all / sale / regular
+  const [bulkEnds, setBulkEnds] = useState(""); // "Put on sale": optional last day
   const [allCategories, setAllCategories] = useState([]); // for "Move to category"
 
   // Bulk edit: tick products, pick a change, Apply
@@ -64,6 +66,7 @@ function AdminProducts() {
       low: products.filter((p) => stock(p) > 0 && stock(p) <= LOW_STOCK).length,
       out: products.filter((p) => stock(p) <= 0).length,
       hidden: products.filter((p) => !isLive(p)).length,
+      sale: products.filter((p) => saleOf(p)).length,
     };
   }, [products]);
 
@@ -76,10 +79,12 @@ function AdminProducts() {
       if (stockFilter === "out" && stock > 0) return false;
       if (statusFilter === "live" && !isLive(p)) return false;
       if (statusFilter === "hidden" && isLive(p)) return false;
+      if (saleFilter === "sale" && !saleOf(p)) return false;
+      if (saleFilter === "regular" && saleOf(p)) return false;
       if (!q) return true;
       return `${p.name} ${p.category_name} ${p.label || ""}`.toLowerCase().includes(q);
     });
-  }, [products, search, category, stockFilter, statusFilter]);
+  }, [products, search, category, stockFilter, statusFilter, saleFilter]);
 
   // ===== Show / hide one product (nothing is deleted) =====
   const toggleLive = async (p) => {
@@ -96,7 +101,7 @@ function AdminProducts() {
 
   // ===== Bulk edit =====
   // A new filter or search starts a fresh selection
-  useEffect(() => setSelected(new Set()), [search, category, stockFilter, statusFilter]);
+  useEffect(() => setSelected(new Set()), [search, category, stockFilter, statusFilter, saleFilter]);
 
   const allTicked = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
   const toggle = (id) =>
@@ -114,6 +119,8 @@ function AdminProducts() {
     price_set: { label: "Set the price to…", field: "money", placeholder: "New price" },
     price_percent: { label: "Change the price by %…", field: "percent", placeholder: "e.g. -10 or 5" },
     stock_set: { label: "Set the stock to…", field: "number", placeholder: "New stock" },
+    sale_percent: { label: "Put on sale (% off)…", field: "percent", placeholder: "e.g. 15" },
+    sale_end: { label: "End sale (back to the normal price)" },
   };
   const bulkField = BULK_ACTIONS[bulkAction]?.field;
 
@@ -133,6 +140,8 @@ function AdminProducts() {
       price_set: `Set the price of ${n} to ${formatMoney(value)}?`,
       price_percent: `${value > 0 ? "Raise" : "Lower"} the price of ${n} by ${Math.abs(value)}%?`,
       stock_set: `Set the stock of ${n} to ${value}?`,
+      sale_percent: `Put ${n} on sale at ${value}% off?`,
+      sale_end: `End the sale on ${n}?`,
     }[bulkAction];
     const ok = await confirm({
       title: what,
@@ -141,6 +150,10 @@ function AdminProducts() {
           ? "Customers won't see them any more. Nothing is deleted; you can show them again any time."
           : bulkAction === "price_percent"
           ? "Prices are rounded to the cent."
+          : bulkAction === "sale_percent"
+          ? `Their normal price shows crossed out with a -${value}% badge${bulkEnds ? ` until ${bulkEnds}` : ""}. Products already on sale are counted from their normal price.`
+          : bulkAction === "sale_end"
+          ? "They go back to their normal price (the old price) right away."
           : "This changes all the ticked products at once.",
       confirmLabel: "Apply",
       cancelLabel: "Go back",
@@ -149,12 +162,13 @@ function AdminProducts() {
 
     setBulkBusy(true);
     try {
-      await api.put("/products/bulk", { ids, action: bulkAction, value });
+      await api.put("/products/bulk", { ids, action: bulkAction, value, ends: bulkAction === "sale_percent" ? bulkEnds : undefined });
       await fetchProducts();
       notify(`${n} updated`);
       setSelected(new Set());
       setBulkAction("");
       setBulkValue("");
+      setBulkEnds("");
     } catch (err) {
       notify(apiError(err, "We couldn't update those products."), "error");
     } finally {
@@ -181,7 +195,7 @@ function AdminProducts() {
     }
   };
 
-  const filtersActive = search || category !== "all" || stockFilter !== "all" || statusFilter !== "all";
+  const filtersActive = search || category !== "all" || stockFilter !== "all" || statusFilter !== "all" || saleFilter !== "all";
 
   return (
     <>
@@ -225,6 +239,12 @@ function AdminProducts() {
             <option value="live">Shown in the shop</option>
             <option value="hidden">Hidden ({counts.hidden})</option>
           </select>
+
+          <select className="mt-input" value={saleFilter} onChange={(e) => setSaleFilter(e.target.value)} aria-label="Sale">
+            <option value="all">Any price</option>
+            <option value="sale">On sale ({counts.sale})</option>
+            <option value="regular">Not on sale</option>
+          </select>
         </div>
 
         {loading ? (
@@ -249,6 +269,7 @@ function AdminProducts() {
                   setCategory("all");
                   setStockFilter("all");
                   setStatusFilter("all");
+                  setSaleFilter("all");
                 }}
               >
                 Clear filters
@@ -303,6 +324,12 @@ function AdminProducts() {
                     placeholder={BULK_ACTIONS[bulkAction].placeholder}
                     aria-label={BULK_ACTIONS[bulkAction].placeholder}
                   />
+                )}
+                {bulkAction === "sale_percent" && (
+                  <label className="ad-bulk__ends">
+                    <span>until</span>
+                    <input type="date" className="mt-input" value={bulkEnds} onChange={(e) => setBulkEnds(e.target.value)} aria-label="Sale ends (optional)" />
+                  </label>
                 )}
                 <button type="button" className="mt-btn mt-btn--primary mt-btn--sm" onClick={applyBulk} disabled={!bulkAction || bulkBusy}>
                   {bulkBusy ? "Updating…" : "Apply"}
@@ -373,7 +400,19 @@ function AdminProducts() {
                         </td>
                         <td data-label="Category">{p.category_name}</td>
                         <td data-label="Price" className="ad-num ad-strong">
-                          {formatMoney(p.price)}
+                          {(() => {
+                            const sale = saleOf(p);
+                            if (!sale) return formatMoney(p.price);
+                            return (
+                              <span className="ad-sale-price">
+                                <span>
+                                  <span className="ad-sale-price__badge">-{sale.percent}%</span> {formatMoney(p.price)}
+                                </span>
+                                <s>{formatMoney(sale.old)}</s>
+                                {p.sale_ends && <small>ends {new Date(`${p.sale_ends}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</small>}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td data-label="Stock">
                           <StockStepper

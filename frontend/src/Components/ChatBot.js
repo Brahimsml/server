@@ -21,6 +21,7 @@ import {
   onImageError,
   toCartProduct,
   FALLBACK_IMG,
+  imageSrcSet,
 } from "../utils/shop";
 import "../Styles/ChatBot.css";
 import { getUserToken, openSignIn } from "../utils/auth";
@@ -250,7 +251,7 @@ const ChatBot = () => {
                           return (
                             <article key={p.id} className="cb-product">
                               <div className="cb-product__img">
-                                <img src={imageUrl(p.image) || FALLBACK_IMG} alt="" loading="lazy" onError={onImageError} />
+                                <img src={imageUrl(p.image) || FALLBACK_IMG} srcSet={imageSrcSet(p.image, 320)} sizes="80px" alt="" loading="lazy" onError={onImageError} />
                               </div>
                               <div className="cb-product__body">
                                 <strong title={p.name}>{p.name}</strong>

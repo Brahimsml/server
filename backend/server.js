@@ -6,6 +6,7 @@ const compression = require("compression");
 const mysql = require("mysql");
 const path = require("path");
 const fs = require("fs");
+const sharp = require("sharp");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -65,6 +66,49 @@ app.use(express.json());
    STATIC IMAGES
 */
 // Browsers may keep images for a day instead of downloading them on every visit
+/*
+   LIGHTER PICTURES: /img/<width>/<file> serves a WebP copy of an uploaded picture at that width,
+   made the first time it's asked for and kept in image-cache/ (rebuilt if the picture changes).
+   Pages list several widths and the browser downloads the smallest that still looks sharp, so
+   phones get small files. The original in images/ is never changed.
+*/
+const IMG_WIDTHS = [160, 320, 480, 800, 1200, 1600, 2400];
+const imageCacheDir = path.join(__dirname, "image-cache");
+fs.mkdirSync(imageCacheDir, { recursive: true });
+const resizing = new Map(); // file being made -> its promise (several requests at once make it once)
+
+app.get("/img/:w/:file", async (req, res) => {
+  const width = Number(req.params.w);
+  const file = path.basename(String(req.params.file || ""));
+  if (!IMG_WIDTHS.includes(width) || !/\.(jpe?g|png|webp|gif)$/i.test(file)) return res.status(404).end();
+  const source = path.join(__dirname, "images", file);
+  const cached = path.join(imageCacheDir, `${width}-${file}.webp`);
+  try {
+    const src = await fs.promises.stat(source);
+    const done = await fs.promises.stat(cached).catch(() => null);
+    if (!done || done.mtimeMs < src.mtimeMs) {
+      if (!resizing.has(cached)) {
+        const tmp = `${cached}.${process.pid}.tmp`;
+        const job = sharp(source)
+          .rotate()
+          .resize({ width, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toFile(tmp)
+          .then(() => fs.promises.rename(tmp, cached))
+          .finally(() => resizing.delete(cached));
+        resizing.set(cached, job);
+      }
+      await resizing.get(cached);
+    }
+    res.set("Cache-Control", "public, max-age=2592000"); // 30 days
+    res.type("image/webp").sendFile(cached);
+  } catch (err) {
+    if (err.code === "ENOENT") return res.status(404).end();
+    console.error("❌ Could not make a smaller picture:", err.message);
+    res.redirect(302, `/images/${encodeURIComponent(file)}`); // fall back to the original
+  }
+});
+
 app.use("/images", express.static(path.join(__dirname, "images"), { maxAge: "1d" }));
 
 /*
@@ -1107,6 +1151,29 @@ app.delete("/categories/:id/image", verifyAdmin, async (req, res) => {
   }
 });
 
+// Put a category in a group (parent_id), or take it out (null). One level only: a group can't be
+// inside another group, and a category that is a group (has categories in it) stays a main entry.
+app.put("/categories/:id/group", verifyAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const parent = req.body?.parent_id === null || req.body?.parent_id === "" ? null : Number(req.body?.parent_id);
+  try {
+    const [category] = await runQuery(db, "SELECT id FROM categories WHERE id=?", [id]);
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (parent !== null) {
+      if (!Number.isInteger(parent) || parent === id) return res.status(400).json({ message: "Choose another group." });
+      const [group] = await runQuery(db, "SELECT parent_id FROM categories WHERE id=?", [parent]);
+      if (!group) return res.status(400).json({ message: "That group doesn't exist." });
+      if (group.parent_id) return res.status(400).json({ message: "That's a category inside a group, so it can't hold others." });
+      const [{ n }] = await runQuery(db, "SELECT COUNT(*) AS n FROM categories WHERE parent_id=?", [id]);
+      if (Number(n) > 0) return res.status(400).json({ message: "This is a group with categories in it, so it can't go inside another group." });
+    }
+    await runQuery(db, "UPDATE categories SET parent_id=? WHERE id=?", [parent, id]);
+    res.json({ id, parent_id: parent });
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
 app.put("/categories/:id", verifyAdmin, (req, res) => {
   const name = cleanCategoryName(req.body.name);
   if (!name) return res.status(400).json({ message: "Enter a category name" });
@@ -1133,6 +1200,8 @@ app.delete("/categories/:id", verifyAdmin, (req, res) => {
       });
     }
 
+    // categories inside a deleted group become main entries again
+    db.query("UPDATE categories SET parent_id=NULL WHERE parent_id=?", [req.params.id]);
     db.query("DELETE FROM categories WHERE id=?", [req.params.id], (err2, result) => {
       if (err2) return serverError(res, err2);
       if (result.affectedRows === 0) return res.status(404).json({ message: "Category not found" });
@@ -1645,9 +1714,13 @@ app.get("/products", (req, res) => {
   const all = req.query.all === "1" && isAdminRequest(req);
   const q = `
     SELECT p.*, c.name AS category_name, c.sort_order AS category_order, c.image AS category_image,
-           c.pic_zoom AS category_pic_zoom, c.pic_x AS category_pic_x, c.pic_y AS category_pic_y, c.pic_fill AS category_pic_fill
+           c.pic_zoom AS category_pic_zoom, c.pic_x AS category_pic_x, c.pic_y AS category_pic_y, c.pic_fill AS category_pic_fill,
+           pc.name AS category_parent, pc.sort_order AS category_parent_order, pc.image AS category_parent_image,
+           pc.pic_zoom AS category_parent_pic_zoom, pc.pic_x AS category_parent_pic_x, pc.pic_y AS category_parent_pic_y,
+           pc.pic_fill AS category_parent_pic_fill${SALE_COLUMNS}
     FROM products p
     JOIN categories c ON p.category_id = c.id
+    LEFT JOIN categories pc ON pc.id = c.parent_id
     ${all ? "" : "WHERE p.active = 1"}
     ORDER BY p.id DESC
   `;
@@ -1664,9 +1737,10 @@ app.get("/products/:id", (req, res) => {
   if (!Number.isInteger(id) || id < 1) return res.status(404).json({ message: "Product not found" });
 
   const q = `
-    SELECT p.*, c.name AS category_name
+    SELECT p.*, c.name AS category_name, pc.name AS category_parent${SALE_COLUMNS}
     FROM products p
     JOIN categories c ON p.category_id = c.id
+    LEFT JOIN categories pc ON pc.id = c.parent_id
     WHERE p.id = ?
   `;
   db.query(q, [id], (err, rows) => {
@@ -1732,6 +1806,38 @@ async function addGalleryImages(conn, productId, files) {
 const activeFlag = (value) =>
   value === undefined || value === null || value === "" ? null : value === "0" || value === "false" || value === false ? 0 : 1;
 
+// Sale: the old price only counts when it's higher than the price; the sale can end on a day
+const saleFields = (body, price) => {
+  const old = Math.round(Number(String(body.old_price ?? "").replace(/[$,]/g, "")) * 100) / 100;
+  const onSale = Number.isFinite(old) && old > Number(price);
+  return { old_price: onSale ? old : null, sale_ends: onSale ? cleanDay(body.sale_ends) : null };
+};
+
+// Shown on the shop: is the sale on today? (the old price is higher and the end day hasn't passed)
+const SALE_COLUMNS = `,
+  (p.old_price > p.price AND (p.sale_ends IS NULL OR p.sale_ends >= CURDATE())) AS on_sale,
+  DATE_FORMAT(p.sale_ends, '%Y-%m-%d') AS sale_ends`;
+
+/*
+   SALES THAT END: on the day after "Sale ends" the normal price (the old price) comes back and
+   the sale is cleared, so customers stop getting the discount. Checked at start and hourly.
+*/
+const endFinishedSales = async () => {
+  try {
+    const result = await runQuery(
+      db,
+      "UPDATE products SET price = old_price, old_price = NULL, sale_ends = NULL WHERE sale_ends IS NOT NULL AND sale_ends < CURDATE() AND old_price > price"
+    );
+    // a leftover end date without a real old price is just cleared
+    await runQuery(db, "UPDATE products SET old_price = NULL, sale_ends = NULL WHERE sale_ends < CURDATE()");
+    if (result.affectedRows) console.log(`🏷️ ${result.affectedRows} sale(s) ended: normal prices are back`);
+  } catch (err) {
+    console.error("❌ Could not end finished sales:", err.message);
+  }
+};
+setTimeout(endFinishedSales, 5 * 1000);
+setInterval(endFinishedSales, 60 * 60 * 1000).unref();
+
 const PRODUCT_FIELDS = [
   { name: "image", maxCount: 1 },
   { name: "gallery", maxCount: MAX_GALLERY },
@@ -1760,10 +1866,11 @@ app.post("/products", verifyAdmin, productUpload.fields(PRODUCT_FIELDS), process
       }
     }
 
+    const sale = saleFields(req.body, price);
     const result = await runQuery(
       db,
-      "INSERT INTO products (category_id,name,brand,price,image,label,description,stock_quantity,specs,active) VALUES (?,?,?,?,?,?,?,?,?,?)",
-      [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active) ?? 1]
+      "INSERT INTO products (category_id,name,brand,price,old_price,sale_ends,image,label,description,stock_quantity,specs,active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+      [category_id, name, cleanBrand(brand), price, sale.old_price, sale.sale_ends, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active) ?? 1]
     );
     if (copiedGallery.length) {
       await runQuery(db, "INSERT INTO product_images (product_id, image, sort_order) VALUES ?", [
@@ -1807,13 +1914,14 @@ app.post("/products/modify/:id", verifyAdmin, productUpload.fields(PRODUCT_FIELD
     }
 
     let removed = [];
+    const sale = saleFields(req.body, price);
     await withTransaction(async (conn) => {
       await runQuery(
         conn,
         `UPDATE products
-         SET category_id=?, name=?, brand=?, price=?, image=?, label=?, description=?, stock_quantity=?, specs=?, active=COALESCE(?, active)
+         SET category_id=?, name=?, brand=?, price=?, old_price=?, sale_ends=?, image=?, label=?, description=?, stock_quantity=?, specs=?, active=COALESCE(?, active)
          WHERE id=?`,
-        [category_id, name, cleanBrand(brand), price, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active), productId]
+        [category_id, name, cleanBrand(brand), price, sale.old_price, sale.sale_ends, image, label || null, description, Number(stock_quantity) || 0, cleanSpecs(specs), activeFlag(req.body.active), productId]
       );
 
       if (removeIds.length) {
@@ -2582,6 +2690,19 @@ app.put("/products/bulk", verifyAdmin, async (req, res) => {
     }
     sql = "UPDATE products SET price = GREATEST(0.01, ROUND(price * ?, 2)) WHERE id IN (?)";
     params = [1 + value / 100, ids];
+  } else if (action === "sale_percent") {
+    // put on sale: the normal price becomes the old price (kept if already on sale), the price goes down
+    if (!Number.isFinite(value) || value < 1 || value > 90) return res.status(400).json({ message: "Enter a discount between 1% and 90%." });
+    sql = `UPDATE products
+              SET old_price = IF(old_price > price, old_price, price),
+                  price = GREATEST(0.01, ROUND(old_price * ?, 2)),
+                  sale_ends = ?
+            WHERE id IN (?)`;
+    params = [1 - value / 100, cleanDay(req.body?.ends), ids];
+  } else if (action === "sale_end") {
+    // end the sale now: back to the normal price
+    sql = "UPDATE products SET price = IF(old_price > price, old_price, price), old_price = NULL, sale_ends = NULL WHERE id IN (?)";
+    params = [ids];
   } else if (action === "stock_set") {
     if (!Number.isInteger(value) || value < 0 || value > 100000) return res.status(400).json({ message: "Stock must be a whole number, 0 or more." });
     sql = "UPDATE products SET stock_quantity=? WHERE id IN (?)";

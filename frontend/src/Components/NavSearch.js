@@ -5,7 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import api from "../api";
-import { formatMoney, imageUrl, onImageError, productPath, FALLBACK_IMG } from "../utils/shop";
+import { formatMoney, groupCategories, imageUrl, inCategoryOf, onImageError, productPath, FALLBACK_IMG, imageSrcSet } from "../utils/shop";
 
 /*
   Search box in the menu bar, with live suggestions.
@@ -103,7 +103,7 @@ const NavSearch = ({ bar = false }) => {
   const results = useMemo(
     () =>
       words.length
-        ? products.filter((p) => (scope === "All" || p.category_name === scope) && matches(p, words))
+        ? products.filter((p) => inCategoryOf(p, scope) && matches(p, words))
         : [],
     [products, words, scope]
   );
@@ -171,11 +171,17 @@ const NavSearch = ({ bar = false }) => {
             aria-label="Search in category"
           >
             <option value="All">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.name}>
-                {c.name}
-              </option>
-            ))}
+            {/* groups first, their categories indented under them */}
+            {groupCategories(categories).flatMap((g) => [
+              <option key={g.id} value={g.name}>
+                {g.name}
+              </option>,
+              ...g.children.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {"\u00a0\u00a0\u00a0" + c.name}
+                </option>
+              )),
+            ])}
           </select>
         </label>
         <SearchIcon className="ns-icon" fontSize="small" />
@@ -221,7 +227,7 @@ const NavSearch = ({ bar = false }) => {
                   onMouseEnter={() => setActive(i)}
                   onClick={() => openProduct(p)}
                 >
-                  <img src={imageUrl(p.image) || FALLBACK_IMG} alt="" onError={onImageError} />
+                  <img src={imageUrl(p.image) || FALLBACK_IMG} srcSet={imageSrcSet(p.image, 320)} sizes="56px" alt="" onError={onImageError} />
                   <span className="ns-item__text">
                     <strong>{p.name}</strong>
                     <small>{p.category_name}</small>
