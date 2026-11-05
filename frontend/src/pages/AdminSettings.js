@@ -40,9 +40,11 @@ function AdminSettings() {
 
     try {
       setSaving(true);
-      await api.put("/admin/password", { currentPassword: values.current, newPassword: values.next });
+      const res = await api.put("/admin/password", { currentPassword: values.current, newPassword: values.next });
+      // other devices are signed out; this one keeps going with the new sign-in
+      if (res.data.token) localStorage.setItem("adminToken", res.data.token);
       setValues(EMPTY);
-      notify("Your password was changed");
+      notify("Password changed. You were signed out on your other devices.");
     } catch (err) {
       console.error(err);
       setFormError(apiError(err, "We couldn't change your password. Please try again."));

@@ -14,12 +14,17 @@ const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const createChatbot = require("./chatbot");
-const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail } = require("./emails");
+const { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail, buildAdminCodeEmail } = require("./emails");
 const { processProductUpload, processProductUploads, processBannerUploads, processPromoUploads } = require("./productImages");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
   console.error("❌ JWT_SECRET is missing. Add it to backend/.env");
+  process.exit(1);
+}
+// Online, a short or example secret would let someone fake sign-ins
+if (process.env.NODE_ENV === "production" && (SECRET.length < 32 || SECRET === "change-me")) {
+  console.error("❌ JWT_SECRET is too weak for a live shop. Make a long random one (see .env.example).");
   process.exit(1);
 }
 
@@ -60,7 +65,58 @@ app.use(
       callback(null, !origin || allowedOrigins.includes(origin) || isHomeWifiTest(origin)),
   })
 );
-app.use(express.json());
+// Requests bigger than this are refused (stops someone slowing the server with huge requests).
+// Pictures don't count: they're uploaded separately, up to 5 MB each.
+app.use(express.json({ limit: "100kb" }));
+
+// Online the shop sits behind the host's proxy: set TRUST_PROXY=1 in .env there, so the limits
+// below see each visitor's real address instead of the proxy's one (everyone sharing one limit).
+if (process.env.TRUST_PROXY) {
+  const hops = Number(process.env.TRUST_PROXY);
+  app.set("trust proxy", Number.isInteger(hops) ? hops : process.env.TRUST_PROXY);
+}
+
+/*
+   REQUEST LIMITS (stop bots flooding sign-up, emails, orders, the chat...)
+   Counted per visitor address. Each limit says how many requests are allowed in how long.
+*/
+const limitStores = [];
+
+// Simple per-key request limit, e.g. 5 per 15 minutes from one IP. Returns true when blocked.
+const tooManyRequests = (store, key, max, windowMs) => {
+  const now = Date.now();
+  const entry = store.get(key);
+  if (!entry || entry.resetAt <= now) {
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (entry.count >= max) return true;
+  entry.count += 1;
+  return false;
+};
+
+// Middleware: at most `max` requests per `minutes` from one address
+// (perAccount: counted per signed-in customer instead, so people sharing a connection never block each other)
+const limitRequests = (max, minutes, message = "Too many requests. Please wait a few minutes and try again.", { perAccount = false } = {}) => {
+  const store = new Map();
+  limitStores.push(store);
+  return (req, res, next) => {
+    const key = perAccount && req.user ? `user:${req.user.id}` : req.ip;
+    return tooManyRequests(store, key, max, minutes * 60 * 1000) ? res.status(429).json({ message }) : next();
+  };
+};
+
+// Forget finished limits every 10 minutes so the lists don't keep growing
+setInterval(() => {
+  const now = Date.now();
+  for (const store of limitStores) {
+    for (const [key, entry] of store) if (entry.resetAt <= now) store.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
+
+// Everything together: 600 requests per 5 minutes is far more than a shopper needs (pictures don't count)
+const limitEverything = limitRequests(600, 5);
+app.use((req, res, next) => (req.path.startsWith("/images/") || req.path.startsWith("/img/") ? next() : limitEverything(req, res, next)));
 
 /*
    STATIC IMAGES
@@ -270,6 +326,22 @@ const restoreOrderStock = async (conn, orderId) => {
 };
 
 /*
+   SIGN OUT OTHER DEVICES
+   Every sign-in carries the account's session number (sv). Changing the password raises the
+   number, so sign-ins made before it (other phones, laptops) stop working straight away.
+   Sign-ins from before this existed have no sv and count as 0.
+*/
+const checkSession = (table, decoded, res, next) => {
+  db.query(`SELECT session_version FROM ${table} WHERE id=?`, [decoded.id], (err, rows) => {
+    if (err) return serverError(res, err);
+    if (!rows.length || Number(rows[0].session_version) !== Number(decoded.sv || 0)) {
+      return res.status(401).json({ message: "You were signed out. Please sign in again." });
+    }
+    next();
+  });
+};
+
+/*
    JWT MIDDLEWARE (ADMIN)
 */
 const verifyAdmin = (req, res, next) => {
@@ -285,8 +357,10 @@ const verifyAdmin = (req, res, next) => {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    req.admin = decoded;
-    next();
+    checkSession("admins", decoded, res, () => {
+      req.admin = decoded;
+      next();
+    });
   });
 };
 
@@ -323,8 +397,10 @@ const verifyUser = (req, res, next) => {
       return res.status(401).json({ message: "Please login with a customer account" });
     }
 
-    req.user = decoded;
-    next();
+    checkSession("users", decoded, res, () => {
+      req.user = decoded;
+      next();
+    });
   });
 };
 
@@ -335,6 +411,7 @@ const verifyUser = (req, res, next) => {
 const LOGIN_MAX_FAILS = 10;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const loginFails = new Map();
+limitStores.push(loginFails);
 
 const limitLoginAttempts = (req, res, next) => {
   const key = `${req.ip}|${req.path}`;
@@ -384,8 +461,57 @@ app.get("/", (req, res) => {
 /*
    ADMIN LOGIN
 */
+/*
+   2-STEP ADMIN SIGN-IN
+   After the right password, a 6-digit code is emailed to the shop owner (ADMIN_CODE_EMAIL in .env,
+   else ADMIN_NOTIFY_EMAIL, else the shop's own address). "Trust this device" skips the code on that
+   browser for 30 days; changing the admin password ends every trusted device too.
+   ADMIN_TWO_STEP=off in .env turns it off (only if emails can't be sent).
+*/
+const ADMIN_CODE_MINUTES = 10;
+const ADMIN_CODE_MAX_TRIES = 5;
+const ADMIN_TRUST_DAYS = 30;
+const adminCodes = new Map(); // ticket -> { adminId, codeHash, expires, tries }
+const adminCodeSends = new Map(); // admin id -> { count, resetAt }
+limitStores.push(adminCodeSends);
+
+const adminTwoStepOn = () => String(process.env.ADMIN_TWO_STEP || "").toLowerCase() !== "off";
+const adminCodeEmail = () => process.env.ADMIN_CODE_EMAIL || process.env.ADMIN_NOTIFY_EMAIL || process.env.EMAIL_USER;
+
+// "ib•••@gmail.com": shows which inbox to check without giving the address away
+const maskEmail = (email) => {
+  const [name, domain] = String(email).split("@");
+  return domain ? `${name.slice(0, 2)}•••@${domain}` : "your email";
+};
+
+// "Chrome on Mac": a rough guess from the browser, for the code email
+const describeDevice = (ua = "") => {
+  const browser = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "A browser";
+  const system = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Mac OS X/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
+  return system ? `${browser} on ${system}` : browser;
+};
+
+const signAdminDevice = (admin) =>
+  jwt.sign({ id: admin.id, purpose: "admin-device", sv: Number(admin.session_version || 0) }, SECRET, {
+    expiresIn: `${ADMIN_TRUST_DAYS}d`,
+  });
+
+// A device the admin chose to trust (and the password hasn't changed since)
+const isTrustedAdminDevice = (deviceToken, admin) => {
+  if (!deviceToken) return false;
+  try {
+    const d = jwt.verify(String(deviceToken), SECRET);
+    return d.purpose === "admin-device" && Number(d.id) === Number(admin.id) && Number(d.sv) === Number(admin.session_version || 0);
+  } catch {
+    return false;
+  }
+};
+
+const adminSignedIn = (res, admin, extra = {}) =>
+  res.json({ message: "Login success", token: signAdminToken(admin), admin: { id: admin.id, email: admin.email }, ...extra });
+
 app.post("/admin/login", limitLoginAttempts, (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, device } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password required" });
@@ -404,19 +530,71 @@ app.post("/admin/login", limitLoginAttempts, (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { id: data[0].id, email: data[0].email, role: "admin" },
-      SECRET,
-      { expiresIn: "1h" }
-    );
+    const admin = data[0];
+    if (!adminTwoStepOn() || isTrustedAdminDevice(device, admin)) return adminSignedIn(res, admin);
 
-    return res.json({
-      message: "Login success",
-      token,
-      admin: { id: data[0].id, email: data[0].email },
+    // Right password on a new device: email a code
+    if (tooManyRequests(adminCodeSends, admin.id, 5, 15 * 60 * 1000)) {
+      return res.status(429).json({ message: "Too many codes were sent. Try again in 15 minutes." });
+    }
+    const to = adminCodeEmail();
+    const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+    const ticket = crypto.randomBytes(32).toString("hex");
+    try {
+      await transporter.sendMail({
+        from: `"MegaTech" <${process.env.EMAIL_USER}>`,
+        to,
+        ...buildAdminCodeEmail({
+          code,
+          minutes: ADMIN_CODE_MINUTES,
+          when: new Date().toLocaleString("en-GB", { timeZone: "Asia/Beirut", dateStyle: "medium", timeStyle: "short" }),
+          device: describeDevice(req.get("user-agent")),
+        }),
+      });
+    } catch (mailErr) {
+      console.error("❌ Admin sign-in code email failed (if emails can't be sent, ADMIN_TWO_STEP=off in .env lets you in):", mailErr);
+      return res.status(503).json({ message: "We couldn't send your sign-in code. Please try again in a minute." });
+    }
+    adminCodes.set(ticket, {
+      adminId: admin.id,
+      codeHash: await bcrypt.hash(code, 10),
+      expires: Date.now() + ADMIN_CODE_MINUTES * 60 * 1000,
+      tries: 0,
     });
+    res.json({ needsCode: true, ticket, sentTo: maskEmail(to), minutes: ADMIN_CODE_MINUTES });
   });
 });
+
+// Step 2: the code from the email. Wrong codes count towards the sign-in limit.
+app.post("/admin/login/code", limitLoginAttempts, async (req, res) => {
+  const ticket = String(req.body?.ticket || "");
+  const code = String(req.body?.code || "").replace(/\D/g, "");
+  const entry = adminCodes.get(ticket);
+
+  if (!entry || entry.expires < Date.now() || entry.tries >= ADMIN_CODE_MAX_TRIES) {
+    adminCodes.delete(ticket);
+    return res.status(400).json({ message: "This code has expired. Sign in again to get a new one.", expired: true });
+  }
+  if (code.length !== 6 || !(await bcrypt.compare(code, entry.codeHash))) {
+    entry.tries += 1;
+    return res.status(401).json({ message: "That code isn't right." });
+  }
+
+  adminCodes.delete(ticket);
+  try {
+    const [admin] = await runQuery(db, "SELECT id, email, session_version FROM admins WHERE id=?", [entry.adminId]);
+    if (!admin) return res.status(401).json({ message: "Admin account not found" });
+    adminSignedIn(res, admin, req.body?.trust ? { device: signAdminDevice(admin) } : {});
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+// Forget codes nobody used
+setInterval(() => {
+  const now = Date.now();
+  for (const [ticket, entry] of adminCodes) if (entry.expires < now) adminCodes.delete(ticket);
+}, 10 * 60 * 1000).unref();
 
 /*
    CUSTOMER ACCOUNTS
@@ -429,26 +607,13 @@ const RESEND_COOLDOWN_SECONDS = 60;
 
 // "Keep me signed in": 30 days; otherwise 2 hours (and the browser forgets it when the tab closes)
 const signUserToken = (user, remember) =>
-  jwt.sign({ id: user.id, email: user.email, role: "user" }, SECRET, {
+  jwt.sign({ id: user.id, email: user.email, role: "user", sv: Number(user.session_version || 0) }, SECRET, {
     expiresIn: remember ? "30d" : "2h",
   });
 
 const wantsRemember = (req) => req.body?.remember === true || req.body?.remember === "true";
 
 const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email });
-
-// Simple per-key request limit, e.g. 5 per 15 minutes from one IP. Returns true when blocked.
-const tooManyRequests = (store, key, max, windowMs) => {
-  const now = Date.now();
-  const entry = store.get(key);
-  if (!entry || entry.resetAt <= now) {
-    store.set(key, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
-  if (entry.count >= max) return true;
-  entry.count += 1;
-  return false;
-};
 
 // Create a new code, store its hash, and email it.
 // Skips sending if a code was sent less than a minute ago (unless force is set).
@@ -487,7 +652,7 @@ async function sendVerificationCode(user, { force = false } = {}) {
 /*
    USER REGISTER
 */
-app.post("/users/register", async (req, res) => {
+app.post("/users/register", limitRequests(10, 60, "Too many sign-ups from here. Please try again later."), async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -545,7 +710,7 @@ const emailChecks = new Map(); // ip -> { count, resetAt }
 const EMAIL_CHECKS_MAX = 30;
 const EMAIL_CHECKS_WINDOW_MS = 15 * 60 * 1000;
 
-app.post("/users/check-email", async (req, res) => {
+app.post("/users/check-email", limitRequests(30, 15), async (req, res) => {
   const now = Date.now();
   const entry = emailChecks.get(req.ip);
   const current = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + EMAIL_CHECKS_WINDOW_MS };
@@ -663,6 +828,7 @@ app.post("/users/verify-email", limitLoginAttempts, async (req, res) => {
    SEND A NEW CODE
 */
 const resendRequests = new Map(); // ip -> { count, resetAt }
+limitStores.push(resendRequests);
 
 app.post("/users/resend-code", async (req, res) => {
   const email = String(req.body?.email || "").trim();
@@ -749,8 +915,14 @@ app.put("/users/me/password", verifyUser, limitLoginAttempts, async (req, res) =
       res.locals.authFailed = true;
       return res.status(400).json({ message: "Your current password isn't right." });
     }
-    await runQuery(db, "UPDATE users SET password=? WHERE id=?", [await bcrypt.hash(next, 10), user.id]);
-    res.json({ message: "Your password was changed." });
+    await runQuery(db, "UPDATE users SET password=?, session_version = session_version + 1 WHERE id=?", [
+      await bcrypt.hash(next, 10),
+      user.id,
+    ]);
+    // Other devices are signed out; this one gets a new sign-in that lasts as long as the old one
+    const [fresh] = await runQuery(db, "SELECT id, email, session_version FROM users WHERE id=?", [user.id]);
+    const remembered = req.user.exp - req.user.iat > 2 * 60 * 60;
+    res.json({ message: "Your password was changed.", token: signUserToken(fresh, remembered) });
   } catch (err) {
     serverError(res, err);
   }
@@ -904,6 +1076,7 @@ app.post("/users/google", limitLoginAttempts, async (req, res) => {
 */
 const RESET_MINUTES = 30;
 const resetRequests = new Map(); // ip -> { count, resetAt }
+limitStores.push(resetRequests);
 const resetSecretFor = (user) => SECRET + user.password;
 
 app.post("/users/forgot-password", (req, res) => {
@@ -958,7 +1131,7 @@ const RESET_LINK_BROKEN = "This reset link is invalid or has expired. Please req
 
 // The reset page checks its link first: says straight away if it expired, and shows (and tells
 // the browser's password manager) which account the new password is for
-app.post("/users/reset-password/check", async (req, res) => {
+app.post("/users/reset-password/check", limitRequests(20, 15), async (req, res) => {
   try {
     const user = await resetLinkUser(req.body?.id, req.body?.token);
     if (!user) return res.status(400).json({ message: RESET_LINK_BROKEN });
@@ -969,7 +1142,7 @@ app.post("/users/reset-password/check", async (req, res) => {
 });
 
 // New password, then signed in straight away (like Google or Apple): the link proved they own the inbox
-app.post("/users/reset-password", async (req, res) => {
+app.post("/users/reset-password", limitRequests(20, 15), async (req, res) => {
   const { id, token, password } = req.body || {};
   if (!password || String(password).length < 8) {
     return res.status(400).json({ message: "Password must be at least 8 characters" });
@@ -979,10 +1152,14 @@ app.post("/users/reset-password", async (req, res) => {
     if (!user) return res.status(400).json({ message: RESET_LINK_BROKEN });
     const hashed = await bcrypt.hash(String(password), 10);
     // the old password stops working here, and so does this link (it was signed with the old hash)
-    await runQuery(db, "UPDATE users SET password=?, email_verified=1 WHERE id=?", [hashed, user.id]);
+    // ...and every device signed in with it is signed out
+    await runQuery(db, "UPDATE users SET password=?, email_verified=1, session_version = session_version + 1 WHERE id=?", [
+      hashed,
+      user.id,
+    ]);
     res.json({
       message: "Your password was changed.",
-      token: signUserToken(user, wantsRemember(req)),
+      token: signUserToken({ ...user, session_version: Number(user.session_version || 0) + 1 }, wantsRemember(req)),
       user: publicUser(user),
     });
   } catch (err) {
@@ -994,7 +1171,9 @@ app.post("/users/reset-password", async (req, res) => {
    ADMIN ACCOUNT: change password + keep the session alive
 */
 const signAdminToken = (admin) =>
-  jwt.sign({ id: admin.id, email: admin.email, role: "admin" }, SECRET, { expiresIn: "1h" });
+  jwt.sign({ id: admin.id, email: admin.email, role: "admin", sv: Number(admin.session_version || 0) }, SECRET, {
+    expiresIn: "1h",
+  });
 
 // Wrong current password returns 400 (not 401) so the admin isn't logged out,
 // but it still counts towards the failed-attempt limit.
@@ -1023,9 +1202,11 @@ app.put("/admin/password", verifyAdmin, limitLoginAttempts, (req, res) => {
       }
 
       const hashed = await bcrypt.hash(String(newPassword), 10);
-      db.query("UPDATE admins SET password=? WHERE id=?", [hashed, req.admin.id], (err2) => {
+      // Other devices are signed out; this one gets a new sign-in
+      db.query("UPDATE admins SET password=?, session_version = session_version + 1 WHERE id=?", [hashed, req.admin.id], (err2) => {
         if (err2) return serverError(res, err2);
-        res.json({ message: "Password changed" });
+        const admin = { ...rows[0], session_version: Number(rows[0].session_version || 0) + 1 };
+        res.json({ message: "Password changed", token: signAdminToken(admin) });
       });
     } catch (e) {
       serverError(res, e);
@@ -1035,7 +1216,7 @@ app.put("/admin/password", verifyAdmin, limitLoginAttempts, (req, res) => {
 
 // Issue a fresh 1-hour token while the admin is active (the admin page calls this)
 app.post("/admin/refresh", verifyAdmin, (req, res) => {
-  db.query("SELECT id, email FROM admins WHERE id=?", [req.admin.id], (err, rows) => {
+  db.query("SELECT id, email, session_version FROM admins WHERE id=?", [req.admin.id], (err, rows) => {
     if (err) return serverError(res, err);
     if (!rows.length) return res.status(401).json({ message: "Admin account not found" });
     res.json({ token: signAdminToken(rows[0]) });
@@ -1962,7 +2143,7 @@ app.get("/checkout-info", (req, res) => {
   });
 });
 
-app.post("/orders", verifyUser, async (req, res) => {
+app.post("/orders", verifyUser, limitRequests(10, 60, "Too many orders in a short time. Please call us if you need help.", { perAccount: true }), async (req, res) => {
   const { customer_name, customer_phone, customer_address, items, payment_method, save_details } = req.body;
 
   if (!PAYMENT_METHODS[payment_method]) {
@@ -2340,7 +2521,7 @@ app.get("/my-orders", verifyUser, (req, res) => {
 });
 
 // Customer cancels their own order while it's still pending: stock goes back, email confirms
-app.post("/my-orders/:id/cancel", verifyUser, async (req, res) => {
+app.post("/my-orders/:id/cancel", verifyUser, limitRequests(20, 60, undefined, { perAccount: true }), async (req, res) => {
   const orderId = Number(req.params.id);
   try {
     await withTransaction(async (conn) => {
@@ -2405,12 +2586,12 @@ app.get("/my-orders/:id", verifyUser, (req, res) => {
 /*
    CHATBOT (rule-based shop assistant, see chatbot.js)
 */
-app.post("/chatbot", createChatbot({ db, jwt, secret: SECRET }));
+app.post("/chatbot", limitRequests(20, 1, "You're sending messages too fast. Please wait a moment."), createChatbot({ db, jwt, secret: SECRET }));
 
 /*
    CONTACT FORM
 */
-app.post("/contact", (req, res) => {
+app.post("/contact", limitRequests(5, 60, "Too many messages from here. Please try again later, or call us."), (req, res) => {
   const { fname, email, message } = req.body;
 
   if (!fname || !email || !message) {
@@ -2934,8 +3115,12 @@ app.get("/admin/stats", verifyAdmin, (req, res) => {
   });
 });
 
+// Unknown address
+app.use((req, res) => res.status(404).json({ message: "Not found" }));
+
 /*
    ERROR HANDLER (upload errors etc.)
+   Visitors never see error details (database messages, file paths): those only go to the server log.
 */
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
@@ -2949,7 +3134,17 @@ app.use((err, req, res, next) => {
   }
 
   console.error(err);
-  res.status(err.status || 500).json({ message: err.status ? err.message : "Server error" });
+  // too-big or broken requests get a plain message; anything else is just "Server error"
+  const status = err.status || err.statusCode || 500;
+  const message =
+    status >= 500
+      ? "Server error"
+      : err.type === "entity.too.large"
+      ? "That request is too big."
+      : err.type // the request body couldn't be read (e.g. broken JSON)
+      ? "That request couldn't be read."
+      : err.message;
+  res.status(status).json({ message });
 });
 
 /*

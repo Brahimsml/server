@@ -1363,6 +1363,60 @@ a.ad-kpi:hover {
   color: var(--mt-text);
 }
 
+/* 2-step sign-in: the emailed code */
+.ad-login__mail {
+  vertical-align: -4px;
+  color: var(--mt-accent-bright);
+}
+
+.ad-login__sub strong {
+  color: var(--mt-text);
+}
+
+.ad-login__code {
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-login__trust {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 18px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.ad-login__trust .ad-check {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ad-login__trust small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mt-muted);
+  font-size: 0.8rem;
+}
+
+.ad-login__back {
+  display: block;
+  margin: 14px auto 0;
+  border: none;
+  background: none;
+  color: var(--mt-muted);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.ad-login__back:hover {
+  color: var(--mt-accent-bright);
+}
+
 .ad-login__foot {
   margin-top: 22px;
   text-align: center;

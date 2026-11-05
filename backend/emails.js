@@ -447,6 +447,68 @@ function buildVerificationEmail({ name, code, minutes = 15 }) {
 }
 
 /*
+  Admin sign-in code (2-step sign-in): sent when someone types the right admin password on a
+  device that isn't trusted yet. It also warns the owner if someone else knows the password.
+    when    "5 Nov 2026, 14:20"
+    device  "Chrome on Mac" (a guess from the browser)
+*/
+function buildAdminCodeEmail({ code, minutes = 10, when, device }) {
+  const attachments = fs.existsSync(LOGO_PATH)
+    ? [{ filename: "megatech-logo.png", path: LOGO_PATH, cid: "logo@megatech" }]
+    : [];
+  const spaced = String(code).split("").join(" ");
+
+  const body = `
+          <tr>
+            <td style="padding:34px 28px 6px;font-family:${FONT};">
+              <div style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#a07a2c;">Admin sign-in</div>
+              <h1 style="margin:10px 0 10px;font-size:26px;line-height:1.25;color:#1c1a16;font-weight:700;">Your sign-in code</h1>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#5c554a;">Someone typed the right admin password and needs this code to get in.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:26px 28px 6px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="background:#faf8f3;border:1px solid #e6d6ae;border-radius:14px;">
+                <tr><td align="center" style="padding:18px 30px;font-family:'Courier New',Courier,monospace;font-size:34px;font-weight:700;letter-spacing:6px;color:#1c1a16;">${escapeHtml(spaced)}</td></tr>
+              </table>
+              <div style="margin-top:12px;font-family:${FONT};font-size:13px;color:#8a8275;">This code works for ${minutes} minutes.</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 28px 0;font-family:${FONT};font-size:14px;line-height:1.7;color:#5c554a;text-align:center;">
+              <strong style="color:#3d3830;">When:</strong> ${escapeHtml(when)}<br />
+              <strong style="color:#3d3830;">Device:</strong> ${escapeHtml(device)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 28px 0;font-family:${FONT};font-size:13px;line-height:1.6;color:#9b2c2c;text-align:center;">
+              Wasn't you? Don't share this code. Someone knows your admin password: change it in Admin &rarr; Settings.
+            </td>
+          </tr>
+`;
+
+  const html = emailShell({
+    title: `Your ${BRAND} admin code: ${code}`,
+    preheader: `Admin sign-in code ${code}. It works for ${minutes} minutes.`,
+    body,
+    help: `This email only goes to the shop owner.`,
+    footnote: `You're receiving this email because 2-step sign-in is on for the ${BRAND} admin.`,
+  });
+
+  const text = [
+    `Your ${BRAND} admin sign-in code is: ${code}`,
+    `It works for ${minutes} minutes.`,
+    "",
+    `When: ${when}`,
+    `Device: ${device}`,
+    "",
+    "Wasn't you? Don't share this code. Someone knows your admin password: change it in Admin > Settings.",
+  ].join("\n");
+
+  return { subject: `${code} is your ${BRAND} admin sign-in code`, html, text, attachments };
+}
+
+/*
   Email to the shop owner: a new order came in, or a customer cancelled one.
     kind:  "new" | "cancelled"
     order: { id, customer_name, customer_phone, customer_address, total, delivery_fee, payment_method, created_at }
@@ -543,4 +605,4 @@ function buildAdminOrderEmail({ kind = "new", order, items, adminUrl, customerEm
   return { subject, html, text, attachments };
 }
 
-module.exports = { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail };
+module.exports = { buildOrderEmail, buildPasswordResetEmail, buildVerificationEmail, buildAdminOrderEmail, buildAdminCodeEmail };

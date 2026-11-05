@@ -76,6 +76,15 @@ export const getUser = () => {
   }
 };
 
+// After a password change: other devices are signed out, this one keeps going with a new sign-in
+export const replaceUserToken = (token) => {
+  const store = activeStore();
+  if (!store || !token) return;
+  try {
+    store.setItem(TOKEN_KEY, token);
+  } catch {}
+};
+
 // After the customer edits their name on the account page, keep the navbar in step
 export const updateStoredUser = (user) => {
   const store = activeStore();

@@ -6,7 +6,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import api from "../api";
-import { clearUserSession, getUserToken, updateStoredUser } from "../utils/auth";
+import { clearUserSession, getUserToken, replaceUserToken, updateStoredUser } from "../utils/auth";
 import { useWishlist } from "../Context/WishlistContext";
 import "../Styles/theme.css";
 import "../Styles/Account.css";
@@ -94,9 +94,10 @@ const Account = () => {
     }
     try {
       setSavingPw(true);
-      await api.put("/users/me/password", { current_password: pw.current, new_password: pw.next }, auth);
+      const res = await api.put("/users/me/password", { current_password: pw.current, new_password: pw.next }, auth);
+      replaceUserToken(res.data.token);
       setPw({ current: "", next: "", confirm: "" });
-      setPwMsg({ type: "success", text: "Your password was changed." });
+      setPwMsg({ type: "success", text: "Your password was changed. You were signed out on your other devices." });
     } catch (err) {
       if (err.response?.status === 401) return signInAgain();
       setPwMsg({ type: "error", text: err.response?.data?.message || "We couldn't change your password." });
