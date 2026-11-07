@@ -662,8 +662,8 @@
 }
 
 .pc-label--new {
-  background: #131313;
-  color: #f5f5f5;
+  background: #15803d;
+  color: #fff;
 }
 
 .pc-label--best {
@@ -1544,14 +1544,18 @@
 }
 
 /* ===================== RECENTLY VIEWED ===================== */
-.hp-recent__clear {
-  color: var(--mt-muted);
+.mt-box .mt-section-head .hp-recent__clear {
+  padding: 8px 0; /* no border, but still easy to tap */
+  border: none;
+  color: #f2686c;
   font-size: 0.88rem;
   font-weight: 500;
 }
 
-.hp-recent__clear:hover {
-  color: var(--mt-accent-bright);
+.mt-box .mt-section-head .hp-recent__clear:hover {
+  background: none;
+  color: #ff8a8d;
+  text-decoration: underline;
 }
 
 /* ===================== NEED HELP CHOOSING? ===================== */

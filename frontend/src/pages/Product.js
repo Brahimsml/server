@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
@@ -13,24 +12,21 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import SHOP_INFO from "../utils/shopInfo";
 import ProductsItem from "../Components/ProductsItem";
+import ProductGallery from "../Components/ProductGallery";
 import { addRecentlyViewed } from "../utils/recentlyViewed";
 import WishlistButton from "../Components/WishlistButton";
 import { CartContext } from "../Context/CartContext";
 import api from "../api";
 import {
   formatMoney,
-  imageUrl,
   isBestSeller,
   isLowStock,
   isSoldOut,
   normalizeLabel,
-  onImageError,
   productIdFromParam,
   productPath,
   toCartProduct,
   whatsappLink,
-  FALLBACK_IMG,
-  imageSrcSet,
   saleOf,
 } from "../utils/shop";
 import "../Styles/theme.css";
@@ -194,8 +190,6 @@ const Product = () => {
 
   // main photo first, then the extra ones
   const photos = [product.image, ...(product.images || []).map((g) => g.image)].filter(Boolean);
-  const shown = photos[Math.min(photo, photos.length - 1)];
-  const step = (dir) => setPhoto((i) => (i + dir + photos.length) % photos.length);
   const specs = parseSpecs(product.specs);
   const shownSpecs = allSpecs ? specs : specs.slice(0, KEY_SPECS);
 
@@ -214,69 +208,18 @@ const Product = () => {
 
         <div className="pd">
           {/* ===== Photos ===== */}
-          <div className="pd-gallery">
-            <div
-              className="pd-media"
-              tabIndex={photos.length > 1 ? 0 : undefined}
-              onKeyDown={(e) => {
-                if (photos.length < 2) return;
-                if (e.key === "ArrowRight") step(1);
-                if (e.key === "ArrowLeft") step(-1);
-              }}
-              aria-label={photos.length > 1 ? `Photo ${photo + 1} of ${photos.length}` : undefined}
-            >
-              {label && (
-                <span
-                  className={`pc-label ${
-                    isBestSeller(product) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""
-                  }`}
-                >
-                  {isBestSeller(product) ? "Best Seller" : label}
-                </span>
-              )}
-              {sale && <span className="pc-label pc-label--sale pc-sale">-{sale.percent}%</span>}
-              <img
-                key={shown}
-                src={imageUrl(shown) || FALLBACK_IMG}
-                srcSet={imageSrcSet(shown)}
-                sizes="(max-width: 900px) 100vw, 640px"
-                alt={product.name}
-                onError={onImageError}
-              />
-
-              {photos.length > 1 && (
-                <>
-                  <button type="button" className="pd-arrow pd-arrow--prev" onClick={() => step(-1)} aria-label="Previous photo">
-                    <ChevronLeftIcon />
-                  </button>
-                  <button type="button" className="pd-arrow pd-arrow--next" onClick={() => step(1)} aria-label="Next photo">
-                    <ChevronRightIcon />
-                  </button>
-                  <span className="pd-count">
-                    {photo + 1} / {photos.length}
-                  </span>
-                </>
-              )}
-            </div>
-
-            {photos.length > 1 && (
-              <div className="pd-thumbs" role="tablist" aria-label="Product photos">
-                {photos.map((img, i) => (
-                  <button
-                    key={`${img}-${i}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === photo}
-                    aria-label={`Show photo ${i + 1}`}
-                    className={i === photo ? "is-active" : ""}
-                    onClick={() => setPhoto(i)}
-                  >
-                    <img src={imageUrl(img)} srcSet={imageSrcSet(img, 320)} sizes="90px" alt="" loading="lazy" onError={onImageError} />
-                  </button>
-                ))}
-              </div>
+          <ProductGallery photos={photos.length ? photos : [""]} index={Math.min(photo, Math.max(0, photos.length - 1))} onIndex={setPhoto} alt={product.name}>
+            {label && (
+              <span
+                className={`pc-label ${
+                  isBestSeller(product) ? "pc-label--best" : /^new/i.test(label) ? "pc-label--new" : ""
+                }`}
+              >
+                {isBestSeller(product) ? "Best Seller" : label}
+              </span>
             )}
-          </div>
+            {sale && <span className="pc-label pc-label--sale pc-sale">-{sale.percent}%</span>}
+          </ProductGallery>
 
           {/* ===== Details ===== */}
           <div className="pd-info">
