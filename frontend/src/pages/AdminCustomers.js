@@ -257,7 +257,7 @@ function AdminCustomers() {
                           {c.open_orders > 0 && <small className="ad-open">{c.open_orders} open</small>}
                         </span>
                       </td>
-                      <td data-label="Total spent" className="ad-num ad-strong">
+                      <td data-label="Total spent" className={`ad-num ad-strong ${Number(c.total_spent) > 0 ? "" : "is-zero"}`}>
                         {formatMoney(c.total_spent)}
                       </td>
                       <td data-label="Last order">

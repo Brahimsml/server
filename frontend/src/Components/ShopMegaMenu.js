@@ -18,7 +18,8 @@ const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").m
   Touch screens have no hover, so there a tap opens the panel instead (its "All products" link
   goes to the Shop). Products load the first time it opens.
 */
-const ShopMegaMenu = ({ linkClass }) => {
+// label: the link text ("Shop" in the modern look); without it the button reads "All categories" with a menu icon
+const ShopMegaMenu = ({ linkClass, label }) => {
   const { pathname, search } = useLocation();
   const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -132,7 +133,13 @@ const ShopMegaMenu = ({ linkClass }) => {
           setOpen((v) => !v);
         }}
       >
-        <MenuIcon fontSize="small" /> All categories
+        {label ? (
+          label
+        ) : (
+          <>
+            <MenuIcon fontSize="small" /> All categories
+          </>
+        )}
       </NavLink>
       <button
         type="button"

@@ -4,12 +4,12 @@
 =============================== */
 .auth-page,
 .auth-modal {
-  --a-surface: #151515;
-  --a-border: rgba(196, 154, 52, 0.16);
+  --a-surface: #111111;
+  --a-border: rgba(255, 255, 255, 0.09);
   --a-text: #f5f5f5;
   --a-muted: rgba(245, 245, 245, 0.6);
-  --a-accent: #c49a34;
-  --a-accent-bright: #e4c15a;
+  --a-accent: #e8e8e8;
+  --a-accent-bright: #ffffff;
   --a-danger: #f08a8a;
   --a-success: #6fd59c;
 }
@@ -23,8 +23,7 @@
   padding: 48px 20px;
   color: var(--a-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
+  background: #050505;
 }
 
 .auth-page *,
@@ -56,13 +55,12 @@
   gap: 40px;
   padding: 44px 40px;
   background:
-    radial-gradient(500px 300px at 0% 0%, rgba(228, 193, 90, 0.28), transparent 70%),
-    linear-gradient(160deg, #2c2c2c 0%, #151515 100%);
+    #111111;
   border-right: 1px solid var(--a-border);
 }
 
 .auth-brand {
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -125,13 +123,13 @@
 }
 
 .auth-tabs button.is-active {
-  background: rgba(196, 154, 52, 0.18);
+  background: rgba(255, 255, 255, 0.18);
   color: var(--a-text);
 }
 
 .auth-title {
   margin: 0;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 1.65rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -197,7 +195,7 @@
 
 .auth-field input:focus {
   border-color: var(--a-accent);
-  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 /* Password with show/hide button */
@@ -236,7 +234,7 @@
   padding: 13px 18px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(180deg, var(--a-accent-bright), var(--a-accent));
+  background: #ffffff;
   color: #131313;
   font: inherit;
   font-size: 0.98rem;
@@ -362,7 +360,7 @@
 
 /* ===== Email confirmation step ===== */
 .auth-verify__icon {
-  background: rgba(228, 193, 90, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--a-accent-bright);
 }
 
@@ -480,7 +478,6 @@
   padding: 36px 40px;
   background:
     linear-gradient(180deg, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.82) 55%, rgba(10, 10, 10, 0.96) 100%),
-    radial-gradient(500px 300px at 0% 0%, rgba(228, 193, 90, 0.22), transparent 70%),
     var(--auth-photo) center / cover no-repeat,
     #151515;
 }
@@ -492,7 +489,7 @@
 
 .auth-headline {
   margin: 0;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: clamp(1.9rem, 3vw, 2.4rem);
   font-weight: 700;
   line-height: 1.12;
@@ -526,7 +523,7 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(196, 154, 52, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(10, 10, 10, 0.55);
 }
 
@@ -547,7 +544,7 @@
 .auth-trust {
   margin: 0;
   padding-top: 18px;
-  border-top: 1px solid rgba(196, 154, 52, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
   color: rgba(245, 245, 245, 0.6);
   font-size: 0.8rem;
   letter-spacing: 0.02em;
@@ -753,7 +750,7 @@
   padding: 0;
   aspect-ratio: 1 / 1.15;
   border-radius: 12px;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
   text-align: center;

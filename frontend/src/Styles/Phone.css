@@ -46,7 +46,7 @@
     padding: 7px 12px;
     border: 1px solid var(--mt-border);
     border-radius: 999px;
-    background: rgba(196, 154, 52, 0.06);
+    background: rgba(255, 255, 255, 0.06);
     font-size: 0.8rem;
     white-space: nowrap;
   }
@@ -958,7 +958,7 @@
 
   .pc-quick__chip.is-on {
     border-color: transparent;
-    background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+    background: #ffffff;
     color: #131313;
   }
 

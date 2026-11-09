@@ -42,7 +42,7 @@
   height: 46px;
   margin-bottom: 8px;
   border-radius: 14px;
-  background: rgba(196, 154, 52, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -78,14 +78,13 @@
 
 /* WhatsApp: the fastest way, so it stands out */
 .ct-channel.is-main {
-  border-color: rgba(196, 154, 52, 0.45);
+  border-color: rgba(255, 255, 255, 0.45);
   background:
-    radial-gradient(120% 100% at 0% 0%, rgba(228, 193, 90, 0.1), transparent 60%),
     var(--mt-surface);
 }
 
 .ct-channel.is-main .ct-channel__icon {
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
 }
 
@@ -154,7 +153,7 @@
 
 .ct-topic__chips button.is-active {
   border-color: transparent;
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
 }
 
@@ -293,4 +292,52 @@
   .ct-faq {
     padding: 22px 18px;
   }
+}
+
+/* ===== Icy diamond touch (colours in ModernPreview.css :root) ===== */
+.ct-accent {
+  --ct-a: var(--ice);
+  --ct-a-soft: var(--ice-soft);
+  --ct-a-line: var(--ice-line);
+  --ct-a-grad: var(--ice-grad);
+}
+
+/* where the accent shows: the small title, the icons, the links, the main card, the chosen topic, focus */
+.ct-accent .mt-eyebrow,
+.ct-accent .ct-channel__action,
+.ct-accent .ct-faq summary svg,
+.ct-accent .ct-faq [aria-expanded] svg {
+  color: var(--ct-a);
+}
+
+.ct-accent .ct-channel__icon {
+  background: var(--ct-a-soft);
+  color: var(--ct-a);
+}
+
+.ct-accent .ct-channel.is-main {
+  border-color: var(--ct-a-line);
+}
+
+.ct-accent .ct-channel.is-main .ct-channel__icon,
+.ct-accent .ct-topic__chips button.is-active {
+  background: var(--ct-a-grad);
+  color: #0b0b0b;
+}
+
+.ct-accent .ct-channel:hover {
+  border-color: var(--ct-a-line);
+}
+
+.ct-accent .mt-title {
+  background: linear-gradient(180deg, #ffffff 30%, var(--ct-a) 140%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ct-accent input:focus,
+.ct-accent textarea:focus {
+  border-color: var(--ct-a-line) !important;
+  box-shadow: 0 0 0 3px var(--ct-a-soft) !important;
 }

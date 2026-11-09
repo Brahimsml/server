@@ -171,7 +171,7 @@ function Contact() {
   ].filter(Boolean);
 
   return (
-    <section className="mt-page">
+    <section className="mt-page ct-accent">
       <div className="mt-container">
         <header className="ct-head">
           <span className="mt-eyebrow">Contact us</span>

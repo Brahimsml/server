@@ -111,7 +111,7 @@ function OrderDetails() {
             >
               <PrintOutlinedIcon /> Invoice
             </Link>
-            <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm" onClick={handleDelete}>
+            <button type="button" className="mt-btn mt-btn--secondary mt-btn--sm ad-btn-danger" onClick={handleDelete}>
               <DeleteOutlineIcon /> Delete
             </button>
           </>

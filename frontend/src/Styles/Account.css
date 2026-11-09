@@ -16,7 +16,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
   font-family: var(--mt-font-display);
   font-size: 1.9rem;

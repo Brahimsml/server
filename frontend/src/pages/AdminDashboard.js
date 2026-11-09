@@ -85,13 +85,16 @@ function AdminDashboard() {
       icon: PaymentsOutlinedIcon,
       to: "/orders/admin",
       accent: true,
+      tone: "green",
     },
     {
       label: "Orders",
       value: s.totalOrders || 0,
       sub: openOrders ? `${openOrders} need attention` : "All caught up",
+      subTone: openOrders ? "warn" : "good",
       icon: ReceiptLongOutlinedIcon,
       to: "/orders/admin",
+      tone: "blue",
     },
     {
       label: "Products",
@@ -99,13 +102,16 @@ function AdminDashboard() {
       sub: "In the catalog",
       icon: Inventory2OutlinedIcon,
       to: "/products/admin",
+      tone: "violet",
     },
     {
       label: "Messages",
       value: s.totalMessages || 0,
       sub: s.newMessages ? `${s.newMessages} unread` : "No unread messages",
+      subTone: s.newMessages ? "warn" : "good",
       icon: MailOutlineIcon,
       to: "/contacts/admin",
+      tone: "amber",
     },
     {
       label: "Stores",
@@ -113,6 +119,7 @@ function AdminDashboard() {
       sub: "Store locations",
       icon: StorefrontOutlinedIcon,
       to: "/places/admin",
+      tone: "teal",
     },
   ];
 
@@ -122,8 +129,9 @@ function AdminDashboard() {
 
       {/* ===== KPIs ===== */}
       <div className="ad-kpis">
-        {kpis.map(({ label, value, sub, icon: Icon, to, accent }) => (
-          <Link key={label} to={to} className={`ad-kpi mt-panel ${accent ? "ad-kpi--accent" : ""}`}>
+        {/* each number has its own colour (icon and line on top), so they're quick to tell apart */}
+        {kpis.map(({ label, value, sub, subTone, icon: Icon, to, accent, tone }) => (
+          <Link key={label} to={to} className={`ad-kpi mt-panel ad-tone--${tone} ${accent ? "ad-kpi--accent" : ""}`}>
             <div className="ad-kpi__top">
               {label}
               <span className="ad-kpi__icon">
@@ -131,7 +139,7 @@ function AdminDashboard() {
               </span>
             </div>
             <span className="ad-kpi__value">{value}</span>
-            <span className="ad-kpi__sub">{sub}</span>
+            <span className={`ad-kpi__sub ${subTone ? `ad-kpi__sub--${subTone}` : ""}`}>{sub}</span>
           </Link>
         ))}
       </div>

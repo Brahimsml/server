@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopyOutlined";
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import CollectionsOutlinedIcon from "@mui/icons-material/CollectionsOutlined";
 import api from "../../api";
 import { PageHeader, apiError } from "./AdminUI";
 import { imageUrl } from "../../utils/shop";
@@ -247,11 +251,14 @@ const ProductForm = ({ productId, copyFromId }) => {
             <div className="ad-form__col">
               <section className="mt-panel">
                 <div className="ad-panel-head">
-                  <h2>Details</h2>
+                  <h2>
+                    <span className="ad-ph-icon ad-ph-icon--blue"><ArticleOutlinedIcon fontSize="inherit" /></span>
+                    Details
+                  </h2>
                 </div>
                 <div className="ad-panel-body">
                   <label className={fieldClass("name")}>
-                    <span>Name</span>
+                    <span>Name <b className="ad-req" aria-hidden="true">*</b></span>
                     <input value={values.name} onChange={set("name")} placeholder="e.g. NVIDIA RTX 4090" />
                     {errors.name && <small className="mt-field__error">{errors.name}</small>}
                   </label>
@@ -274,7 +281,7 @@ const ProductForm = ({ productId, copyFromId }) => {
                   </label>
 
                   <label className={fieldClass("category_id")}>
-                    <span>Category</span>
+                    <span>Category <b className="ad-req" aria-hidden="true">*</b></span>
                     <select value={values.category_id} onChange={set("category_id")}>
                       <option value="">Choose a category</option>
                       {categories.map((c) => (
@@ -311,13 +318,16 @@ const ProductForm = ({ productId, copyFromId }) => {
 
               <section className="mt-panel">
                 <div className="ad-panel-head">
-                  <h2>Price &amp; stock</h2>
+                  <h2>
+                    <span className="ad-ph-icon ad-ph-icon--green"><PaymentsOutlinedIcon fontSize="inherit" /></span>
+                    Price &amp; stock
+                  </h2>
                 </div>
                 <div className="ad-panel-body">
                   <div className="ad-form-row">
                     <label className={fieldClass("price")}>
-                      <span>Price (USD)</span>
-                      <div className="ad-prefix">
+                      <span>Price (USD) <b className="ad-req" aria-hidden="true">*</b></span>
+                      <div className="ad-prefix ad-prefix--money">
                         <em>$</em>
                         <input
                           type="number"
@@ -333,7 +343,7 @@ const ProductForm = ({ productId, copyFromId }) => {
                     </label>
 
                     <label className={fieldClass("stock_quantity")}>
-                      <span>Stock quantity</span>
+                      <span>Stock quantity <b className="ad-req" aria-hidden="true">*</b></span>
                       <input
                         type="number"
                         min="0"
@@ -342,8 +352,19 @@ const ProductForm = ({ productId, copyFromId }) => {
                         value={values.stock_quantity}
                         onChange={set("stock_quantity")}
                       />
-                      {errors.stock_quantity && (
+                      {errors.stock_quantity ? (
                         <small className="mt-field__error">{errors.stock_quantity}</small>
+                      ) : (
+                        values.stock_quantity !== "" && (
+                          // what customers will see, in colour: red sold out, orange low, green in stock
+                          <small className={`ad-stock-state ad-stock-state--${Number(values.stock_quantity) <= 0 ? "out" : Number(values.stock_quantity) <= 2 ? "low" : "ok"}`}>
+                            {Number(values.stock_quantity) <= 0
+                              ? "Sold out: customers can't buy it"
+                              : Number(values.stock_quantity) <= 2
+                              ? `Low stock: shows "Only ${Number(values.stock_quantity)} left"`
+                              : "In stock"}
+                          </small>
+                        )
                       )}
                     </label>
                   </div>
@@ -369,7 +390,7 @@ const ProductForm = ({ productId, copyFromId }) => {
                       ) : (
                         Number(values.old_price) > Number(values.price) &&
                         Number(values.price) > 0 && (
-                          <small className="ad-hint">
+                          <small className="ad-hint ad-sale-preview">
                             Shows as{" "}
                             <strong>
                               -{Math.round((1 - Number(values.price) / Number(values.old_price)) * 100)}%
@@ -409,6 +430,7 @@ const ProductForm = ({ productId, copyFromId }) => {
                       onChange={(e) => setValues((v) => ({ ...v, active: e.target.checked }))}
                     />
                     <span>Show in the shop</span>
+                    <em className={`ad-shown-state ${values.active ? "is-on" : "is-off"}`}>{values.active ? "Visible to customers" : "Hidden"}</em>
                   </label>
                   <small className="ad-hint">
                     Turn off to hide it from customers without deleting it (e.g. not ready yet, or out of season).
@@ -420,7 +442,10 @@ const ProductForm = ({ productId, copyFromId }) => {
             <div className="ad-form__col">
               <section className="mt-panel">
                 <div className="ad-panel-head">
-                  <h2>Photo</h2>
+                  <h2>
+                    <span className="ad-ph-icon ad-ph-icon--pink"><ImageOutlinedIcon fontSize="inherit" /></span>
+                    Photo
+                  </h2>
                 </div>
                 <div className="ad-panel-body">
                   <label className="ad-upload">
@@ -440,7 +465,10 @@ const ProductForm = ({ productId, copyFromId }) => {
 
               <section className="mt-panel">
                 <div className="ad-panel-head">
-                  <h2>More photos</h2>
+                  <h2>
+                    <span className="ad-ph-icon ad-ph-icon--violet"><CollectionsOutlinedIcon fontSize="inherit" /></span>
+                    More photos
+                  </h2>
                   <span className="ad-hint">
                     {galleryCount} / {MAX_GALLERY}
                   </span>
@@ -486,6 +514,9 @@ const ProductForm = ({ productId, copyFromId }) => {
           </div>
 
           <div className="ad-form-actions">
+            <small className="ad-req-note">
+              <b className="ad-req">*</b> needed
+            </small>
             <Link to="/products/admin" className="mt-btn mt-btn--secondary">
               Cancel
             </Link>

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import TuneIcon from "@mui/icons-material/Tune";
 import ProductsItem from "../Components/ProductsItem";
 import api from "../api";
 import "../Styles/theme.css";
 import "../Styles/HomePage.css";
 import "../Styles/Shop.css";
 import usePageTitle from "../utils/usePageTitle";
-import { inCategoryOf, saleOf } from "../utils/shop";
+import { useModernLook } from "../utils/look";
+import { byCategoryOrder, inCategoryOf, saleOf } from "../utils/shop";
 
 // Full catalog. The chosen category lives in the address (/shop?category=Monitors),
 // so links from the footer, home page and assistant open it directly and Back works.
@@ -22,6 +24,8 @@ const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [sortHost, setSortHost] = useState(null); // where "Sort by" sits on the title row (computers)
+  const modern = useModernLook(); // modern look preview (Styles/ModernPreview.css)
+  const [hideFilters, setHideFilters] = useState(false); // modern look, computers: products take the full width
 
   useEffect(() => {
     let alive = true;
@@ -55,8 +59,15 @@ const Shop = () => {
   // the group a chosen category belongs to (for the breadcrumb: Shop › Gaming Gear › Keyboards)
   const group = isAll ? null : products.find((p) => p.category_name === category)?.category_parent || null;
 
+  // Modern look: every category as a pill under the title (the admin's order)
+  const pills = modern
+    ? Array.from(new Map(products.map((p) => [p.category_name, { name: p.category_name, order: p.category_order }])).values())
+        .filter((c) => c.name)
+        .sort(byCategoryOrder)
+    : [];
+
   return (
-    <div className="mt-page hp hp-shop">
+    <div className={`mt-page hp hp-shop ${modern ? "mh mh-shop" : ""} ${modern && hideFilters ? "is-nofilters" : ""}`}>
       <div className="mt-container">
         <header className="sh-head">
           <nav className="sh-crumbs" aria-label="Breadcrumb">
@@ -87,10 +98,32 @@ const Shop = () => {
                 </span>
               )}
             </h1>
-            {/* computers: "Sort by" sits here, on the right of the title */}
+            {/* computers: "Sort by" sits here, on the right of the title (modern look: in the bar below) */}
+            {!modern && <div className="sh-sort" ref={setSortHost} />}
+          </div>
+          {pills.length > 0 && (
+            <div className="mh-pills" role="group" aria-label="Categories">
+              <button type="button" className={isAll ? "is-active" : ""} aria-pressed={isAll} onClick={() => changeCategory("All")}>
+                All
+              </button>
+              {pills.map((c) => (
+                <button key={c.name} type="button" className={category === c.name ? "is-active" : ""} aria-pressed={category === c.name} onClick={() => changeCategory(c.name)}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </header>
+
+        {/* modern look, computers: show / hide the filters on the left, sort on the right */}
+        {modern && (
+          <div className="mh-shopbar">
+            <button type="button" className="mh-shopbar__toggle" aria-pressed={!hideFilters} onClick={() => setHideFilters((v) => !v)}>
+              <TuneIcon fontSize="inherit" /> {hideFilters ? "Show filters" : "Hide filters"}
+            </button>
             <div className="sh-sort" ref={setSortHost} />
           </div>
-        </header>
+        )}
 
         {loadError && (
           <div className="mt-alert mt-alert--error hp-error" role="alert">

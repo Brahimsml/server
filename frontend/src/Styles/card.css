@@ -30,12 +30,12 @@
 .cart-page {
   --c-surface: #171717;
   --c-surface-2: #1f1f1f;
-  --c-border: rgba(196, 154, 52, 0.2);
-  --c-border-strong: rgba(196, 154, 52, 0.38);
+  --c-border: rgba(255, 255, 255, 0.2);
+  --c-border-strong: rgba(255, 255, 255, 0.38);
   --c-text: #f5f5f5;
   --c-muted: rgba(245, 245, 245, 0.6);
-  --c-accent: #c49a34;
-  --c-accent-bright: #e4c15a;
+  --c-accent: #e8e8e8;
+  --c-accent-bright: #ffffff;
   --c-danger: #f08a8a;
   --c-success: #6fd59c;
   --c-warn: #e8b04f;
@@ -45,8 +45,7 @@
   padding: 44px 24px 80px;
   color: var(--c-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
+  background: #050505;
 }
 
 .cart-page *,
@@ -86,7 +85,7 @@
 
 .cart-head h1 {
   margin: 0;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: clamp(1.8rem, 3vw, 2.3rem);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -208,7 +207,7 @@
 }
 
 .cart-qty button:hover:not(:disabled) {
-  background: rgba(196, 154, 52, 0.16);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .cart-qty button:disabled {
@@ -261,7 +260,7 @@
 
 .cart-summary h2 {
   margin: 0 0 18px;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
 }
@@ -355,7 +354,7 @@
 .cart-field input:focus,
 .cart-field textarea:focus {
   border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 .cart-form__note {
@@ -435,14 +434,14 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(196, 154, 52, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--c-accent-bright);
   font-size: 32px;
 }
 
 .cart-empty h1 {
   margin: 0 0 8px;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -546,7 +545,7 @@
 
 .cart-pay__option.is-selected {
   border-color: var(--c-accent);
-  background: rgba(196, 154, 52, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .cart-pay__option input {
@@ -929,7 +928,7 @@
   align-items: center;
   gap: 10px;
   margin: 0 0 16px;
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Geist", "Inter", sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
 }
@@ -1060,7 +1059,7 @@
 }
 
 .cart-row__price .cart-row__total.is-sale {
-  color: var(--mt-accent-bright, #e4c15a);
+  color: var(--mt-accent-bright, #ffffff);
 }
 
 .cart-summary__saved {

@@ -33,7 +33,7 @@
 
 .inv-tool--primary {
   border-color: transparent;
-  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  background: #ffffff;
   color: #131313;
 }
 
@@ -53,7 +53,7 @@
   align-items: flex-start;
   gap: 20px;
   padding-bottom: 8mm;
-  border-bottom: 2px solid #c49a34;
+  border-bottom: 2px solid #111111;
 }
 
 .inv-brand {

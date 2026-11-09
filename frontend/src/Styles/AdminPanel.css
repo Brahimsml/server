@@ -9,7 +9,7 @@
   min-height: 100dvh;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
-  background: #0b0b0b;
+  background: #050505;
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -23,7 +23,7 @@
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
-  background: #0e0e0e;
+  background: #0a0a0a;
   border-right: 1px solid var(--mt-border);
 }
 
@@ -116,7 +116,7 @@
 
 .ad-nav a.is-active {
   color: var(--mt-text);
-  background: rgba(196, 154, 52, 0.14);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .ad-nav a.is-active::before {
@@ -158,7 +158,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
   font-size: 0.85rem;
   font-weight: 700;
@@ -308,7 +308,7 @@ a.ad-kpi:hover {
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: rgba(196, 154, 52, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--mt-accent-bright);
 }
 
@@ -329,7 +329,6 @@ a.ad-kpi:hover {
 .ad-kpi--accent {
   border-color: var(--mt-border-strong);
   background:
-    radial-gradient(400px 160px at 100% 0%, rgba(228, 193, 90, 0.14), transparent 70%),
     var(--mt-surface);
 }
 
@@ -456,7 +455,7 @@ a.ad-kpi:hover {
 
 .ad-search:focus-within {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 .ad-search input {
@@ -529,7 +528,7 @@ a.ad-kpi:hover {
 }
 
 .ad-tabs button.is-active span {
-  background: rgba(196, 154, 52, 0.2);
+  background: rgba(255, 255, 255, 0.2);
   color: var(--mt-accent-bright);
 }
 
@@ -579,7 +578,7 @@ a.ad-kpi:hover {
 }
 
 .ad-table tbody tr:hover {
-  background: rgba(196, 154, 52, 0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .ad-table tr.is-link {
@@ -793,7 +792,7 @@ a.ad-kpi:hover {
 .ad-upload:hover,
 .ad-upload:focus-within {
   border-color: var(--mt-accent);
-  background: rgba(196, 154, 52, 0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .ad-upload input {
@@ -1074,11 +1073,11 @@ a.ad-kpi:hover {
 }
 
 .ad-msg__row:hover {
-  background: rgba(196, 154, 52, 0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .ad-msg.is-open .ad-msg__row {
-  background: rgba(196, 154, 52, 0.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .ad-msg__dot {
@@ -1277,9 +1276,7 @@ a.ad-kpi:hover {
   display: grid;
   place-items: center;
   padding: 32px 18px;
-  background:
-    radial-gradient(900px 420px at 50% -10%, rgba(196, 154, 52, 0.14), transparent 62%),
-    #0b0b0b;
+  background: #050505;
   color: var(--mt-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -1804,7 +1801,7 @@ a.ad-kpi:hover {
   width: 100%;
   max-width: 46px;
   border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   transition: filter 0.2s ease;
 }
 
@@ -1968,7 +1965,7 @@ a.ad-kpi:hover {
 }
 
 .ad-stock__stepper button:hover:not(:disabled) {
-  background: rgba(196, 154, 52, 0.14);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .ad-stock__stepper button:disabled {
@@ -2043,7 +2040,7 @@ a.ad-kpi:hover {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(196, 154, 52, 0.16);
+  background: rgba(255, 255, 255, 0.16);
   color: var(--mt-accent-bright);
   font-weight: 700;
 }
@@ -2059,7 +2056,7 @@ a.ad-kpi:hover {
 }
 
 .ad-tag--gold {
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
 }
 
@@ -2143,7 +2140,7 @@ a.ad-kpi:hover {
 }
 
 .ad-table tr.is-selected td {
-  background: rgba(196, 154, 52, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .ad-bulk {
@@ -2154,7 +2151,7 @@ a.ad-kpi:hover {
   padding: 12px 20px;
   border-top: 1px solid var(--mt-border);
   border-bottom: 1px solid var(--mt-border);
-  background: rgba(196, 154, 52, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ad-bulk strong {
@@ -2487,7 +2484,7 @@ a.ad-kpi:hover {
 
 .ad-cat-photo:hover {
   border-color: var(--mt-accent);
-  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 .ad-cat-photo img {
@@ -2772,7 +2769,7 @@ a.ad-kpi:hover {
 }
 
 .ad-seg button.is-active {
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   color: #131313;
 }
 
@@ -2871,7 +2868,7 @@ a.ad-kpi:hover {
 }
 
 .ad-products tr.is-selected {
-  background: rgba(196, 154, 52, 0.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .ad-product-switch span {
@@ -3251,7 +3248,7 @@ a.ad-kpi:hover {
 
 .ad-layout.is-active {
   border-color: var(--mt-accent);
-  background: rgba(196, 154, 52, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 0 0 1px var(--mt-accent);
 }
 
@@ -3286,7 +3283,7 @@ a.ad-kpi:hover {
 }
 
 .ad-layout.is-active .ad-layout__pic i {
-  background: linear-gradient(180deg, var(--mt-accent-bright), var(--mt-accent));
+  background: #ffffff;
   opacity: 0.85;
 }
 
@@ -3409,7 +3406,7 @@ a.ad-kpi:hover {
 
 .ad-promo-tabs button.is-active {
   border-color: var(--mt-accent);
-  background: rgba(196, 154, 52, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--mt-text);
 }
 
@@ -3828,7 +3825,7 @@ a.ad-kpi:hover {
 }
 
 .ad-cat-group td {
-  background: rgba(196, 154, 52, 0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .ad-cat-groupsel {

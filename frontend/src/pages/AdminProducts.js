@@ -391,7 +391,7 @@ function AdminProducts() {
                             <div>
                               <strong>{p.name}</strong>
                               {label && (
-                                <span className={`mt-badge ${isBestSeller(p) ? "mt-badge--pending" : "mt-badge--neutral"}`}>
+                                <span className={`mt-badge ${isBestSeller(p) ? "mt-badge--best" : "mt-badge--neutral"}`}>
                                   {isBestSeller(p) ? "Best Seller" : label}
                                 </span>
                               )}

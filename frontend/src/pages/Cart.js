@@ -313,6 +313,18 @@ const Cart = () => {
                 </Link>
               )}
             </div>
+            {/* why shop here, in short (coloured icons) */}
+            <ul className="cart-empty__perks">
+              <li>
+                <PaymentsOutlinedIcon fontSize="small" /> Cash on delivery
+              </li>
+              <li>
+                <LocalShippingOutlinedIcon fontSize="small" /> Delivery all over Lebanon
+              </li>
+              <li>
+                <AssignmentReturnOutlinedIcon fontSize="small" /> 7-day returns
+              </li>
+            </ul>
           </div>
 
           {suggestionRow("Popular right now")}

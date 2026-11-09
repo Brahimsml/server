@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CartContext } from "../Context/CartContext";
 import MiniCart from "./MiniCart";
@@ -56,10 +56,7 @@ const NavBar = () => {
   const [categories, setCategories] = useState([]); // "Shop by category" in the phone menu
 
   // Reloaded on every page change, so a category added in the admin shows up straight away.
-  // Product counts come along, so empty categories stay out of the menus.
-  const [catCounts, setCatCounts] = useState(null);
   const [dealsCount, setDealsCount] = useState(0); // products on sale: "Deals" shows only when there are some
-  const onDeals = location.pathname === "/shop" && new URLSearchParams(location.search).get("sale") === "1";
   const [shopIds, setShopIds] = useState(null); // products customers can see right now
   useEffect(() => {
     api
@@ -70,40 +67,15 @@ const NavBar = () => {
       .get("/products")
       .then((res) => {
         const list = Array.isArray(res.data) ? res.data : [];
-        const counts = {};
-        list.forEach((p) => {
-          counts[p.category_id] = (counts[p.category_id] || 0) + 1;
-        });
-        setCatCounts(counts);
         setDealsCount(list.filter((p) => saleOf(p)).length);
         setShopIds(new Set(list.map((p) => p.id)));
       })
       .catch(() => {});
   }, [location.pathname]);
   // Main entries only (groups and categories on their own), like big store menus; a group counts
-  // the products of its categories. Empty ones stay out once the counts are known.
+  // the products of its categories (phone menu). Empty ones stay out once the counts are known.
   const groupTotal = (g, counts) => (counts?.[g.id] || 0) + g.children.reduce((sum, c) => sum + (counts?.[c.id] || 0), 0);
   const mainCategories = groupCategories(categories);
-  const shownCategories = catCounts ? mainCategories.filter((g) => groupTotal(g, catCounts)) : mainCategories;
-
-  // Second row: categories that don't fit go into a "More" menu
-  const catsRef = useRef(null);
-  const [hiddenCats, setHiddenCats] = useState([]);
-  useLayoutEffect(() => {
-    const row = catsRef.current;
-    if (!row) return undefined;
-    const measure = () => {
-      const top = row.getBoundingClientRect().top;
-      const hidden = [...row.children]
-        .filter((a) => a.getBoundingClientRect().top > top + 4)
-        .map((a) => a.dataset.name);
-      setHiddenCats((cur) => (cur.join("|") === hidden.join("|") ? cur : hidden));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(row);
-    return () => ro.disconnect();
-  }, [categories, catCounts]);
 
   // Phone menu: a photo and product count for each category, loaded the first time it opens
   const [catInfo, setCatInfo] = useState(null);
@@ -133,7 +105,6 @@ const NavBar = () => {
   const accountRef = useRef(null);
   const adminRef = useRef(null);
   const cartRef = useRef(null);
-  const moreRef = useRef(null);
   const prevCount = useRef(cartCount);
 
   const { items: wishlist } = useWishlist();
@@ -156,7 +127,6 @@ const NavBar = () => {
     const onDown = (e) => {
       if (openMenu === "account" && !accountRef.current?.contains(e.target)) setOpenMenu(null);
       if (openMenu === "admin" && !adminRef.current?.contains(e.target)) setOpenMenu(null);
-      if (openMenu === "more" && !moreRef.current?.contains(e.target)) setOpenMenu(null);
       if (miniCart.open && !cartRef.current?.contains(e.target)) closeMiniCart();
     };
     const onKey = (e) => {
@@ -263,7 +233,6 @@ const NavBar = () => {
   };
 
   const isHome = location.pathname === "/" || location.pathname === "/home";
-  const activeCategory = new URLSearchParams(location.search).get("category");
   const linkClass = ({ isActive }, to) =>
     `nb-link ${isActive || (to === "/home" && isHome) ? "is-active" : ""}`;
 
@@ -295,6 +264,22 @@ const NavBar = () => {
           <img src={logo} alt="" />
           <span>MegaTech</span>
         </Link>
+
+        {/* A few calm links in the middle ("Shop" opens every category on hover) */}
+        <nav className="nb-modern" aria-label="Main">
+            <ShopMegaMenu linkClass={linkClass} label="Shop" />
+            {dealsCount > 0 && (
+              <Link to="/shop?sale=1" className="nb-modern__link">
+                Deals
+              </Link>
+            )}
+            <NavLink to="/menu" className="nb-modern__link">
+              Stores
+            </NavLink>
+            <NavLink to="/contact" className="nb-modern__link">
+              Support
+            </NavLink>
+        </nav>
 
         <div className="nb-actions">
           <NavSearch />
@@ -401,7 +386,7 @@ const NavBar = () => {
           {/* ===== Wishlist ===== */}
           <Link
             to="/wishlist"
-            className="nb-icon-btn nb-wish"
+            className={`nb-icon-btn nb-wish ${savedCount > 0 ? "has-items" : ""}`}
             aria-label={`Wishlist, ${savedCount} ${savedCount === 1 ? "item" : "items"}`}
           >
             <FavoriteBorderIcon />
@@ -413,7 +398,7 @@ const NavBar = () => {
           <div className="nb-cart" ref={cartRef}>
             <button
               type="button"
-              className={`nb-icon-btn nb-cart__btn ${miniCart.open ? "is-open" : ""}`}
+              className={`nb-icon-btn nb-cart__btn ${miniCart.open ? "is-open" : ""} ${cartCount > 0 ? "has-items" : ""}`}
               onClick={toggleCart}
               aria-label={`Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
               aria-expanded={miniCart.open}
@@ -435,55 +420,6 @@ const NavBar = () => {
       {/* ===== Phones: a search bar under the top row on every page, like big store apps ===== */}
       <div className="nb-phone-search">
         <NavSearch bar />
-      </div>
-
-      {/* ===== Second row (computers): every category one click away, like big stores ===== */}
-      <div className="nb-sub">
-        <div className="nb-sub__inner">
-          <ShopMegaMenu linkClass={linkClass} />
-          {/* Deals first, in red, like "Today's Deals" on big stores (only while something is on sale) */}
-          {dealsCount > 0 && (
-            <Link to="/shop?sale=1" className={`nb-sublink nb-deals ${onDeals ? "is-active" : ""}`} aria-current={onDeals ? "page" : undefined}>
-              <LocalOfferOutlinedIcon fontSize="small" /> Deals
-            </Link>
-          )}
-          <nav className="nb-sub__cats" aria-label="Categories" ref={catsRef}>
-            {shownCategories.map((c) => (
-              <Link
-                key={c.id}
-                data-name={c.name}
-                to={`/shop?category=${encodeURIComponent(c.name)}`}
-                className={`nb-sublink ${location.pathname === "/shop" && activeCategory === c.name ? "is-active" : ""}`}
-              >
-                {c.name}
-              </Link>
-            ))}
-          </nav>
-          {hiddenCats.length > 0 && (
-            // opens on hover (mouse) and on click / tap (touch screens, keyboards)
-            <div className={`nb-dropdown nb-more ${openMenu === "more" ? "is-open" : ""}`} ref={moreRef}>
-              <button
-                type="button"
-                className="nb-sublink"
-                aria-haspopup="menu"
-                aria-expanded={openMenu === "more"}
-                onClick={() => toggleMenu("more")}
-              >
-                More <KeyboardArrowDownIcon fontSize="small" className="nb-chevron" />
-              </button>
-              <div className="nb-menu nb-more__menu" role="menu">
-                {hiddenCats.map((name) => (
-                  <Link key={name} to={`/shop?category=${encodeURIComponent(name)}`} role="menuitem" onClick={() => setOpenMenu(null)}>
-                    {name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-          <NavLink to="/menu" className={(st) => `nb-sublink nb-sub__store ${st.isActive ? "is-active" : ""}`}>
-            <PlaceOutlinedIcon fontSize="small" /> Find a store
-          </NavLink>
-        </div>
       </div>
 
       {/* ===== Phone menu: drawer from the left ===== */}

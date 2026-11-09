@@ -1,9 +1,5 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
-import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -12,7 +8,9 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import BannerSlide from "../Components/BannerSlide";
 import PromoRow from "../Components/PromoRow";
-import FramedImage from "../Components/FramedImage";
+import ModernHome from "../Components/ModernHome";
+import { CategoryCircles, EdgeBanner } from "../Components/HomeTop";
+import { useModernLook } from "../utils/look";
 import ProductsItem from "../Components/ProductsItem";
 import SHOP_INFO from "../utils/shopInfo";
 import { clearRecentlyViewed, getRecentlyViewed } from "../utils/recentlyViewed";
@@ -52,23 +50,12 @@ const categoryHeadline = (name) => {
   return match ? { title: match[1], text: match[2] } : { title: `Shop ${name || "the latest gear"}`, text: "Explore the latest PC gear at MegaTech." };
 };
 
-const TRUST_ITEMS = [
-  // only what the shop really offers
-  { icon: PaymentsOutlinedIcon, title: "Cash on delivery", text: "Pay when it arrives" },
-  { icon: LocalShippingOutlinedIcon, title: "Delivery all over Lebanon", text: "Faster in Beirut" },
-  { icon: AssignmentReturnOutlinedIcon, title: "7-day returns", text: "Change your mind" },
-  { icon: SupportAgentOutlinedIcon, title: "Real support", text: "WhatsApp, call or visit" },
-];
-
 const shopLink = (category) =>
   category && category !== "All" ? `/shop?category=${encodeURIComponent(category)}` : "/shop";
 
 const isNew = (p) => /^new/i.test(normalizeLabel(p.label));
 
 const ROW_SIZE = 8; // products per sideways row
-
-// Items per row so the rows come out even: 12 with at most 10 a row → 6 + 6, not 10 + 2
-const perRow = (count, max) => Math.ceil(count / Math.ceil(count / max)) || 1;
 
 const Home = () => {
   const navigate = useNavigate();
@@ -87,6 +74,9 @@ const Home = () => {
   const hasRecent = !loading && products.some(isRecent);
 
   const helpWhatsapp = whatsappLink(SHOP_INFO.phone, "Hi MegaTech, I need help choosing a product.");
+
+  // Modern look preview (Components/ModernHome.js + Styles/ModernPreview.css)
+  const modern = useModernLook();
 
   // Banners made in Admin → Banners. While any are live they replace the category slides.
   const [banners, setBanners] = useState([]);
@@ -202,46 +192,8 @@ const Home = () => {
   };
   // every category (the product rows further down)
   const categories = useMemo(() => summarize(false), [products]); // eslint-disable-line react-hooks/exhaustive-deps
-  // "Shop by category" circles: the main entries, so groups show as one circle (like big stores)
+  // "Shop by category" tiles: the main entries, so groups show as one tile (like big stores)
   const circles = useMemo(() => summarize(true), [products]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // "Shop by category" with more than 10 categories (computers): sets of 9 on the top row and up
-  // to 8 below; more than 17 → the arrows switch to the next set
-  const manyCats = circles.length > 10;
-  const PAGE_TOP = 9;
-  const PAGE_SIZE = 17; // 9 on top + 8 below
-  const circlePages = Math.ceil(circles.length / PAGE_SIZE);
-  const circlePlace = (i) => {
-    const page = Math.floor(i / PAGE_SIZE);
-    const k = i - page * PAGE_SIZE;
-    const top = Math.min(PAGE_TOP, circles.length - page * PAGE_SIZE);
-    if (k < top) return { gridRow: 1, gridColumn: `${page * PAGE_TOP * 2 + 2 * k + 1} / span 2` };
-    // the second row (up to 8) is centred under the 9 above, like before (half-column steps)
-    const below = Math.min(PAGE_SIZE, circles.length - page * PAGE_SIZE) - top;
-    const start = page * PAGE_TOP * 2 + (PAGE_TOP - below) + 2 * (k - top) + 1;
-    return { gridRow: 2, gridColumn: `${start} / span 2` };
-  };
-  const circlesRef = useRef(null);
-  const [circleEnds, setCircleEnds] = useState({ start: true, end: false });
-  const updateCircleEnds = useCallback(() => {
-    const el = circlesRef.current;
-    if (!el) return;
-    const start = el.scrollLeft <= 4;
-    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    setCircleEnds((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
-  }, []);
-  useEffect(() => {
-    updateCircleEnds();
-    window.addEventListener("resize", updateCircleEnds);
-    return () => window.removeEventListener("resize", updateCircleEnds);
-  }, [updateCircleEnds, circles.length]);
-  // slide one whole set at a time, so none is left cut in half
-  const scrollCircles = (dir) => {
-    const el = circlesRef.current;
-    if (!el) return;
-    // one set (9 across) is exactly the visible width
-    el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
-  };
 
   // New arrivals: products labelled "New", topped up with the newest products
   // that aren't already in Best sellers, so the two rows don't repeat each other
@@ -325,82 +277,103 @@ const Home = () => {
     promos
       .filter((p) => spotOf(p) === spot)
       .map((p) => <PromoRow key={`promo-${p.id}`} promo={p} />);
+  const promosWhere = (test) =>
+    promos.filter((p) => test(spotOf(p))).map((p) => <PromoRow key={`promo-${p.id}`} promo={p} />);
+
+  if (modern) {
+    return (
+      <ModernHome
+        products={products}
+        loading={loading}
+        loadError={loadError}
+        banners={banners}
+        bannerIndex={featureIndex}
+        onBanner={setFeatureIndex}
+        circles={circles}
+        categories={categories}
+        newArrivalIds={newArrivalIds}
+        recent={{
+          has: hasRecent,
+          is: isRecent,
+          rank: recentRank,
+          clear: () => {
+            clearRecentlyViewed();
+            setRecentIds([]);
+          },
+        }}
+        promosAt={promosAt}
+        promosWhere={promosWhere}
+      />
+    );
+  }
+
   return (
-    <div className="mt-page hp hp-home">
+    <div className={`mt-page hp hp-home ${banners.length ? "hp-home--edge" : ""}`}>
       <div className="mt-container">
         {/* ===== HERO: full-width product banner ===== */}
         <h1 className="hp-sr-only">MegaTech: PC components and gaming gear</h1>
 
-        <section
-          className={`hp-slider ${paused ? "is-paused" : ""}`}
-          aria-roledescription="carousel"
-          aria-label="Featured products"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocus={() => setPaused(true)}
-          onBlur={() => setPaused(false)}
-          onTouchStart={(e) => (swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
-          onTouchEnd={(e) => {
-            const start = swipeStart.current;
-            swipeStart.current = null;
-            if (!start || slideCount < 2) return;
-            const dx = e.changedTouches[0].clientX - start.x;
-            const dy = e.changedTouches[0].clientY - start.y;
-            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
-          }}
-        >
-          {currentBanner ? (
-            <BannerSlide key={`banner-${currentBanner.id}`} banner={currentBanner}>
-              {controls}
-            </BannerSlide>
-          ) : loading ? (
-            <div className="mt-skeleton hp-slider__skeleton" />
-          ) : current ? (
-            <div className="hp-slide" key={current.id}>
-              <div className="hp-slide__copy">
-                <span className="hp-slide__cat">{current.category_name}</span>
+        {/* Banners from Admin → Banners: edge to edge with small dots (Components/HomeTop.js).
+            Without any, the old slides of each category's top product. */}
+        {banners.length ? (
+          <EdgeBanner banners={banners} index={featureIndex} onIndex={setFeatureIndex} />
+        ) : (
+          <section
+            className={`hp-slider ${paused ? "is-paused" : ""}`}
+            aria-roledescription="carousel"
+            aria-label="Featured products"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocus={() => setPaused(true)}
+            onBlur={() => setPaused(false)}
+            onTouchStart={(e) => (swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+            onTouchEnd={(e) => {
+              const start = swipeStart.current;
+              swipeStart.current = null;
+              if (!start || slideCount < 2) return;
+              const dx = e.changedTouches[0].clientX - start.x;
+              const dy = e.changedTouches[0].clientY - start.y;
+              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+            }}
+          >
+            {currentBanner ? (
+              <BannerSlide key={`banner-${currentBanner.id}`} banner={currentBanner}>
+                {controls}
+              </BannerSlide>
+            ) : loading ? (
+              <div className="mt-skeleton hp-slider__skeleton" />
+            ) : current ? (
+              <div className="hp-slide" key={current.id}>
+                <div className="hp-slide__copy">
+                  <span className="hp-slide__cat">{current.category_name}</span>
 
-                <h2 className="hp-slide__title">{categoryHeadline(current.category_name).title}</h2>
-                <p className="hp-slide__desc">{categoryHeadline(current.category_name).text}</p>
+                  <h2 className="hp-slide__title">{categoryHeadline(current.category_name).title}</h2>
+                  <p className="hp-slide__desc">{categoryHeadline(current.category_name).text}</p>
 
-                <div className="hp-slide__actions">
-                  <Link to={shopLink(current.category_name)} className="mt-btn mt-btn--primary">
-                    Shop now <ArrowForwardIcon />
-                  </Link>
-                  <Link to={productPath(current)} className="hp-slide__featuring">
-                    Featuring {current.name}
-                  </Link>
+                  <div className="hp-slide__actions">
+                    <Link to={shopLink(current.category_name)} className="mt-btn mt-btn--primary">
+                      Shop now <ArrowForwardIcon />
+                    </Link>
+                    <Link to={productPath(current)} className="hp-slide__featuring">
+                      Featuring {current.name}
+                    </Link>
+                  </div>
+
+                  {controls}
                 </div>
 
-                {controls}
+                <Link to={productPath(current)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
+                  <img src={imageUrl(current.image)} srcSet={imageSrcSet(current.image)} sizes="(max-width: 860px) 90vw, 600px" alt="" onError={onImageError} />
+                </Link>
               </div>
-
-              <Link to={productPath(current)} className="hp-slide__media" tabIndex={-1} aria-hidden="true">
-                <img src={imageUrl(current.image)} srcSet={imageSrcSet(current.image)} sizes="(max-width: 860px) 90vw, 600px" alt="" onError={onImageError} />
-              </Link>
-            </div>
-          ) : (
-            <div className="mt-empty hp-slider__empty">
-              <h3>New products coming soon</h3>
-              <p>Check back shortly for the latest gear.</p>
-            </div>
-          )}
-        </section>
-
-        {/* ===== TRUST BAR ===== */}
-        <section className="hp-trust mt-panel" aria-label="Why shop with us">
-          {TRUST_ITEMS.map(({ icon: Icon, title, text }) => (
-            <div className="hp-trust__item" key={title}>
-              <span className="hp-trust__icon">
-                <Icon />
-              </span>
-              <div>
-                <h3>{title}</h3>
-                <p>{text}</p>
+            ) : (
+              <div className="mt-empty hp-slider__empty">
+                <h3>New products coming soon</h3>
+                <p>Check back shortly for the latest gear.</p>
               </div>
-            </div>
-          ))}
-        </section>
+            )}
+          </section>
+        )}
 
         {promosAt("after_trust")}
 
@@ -442,52 +415,8 @@ const Home = () => {
           </div>
         )}
 
-        {/* ===== CATEGORIES ===== */}
-        {circles.length > 0 && (
-          <section className="mt-section mt-box" id="categories">
-            <div className="mt-section-head">
-              <div>
-                <h2>Shop by category</h2>
-              </div>
-            </div>
-
-            {/* Round pictures, like big electronics stores: up to 10 in one row; more → sets of 9 on top
-                and up to 8 below, the arrows switch sets, so it never grows past two rows. Phones swipe. */}
-            <div className={`hp-circles-wrap ${manyCats ? "is-row" : ""}`}>
-              <div
-                ref={circlesRef}
-                onScroll={updateCircleEnds}
-                className={`hp-circles ${manyCats ? "hp-circles--row" : ""}`}
-                style={{
-                  "--per-row-desktop": perRow(circles.length, 10),
-                  "--per-row-tablet": perRow(circles.length, 5),
-                  "--total-cols": circlePages * PAGE_TOP * 2, // half-columns, so a row can sit centred
-                }}
-              >
-                {circles.map((cat, i) => (
-                  <Link key={cat.name} to={shopLink(cat.name)} className="hp-circle" style={manyCats ? circlePlace(i) : undefined}>
-                    <span className="hp-circle__pic">
-                      {cat.image && (
-                        <FramedImage src={imageUrl(cat.image)} srcSet={imageSrcSet(cat.image, 480)} sizes="120px" aspect={1} {...cat.frame} onError={onImageError} />
-                      )}
-                    </span>
-                    <span className="hp-circle__name">{cat.name}</span>
-                  </Link>
-                ))}
-              </div>
-              {manyCats && !(circleEnds.start && circleEnds.end) && (
-                <div className="pc-row-arrows hp-circles__arrows">
-                  <button type="button" onClick={() => scrollCircles(-1)} disabled={circleEnds.start} aria-label="Previous categories">
-                    <ChevronLeftIcon />
-                  </button>
-                  <button type="button" onClick={() => scrollCircles(1)} disabled={circleEnds.end} aria-label="More categories">
-                    <ChevronRightIcon />
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
+        {/* ===== CATEGORIES: round photos in one row (Components/HomeTop.js) ===== */}
+        <CategoryCircles circles={circles} productCount={products.length} className="hp-tiles" />
 
         {promosAt("after_categories")}
 
@@ -573,7 +502,11 @@ const Home = () => {
 
         {/* ===== NEED HELP CHOOSING? ===== */}
         <section className="mt-section hp-help" aria-labelledby="hp-help-title">
-          <h2 id="hp-help-title" className="hp-help__title">Need help choosing?</h2>
+          <div className="hp-help__text">
+            <span className="hp-help__eyebrow">Real people, quick answers</span>
+            <h2 id="hp-help-title" className="hp-help__title">Need help choosing?</h2>
+            <p className="hp-help__sub">Message us, chat here, or come try it in a store.</p>
+          </div>
 
           <div className="hp-help__options">
             {helpWhatsapp && (

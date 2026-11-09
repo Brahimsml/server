@@ -1,0 +1,4266 @@
+/* =========================================================
+   MODERN LOOK
+   - On every page (html.mt-shell, set in index.js): the menu bar and the footer, and on the
+     home page the edge-to-edge banner and the category tiles.
+   - Preview only (html.mt-modern, /home?look=modern or /shop?look=modern, utils/look.js):
+     the rest of the home page (Components/ModernHome.js) and the shop, black and white.
+========================================================= */
+:root {
+  /* icy diamond: the one accent colour, used only in small places (a "touch") */
+  /* the accent: glassy white (was icy blue until 2026-11-09; old values in git history) */
+  --ice: #ffffff;
+  --ice-soft: rgba(255, 255, 255, 0.08);
+  --ice-line: rgba(255, 255, 255, 0.38);
+  --ice-grad: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
+  --mh-bg: #050505;
+  --mh-surface: #111111;
+  --mh-line: rgba(255, 255, 255, 0.1);
+  --mh-text: #fafafa;
+  --mh-muted: #a1a1a1;
+  --mh-faint: #6b6b6b;
+  --mh-sale: #ff4d4f;
+  --mh-font: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Gold becomes white everywhere on the page (navbar, footer, buttons, links) */
+html.mt-modern .mt-scope,
+html.mt-modern .mt-page {
+  --mt-accent: #e8e8e8;
+  --mt-accent-bright: #ffffff;
+  --mt-border: rgba(255, 255, 255, 0.1);
+  --mt-border-strong: rgba(255, 255, 255, 0.2);
+  --mt-font-display: var(--mh-font);
+}
+
+/* ===== Navbar & footer ===== */
+html.mt-shell .nb {
+  border-top-color: transparent;
+  border-image: none;
+  background: var(--mh-bg);
+  box-shadow: inset 0 -1px 0 var(--mh-line);
+}
+
+html.mt-shell .nb-brand img,
+html.mt-shell .ft-logo img {
+  filter: grayscale(1) brightness(2.4);
+}
+
+html.mt-shell .nb-badge {
+  border-color: var(--mh-bg);
+  background: #fff;
+  color: #000;
+}
+
+html.mt-shell .ft {
+  background: var(--mh-bg);
+}
+
+/* Chat button: black and white */
+html.mt-modern .cb-launch {
+  --cb-accent: #e8e8e8;
+  --cb-accent-bright: #ffffff;
+}
+
+html.mt-modern .chatbot-float {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #161616;
+  color: #fff;
+}
+
+/* ===== Page ===== */
+html.mt-modern .mh {
+  overflow-x: clip; /* the edge-to-edge banner never makes the page scroll sideways */
+  padding-top: 0;
+  background: var(--mh-bg);
+  color: var(--mh-text);
+}
+
+html.mt-modern .mh-section,
+html.mt-modern .mh .hp-promo-wrap {
+  margin-top: 104px;
+}
+
+/* sections fade in gently the first time they scroll into view */
+.mh-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mh-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mh-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ===== Banner on top, edge to edge ===== */
+/* the classic home page with banners: the banner touches the menu bar, like the modern look */
+html.mt-shell .hp-home--edge {
+  overflow-x: clip;
+  padding-top: 0;
+}
+
+/* the category tiles on the classic home page sit like its other sections */
+html.mt-shell .hp-tiles {
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  html.mt-shell .hp-tiles {
+    margin-top: 16px;
+  }
+}
+
+.mh-hero {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+html.mt-shell .mh-hero__frame {
+  border: none;
+  border-radius: 0;
+  background: var(--mh-surface);
+  box-shadow: none;
+}
+
+/* the banner's own button: white with black text */
+html.mt-shell .mh-hero .mt-btn--primary {
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+}
+
+.mh-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.mh-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.mh-dots button.is-active {
+  width: 28px;
+  background: #fff;
+}
+
+.mh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mh-btn svg {
+  font-size: 1.15rem;
+}
+
+.mh-btn--solid {
+  background: #fff;
+  color: #000;
+}
+
+.mh-btn--solid:hover {
+  background: #e6e6e6;
+  transform: translateY(-1px);
+}
+
+.mh-btn--line {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: var(--mh-text);
+}
+
+.mh-btn--line:hover {
+  border-color: #fff;
+}
+
+/* ===== Section titles ===== */
+.mh-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.mh-head h2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  font-family: var(--mh-font);
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--mh-text);
+}
+
+.mh-tag {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--mh-sale);
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.mh-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--mh-muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.mh-more:hover {
+  color: #fff;
+}
+
+/* ===== Product cards: black and white, one round white cart button ===== */
+html.mt-modern .mh .pc-card {
+  border: none;
+  border-radius: 20px;
+  background: var(--mh-surface);
+}
+
+html.mt-modern .mh .pc-card:hover {
+  border: none;
+  box-shadow: none;
+  transform: translateY(-4px);
+}
+
+html.mt-modern .mh .pc-media {
+  background: #f2f2f2;
+}
+
+html.mt-modern .mh .pc-cat {
+  color: var(--mh-faint);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+html.mt-modern .mh .pc-name,
+html.mt-modern .mh .pc-name a {
+  color: var(--mh-text);
+  font-weight: 500;
+}
+
+html.mt-modern .mh .pc-price,
+html.mt-modern .mh .pc-price--sale {
+  color: var(--mh-text);
+  font-family: var(--mh-font);
+  letter-spacing: -0.02em;
+}
+
+html.mt-modern .mh .pc-old {
+  color: var(--mh-faint);
+}
+
+html.mt-modern .mh .pc-label {
+  padding: 4px 10px;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+html.mt-modern .mh .pc-label--best {
+  background: #fff;
+  color: #000;
+}
+
+html.mt-modern .mh .pc-label--new {
+  background: #000;
+  color: #fff;
+}
+
+html.mt-modern .mh .pc-label--sale {
+  background: var(--mh-sale);
+}
+
+html.mt-modern .mh .pc-body {
+  position: relative;
+}
+
+html.mt-modern .mh .pc-price-row {
+  min-height: 44px;
+  padding-right: 52px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+html.mt-modern .mh .pc-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 16px;
+  display: block;
+  margin: 0;
+}
+
+html.mt-modern .mh .pc-actions .pc-add,
+html.mt-modern .mh .pc-actions .pc-add:not(.pc-added) {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+}
+
+html.mt-modern .mh .pc-actions .pc-add:hover:not(:disabled) {
+  background: #d9d9d9;
+  color: #000;
+  filter: none;
+}
+
+html.mt-modern .mh .pc-actions .pc-add svg {
+  display: block !important;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+html.mt-modern .mh .pc-add__text {
+  display: none;
+}
+
+html.mt-modern .mh .pc-row-arrows button {
+  border: none;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Promo banners (Admin → Banners): no frames, white links */
+html.mt-modern .mh .hp-promo {
+  border: none;
+  border-radius: 24px;
+  box-shadow: none;
+}
+
+html.mt-modern .mh .hp-promo-link {
+  color: #fff;
+}
+
+/* ===== Tablets & phones ===== */
+@media (max-width: 900px) {
+  html.mt-modern .mh-section,
+  html.mt-modern .mh .hp-promo-wrap {
+    margin-top: 64px;
+  }
+
+  html.mt-modern .mh .pc-actions {
+    right: 10px;
+    bottom: 12px;
+  }
+
+  html.mt-modern .mh .pc-actions .pc-add,
+  html.mt-modern .mh .pc-actions .pc-add:not(.pc-added) {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 640px) {
+  .mh-head h2 {
+    font-size: 1.6rem;
+  }
+
+  .mh-btn {
+    min-height: 46px;
+    padding: 0 20px;
+  }
+}
+
+/* =========================================================
+   MODERN NAVBAR: on every page (html.mt-shell, set in index.js)
+   Black and white: the gold of the menu bar and its menus becomes white
+========================================================= */
+html.mt-shell .nb {
+  --mt-accent: #e8e8e8;
+  --mt-accent-bright: #ffffff;
+  --mt-border: rgba(255, 255, 255, 0.1);
+  --mt-border-strong: rgba(255, 255, 255, 0.2);
+  --mt-font-display: var(--mh-font);
+}
+html.mt-shell .nb {
+  background: #000;
+}
+
+html.mt-shell .nb-brand span {
+  font-family: var(--mh-font);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+@media (min-width: 901px) {
+  html.mt-shell .nb {
+    background: #000;
+  }
+
+  /* search: one quiet dark pill (Enter searches) */
+  html.mt-shell .ns-form,
+  html.mt-shell .ns-form:focus-within {
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    background: #141414;
+  }
+
+  html.mt-shell .ns-form:focus-within {
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: none;
+  }
+
+  html.mt-shell .ns-scope,
+  html.mt-shell .ns-submit {
+    display: none;
+  }
+
+  html.mt-shell .ns-icon {
+    color: #8a8a8a;
+  }
+
+  /* "Sign in" becomes a simple person icon, like the cart and wishlist */
+  html.mt-shell .nb-signin {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    border-radius: 50%;
+  }
+
+  html.mt-shell .nb-signin span,
+  html.mt-shell .nb-signin .nb-chevron,
+  html.mt-shell .nb-account__name,
+  html.mt-shell .nb-account .nb-chevron {
+    display: none;
+  }
+
+  html.mt-shell .nb-account .nb-pill {
+    padding: 0 4px;
+    border-color: transparent;
+  }
+
+  html.mt-shell .nb-pill > svg:first-child {
+    color: #fff;
+  }
+
+  html.mt-shell .nb-pill:hover,
+  html.mt-shell .nb-pill.is-open,
+  html.mt-shell .nb-guest:hover .nb-pill,
+  html.mt-shell .nb-wish:hover,
+  html.mt-shell .nb-cart__btn:hover,
+  html.mt-shell .nb-cart__btn.is-open {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* category row: quiet grey links, white on hover, no boxes or dividers */
+  html.mt-shell .nb-sub {
+    border-top: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #000;
+  }
+
+  html.mt-shell .nb-mega {
+    border-right: none;
+  }
+
+  html.mt-shell .nb-link.nb-mega__link {
+    font-weight: 600;
+  }
+
+  html.mt-shell .nb-sublink {
+    color: rgba(255, 255, 255, 0.66);
+    font-weight: 500;
+  }
+
+  html.mt-shell .nb-sublink:hover,
+  html.mt-shell .nb-sublink.is-active {
+    color: #fff;
+  }
+
+  html.mt-shell .nb-sublink.nb-deals {
+    color: #ff6b6f;
+  }
+
+  html.mt-shell .nb-sublink.nb-sub__store {
+    border-left: none;
+  }
+}
+
+/* Phones: the same quiet search pill */
+@media (max-width: 900px) {
+  html.mt-shell .nb {
+    background: #000;
+  }
+
+  html.mt-shell .nb-phone-search .ns-form,
+  html.mt-shell .nb-phone-search .ns-form:focus-within {
+    border-color: transparent;
+    background: #141414;
+  }
+
+  html.mt-shell .ns--bar .ns-submit {
+    background: transparent;
+    color: #fff;
+  }
+}
+
+
+/* the middle links are for computers; phones have the menu button and the search bar */
+.nb-modern {
+  display: none;
+}
+
+/* ===== Modern navbar on computers: ONE row. Logo · Shop Deals Stores Support · search, account, wishlist, cart ===== */
+@media (min-width: 901px) {
+  html.mt-shell {
+    --nb-h: 74px; /* no category row */
+  }
+
+  html.mt-shell .nb-spacer {
+    height: 74px;
+  }
+
+  html.mt-shell .nb {
+    border-top: none;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  html.mt-shell .nb-modern {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+  }
+
+  html.mt-shell .nb-modern .nb-mega {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  html.mt-shell .nb-modern .nb-link.nb-mega__link,
+  html.mt-shell .nb-modern .nb-link.nb-mega__link:hover,
+  html.mt-shell .nb-modern__link {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  html.mt-shell .nb-modern .nb-link.nb-mega__link:hover,
+  html.mt-shell .nb-modern .nb-mega.is-open .nb-link.nb-mega__link,
+  html.mt-shell .nb-modern__link:hover,
+  html.mt-shell .nb-modern__link.active {
+    color: #fff;
+  }
+
+  /* the small arrow beside "Shop" (opens the categories with a keyboard) */
+  html.mt-shell .nb-modern .nb-mega__toggle {
+    width: 22px;
+    height: 22px;
+    margin-left: 2px;
+    border: none;
+    background: none;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  html.mt-shell .nb-modern .nb-mega__link::after {
+    display: none;
+  }
+
+  /* right side: just icons; search opens a box under the bar */
+  html.mt-shell .nb-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  html.mt-shell .nb-actions .ns {
+    flex: 0 0 auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  html.mt-shell .nb-actions .ns-toggle {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: #fff;
+  }
+
+  html.mt-shell .nb-actions .ns-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  html.mt-shell .nb-actions .ns-form {
+    display: none;
+  }
+
+  html.mt-shell .nb-actions .ns.is-open .ns-form,
+  html.mt-shell .nb-actions .ns.is-open .ns-form:focus-within {
+    position: absolute;
+    top: calc(100% + 16px);
+    right: 0;
+    z-index: 60;
+    display: flex;
+    width: 520px;
+    height: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: #111;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ===== Product rows: 5 clean cards (photo, name, price, cart button) ===== */
+html.mt-modern .mh .pc-cat {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  html.mt-modern .mh .pc-grid.pc-grid--row {
+    gap: 16px;
+    grid-auto-columns: calc((100% - 4 * 16px) / 5);
+  }
+
+  html.mt-modern .mh .pc-media {
+    height: 200px;
+    padding: 24px;
+  }
+
+  html.mt-modern .mh .pc-body {
+    padding: 14px 16px 16px;
+  }
+
+  html.mt-modern .mh .pc-name {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+  }
+
+  html.mt-modern .mh .pc-price,
+  html.mt-modern .mh .pc-price--sale {
+    font-size: 1.15rem;
+  }
+}
+
+/* ===== See-through navbar with a blur (a layer behind the bar, so its menus keep working) ===== */
+html.mt-shell .nb.nb {
+  background: transparent;
+}
+
+html.mt-shell .nb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* ===== Rows: a thin line shows how far it's scrolled; arrows only on hover ===== */
+html.mt-modern .mh .pc--row.has-more {
+  padding-bottom: 28px;
+}
+
+html.mt-modern .mh .pc--row.has-more::before,
+html.mt-modern .mh .pc--row.has-more::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+}
+
+html.mt-modern .mh .pc--row.has-more::before {
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html.mt-modern .mh .pc--row.has-more::after {
+  left: calc((100% - var(--row-size, 1) * 100%) * var(--row-pos, 0));
+  width: calc(var(--row-size, 1) * 100%);
+  background: #fff;
+  transition: left 0.1s linear;
+}
+
+html.mt-modern .mh .pc-row-arrows button {
+  opacity: 0;
+  transition: opacity 0.25s ease, background 0.2s ease;
+}
+
+html.mt-modern .mh .pc--row:hover .pc-row-arrows button:not(:disabled),
+html.mt-modern .mh .pc-row-arrows button:focus-visible {
+  opacity: 1;
+}
+
+/* ===== Computers with a mouse: "Add to cart" slides up on the photo ===== */
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  html.mt-modern .mh .pc-card {
+    position: relative;
+  }
+
+  html.mt-modern .mh .pc-body {
+    position: static;
+  }
+
+  html.mt-modern .mh .pc-price-row {
+    padding-right: 0;
+  }
+
+  html.mt-modern .mh .pc-actions {
+    top: calc(200px - 54px);
+    right: 16px;
+    bottom: auto;
+    left: 16px;
+    z-index: 3;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  html.mt-modern .mh .pc-card:hover .pc-actions,
+  html.mt-modern .mh .pc-card:focus-within .pc-actions {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* the sale badge steps aside while the button is showing */
+  html.mt-modern .mh .pc-label.pc-sale {
+    transition: opacity 0.2s ease;
+  }
+
+  html.mt-modern .mh .pc-card:hover .pc-label.pc-sale,
+  html.mt-modern .mh .pc-card:focus-within .pc-label.pc-sale {
+    opacity: 0;
+  }
+
+  html.mt-modern .mh .pc-actions .pc-add,
+  html.mt-modern .mh .pc-actions .pc-add:not(.pc-added) {
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    display: flex;
+    gap: 8px;
+    border-radius: 999px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  html.mt-modern .mh .pc-actions .pc-add svg {
+    font-size: 1.1rem;
+  }
+
+  html.mt-modern .mh .pc-add__text {
+    display: inline;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+}
+
+/* ===== Categories right under the banner: equal square tiles, all visible at once ===== */
+html.mt-modern .mh .mh-cats {
+  margin-top: 40px;
+}
+
+.mh-catgrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mh-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 1;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  background: var(--mh-surface);
+  color: #fff;
+  text-decoration: none;
+  isolation: isolate;
+  transition: border-color 0.3s ease;
+}
+
+.mh-tile:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.mh-tile img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.8) saturate(0.9);
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.4s ease;
+}
+
+/* dark at the bottom so the name always reads well */
+.mh-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.mh-tile:hover img {
+  transform: scale(1.05);
+  filter: brightness(1) saturate(1);
+}
+
+.mh-tile:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.mh-tile__text {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mh-tile__text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mh-tile__text strong {
+  font-family: var(--mh-font);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+/* a small round arrow in the corner turns white on hover */
+.mh-tile__go {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 1rem;
+  transform: rotate(-45deg);
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.mh-tile:hover .mh-tile__go {
+  background: #fff;
+  color: #000;
+  transform: rotate(0);
+}
+
+/* "Shop everything": a quiet dark tile as wide as the last row needs */
+.mh-tile--all {
+  grid-column: span var(--all-span, 1);
+  aspect-ratio: auto;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #121212;
+}
+
+.mh-tile--all::after {
+  display: none;
+}
+
+.mh-tile--all:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* phones: two per row */
+@media (max-width: 900px) {
+  html.mt-modern .mh .mh-cats {
+    margin-top: 24px;
+  }
+
+  .mh-catgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mh-tile {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .mh-tile--all {
+    grid-column: span var(--all-span-phone, 1);
+    min-height: 90px;
+  }
+
+  .mh-tile__text strong {
+    font-size: 1.05rem;
+  }
+
+  .mh-tile__go {
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ===== "This week" bento grid: a big product, a deals tile, two product tiles ===== */
+.mh-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: 300px 300px;
+  gap: 16px;
+}
+
+.mh-b {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 26px;
+  border-radius: 28px;
+  text-decoration: none;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mh-b:hover {
+  transform: translateY(-4px);
+}
+
+.mh-b:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.mh-b__label {
+  position: relative;
+  z-index: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.mh-b__photo {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 12px 0;
+}
+
+/* the photo fits inside its space and never runs over the name */
+.mh-b__photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mh-b:hover .mh-b__photo img {
+  transform: scale(1.06);
+}
+
+.mh-b__name {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mh-b__price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: var(--mh-font);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.mh-b__price s {
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.5;
+}
+
+.mh-b__pill {
+  position: absolute;
+  right: 26px;
+  bottom: 26px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.mh-b__pill--light {
+  background: #fff;
+  color: #000;
+}
+
+/* the big one: light grey, name and price on top, photo filling the rest */
+.mh-b--hero {
+  grid-column: span 2;
+  grid-row: span 2;
+  padding: 36px;
+  background: #f2f2f2;
+  color: #000;
+}
+
+.mh-b__title {
+  position: relative;
+  z-index: 1;
+  max-width: 80%;
+  margin-top: 12px;
+  font-family: var(--mh-font);
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.mh-b__price--big {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+  font-size: 1.5rem;
+}
+
+.mh-b__photo--hero {
+  margin: 16px 0 40px;
+}
+
+/* deals: dark, a big red number, three small product photos */
+.mh-b--deals {
+  grid-column: span 2;
+  border: 1px solid var(--mh-line);
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 77, 79, 0.16), transparent 60%),
+    var(--mh-surface);
+  color: #fff;
+}
+
+.mh-b__off {
+  margin-top: 10px;
+  font-family: var(--mh-font);
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+/* computers: the deals tile is all about the number */
+@media (min-width: 901px) {
+  .mh-b--deals {
+    justify-content: center;
+  }
+
+  .mh-b--deals .mh-b__off {
+    font-size: clamp(3rem, 5vw, 4.6rem);
+  }
+}
+
+.mh-b__off em {
+  color: var(--mh-sale);
+  font-style: normal;
+}
+
+.mh-b__sub {
+  margin-top: 10px;
+  color: var(--mh-muted);
+  font-size: 0.95rem;
+}
+
+/* small product tiles */
+.mh-b--item {
+  background: #f2f2f2;
+  color: #000;
+}
+
+/* ===== One product row with tabs ===== */
+.mh-head--tabs {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mh-head--tabs h2 {
+  margin-right: auto;
+}
+
+.mh-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #141414;
+}
+
+.mh-tabs button {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--mh-muted);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mh-tabs button:hover {
+  color: #fff;
+}
+
+.mh-tabs button.is-active {
+  background: #fff;
+  color: #000;
+}
+
+.mh-head--tabs .mh-more {
+  margin-left: 18px;
+}
+
+/* ===== Numbers ===== */
+.mh-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 104px;
+  border-top: 1px solid var(--mh-line);
+  border-bottom: 1px solid var(--mh-line);
+}
+
+.mh-stats > div {
+  display: grid;
+  gap: 8px;
+  padding: 40px 28px;
+}
+
+.mh-stats > div + div {
+  border-left: 1px solid var(--mh-line);
+}
+
+.mh-stats strong {
+  font-family: var(--mh-font);
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--mh-text);
+}
+
+.mh-stats span {
+  color: var(--mh-muted);
+  font-size: 0.95rem;
+}
+
+/* ===== Brands moving across, edge to edge ===== */
+.mh-marquee {
+  margin: 96px -24px 0;
+  padding: 36px 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.mh-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: mh-marquee 40s linear infinite;
+}
+
+.mh-marquee:hover .mh-marquee__track {
+  animation-play-state: paused;
+}
+
+.mh-marquee__set {
+  display: flex;
+  align-items: center;
+}
+
+.mh-marquee__set a {
+  padding: 0 36px;
+  color: #3a3a3a;
+  font-family: var(--mh-font);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.mh-marquee__set a:hover {
+  color: #fff;
+}
+
+@keyframes mh-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mh-marquee__track {
+    animation: none;
+  }
+}
+
+/* ===== Tablets & phones ===== */
+@media (max-width: 900px) {
+  .mh-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    gap: 10px;
+  }
+
+  .mh-b {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .mh-b--hero {
+    grid-column: span 2;
+    grid-row: auto;
+    min-height: 440px;
+    padding: 24px;
+  }
+
+  .mh-b--deals {
+    grid-column: span 2;
+  }
+
+  /* phones: the deals button goes under the text */
+  .mh-b--deals .mh-b__pill {
+    position: static;
+    align-self: flex-start;
+    margin-top: 18px;
+  }
+
+  .mh-b--item {
+    aspect-ratio: 3 / 4;
+  }
+
+  .mh-b__pill {
+    right: 18px;
+    bottom: 18px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .mh-b__name {
+    font-size: 0.9rem;
+  }
+
+  .mh-head--tabs {
+    gap: 14px;
+  }
+
+  .mh-tabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mh-tabs button {
+    flex-shrink: 0;
+    padding: 9px 14px;
+  }
+
+  .mh-head--tabs .mh-more {
+    margin-left: 0;
+  }
+
+  .mh-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 64px;
+  }
+
+  .mh-stats > div {
+    padding: 26px 18px;
+  }
+
+  .mh-stats > div:nth-child(3) {
+    border-left: none;
+  }
+
+  .mh-stats > div:nth-child(n + 3) {
+    border-top: 1px solid var(--mh-line);
+  }
+
+  .mh-marquee {
+    margin: 56px -24px 0;
+    padding: 24px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .mh-marquee {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+
+  .mh-marquee__set a {
+    padding: 0 22px;
+  }
+}
+
+/* =========================================================
+   MODERN FOOTER (Components/Footer.js): short and quiet, on every page
+========================================================= */
+.mf {
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #000;
+  color: #8a8a8a;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.mf-inner {
+  position: relative;
+  z-index: 1; /* the links stay clickable above the big wordmark */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.mf a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.mf a:hover {
+  color: #fff;
+}
+
+/* logo on the left, three short columns on the right */
+.mf-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  padding: 64px 0 56px;
+}
+
+.mf-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mf-logo img {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  filter: grayscale(1) brightness(2.4);
+}
+
+.mf-logo span {
+  color: #fff;
+  font-family: var(--mh-font, "Inter", sans-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.mf-brand p {
+  max-width: 280px;
+  margin: 14px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.mf-cols nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.mf-cols h3 {
+  margin: 0 0 4px;
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+/* one slim bottom line */
+.mf-bottom {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #6b6b6b;
+  font-size: 0.85rem;
+}
+
+.mf-bottom p {
+  margin: 0 auto 0 0;
+}
+
+.mf-legal {
+  display: flex;
+  gap: 20px;
+}
+
+.mf-socials {
+  display: flex;
+  gap: 8px;
+}
+
+.mf-socials a {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #141414;
+  color: #fff;
+}
+
+.mf-socials a:hover {
+  background: #262626;
+}
+
+/* the big wordmark at the very bottom, cut off on purpose */
+.mf-word {
+  margin: 12px 0 -0.14em;
+  font-family: var(--mh-font, "Inter", sans-serif);
+  font-size: clamp(4rem, 18vw, 17rem);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
+  text-align: center;
+  white-space: nowrap;
+  color: #121212;
+  user-select: none;
+  pointer-events: none; /* only decoration: clicks go to the links above it */
+}
+
+/* phones: logo on top, the three columns side by side */
+@media (max-width: 900px) {
+  .mf-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 16px;
+    padding: 48px 0 40px;
+  }
+
+  .mf-brand {
+    grid-column: 1 / -1;
+  }
+
+  .mf-bottom {
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mf-bottom p {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .mf-inner {
+    padding: 0 16px;
+  }
+}
+
+/* =========================================================
+   MODERN SHOP PAGE (pages/Shop.js adds .mh .mh-shop)
+   Big title, category pills, a quiet filter column without a box, 4 bigger cards per row
+========================================================= */
+html.mt-modern .mh-shop {
+  padding-top: 40px;
+}
+
+html.mt-modern .mh-shop .sh-crumbs,
+html.mt-modern .mh-shop .sh-crumbs a {
+  color: var(--mh-faint);
+}
+
+html.mt-modern .mh-shop .sh-crumbs a:hover,
+html.mt-modern .mh-shop .sh-crumbs [aria-current] {
+  color: #fff;
+}
+
+html.mt-modern .mh-shop .sh-head .mt-title.sh-title {
+  margin-top: 14px;
+  font-family: var(--mh-font);
+  font-size: clamp(2.2rem, 4.4vw, 3.6rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+html.mt-modern .mh-shop .sh-total {
+  color: var(--mh-faint);
+}
+
+html.mt-modern .mh-shop .sh-head {
+  margin-bottom: 32px;
+}
+
+/* category pills */
+.mh-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mh-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.mh-pills button {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: none;
+  color: var(--mh-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.mh-pills button:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.mh-pills button.is-active {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
+}
+
+/* sort: a quiet pill */
+html.mt-modern .mh-shop .pc-sortby {
+  color: var(--mh-faint);
+}
+
+html.mt-modern .mh-shop .pc-sortby select,
+html.mt-modern .mh-shop .pc-sort {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background-color: #111;
+  color: #fff;
+}
+
+/* filters: no box, just quiet sections */
+@media (min-width: 901px) {
+  html.mt-modern .mh-shop .pc--shop {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 44px;
+  }
+
+  html.mt-modern .mh-shop .pc-side {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+  }
+
+  html.mt-modern .mh-shop .pc-side__head {
+    padding-top: 0;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  html.mt-modern .mh-shop .pc-side__head strong {
+    font-family: var(--mh-font);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* 4 bigger cards per row */
+  html.mt-modern .mh-shop .pc--shop .pc-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+html.mt-modern .mh-shop .pc-side__clear {
+  color: var(--mh-muted);
+}
+
+html.mt-modern .mh-shop .pc-side__clear:hover {
+  color: #fff;
+}
+
+html.mt-modern .mh-shop .pc-fs + .pc-fs {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+html.mt-modern .mh-shop .pc-fs__head {
+  font-weight: 600;
+}
+
+html.mt-modern .mh-shop .pc-fs__dot {
+  background: #fff;
+}
+
+html.mt-modern .mh-shop .pc-opt.is-on .pc-opt__count {
+  background: #fff;
+  color: #000;
+}
+
+html.mt-modern .mh-shop .pc-opt.is-on .pc-opt__radio {
+  border-color: #fff;
+  box-shadow: inset 0 0 0 4px #000, inset 0 0 0 9px #fff;
+}
+
+/* removable filter tags and quick filters: white instead of gold */
+html.mt-modern .mh-shop .pc-chip,
+html.mt-modern .mh-shop .pc-quick__chip.is-on {
+  border-color: transparent;
+  background: #fff;
+  color: #000;
+}
+
+html.mt-modern .mh-shop .pc-chip-clear {
+  color: var(--mh-muted);
+}
+
+/* page numbers: round */
+html.mt-modern .mh-shop .pc-pagination {
+  margin-top: 48px;
+}
+
+html.mt-modern .mh-shop .pc-pagination button {
+  border-color: transparent;
+  border-radius: 999px;
+}
+
+html.mt-modern .mh-shop .pc-pagination button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: transparent;
+}
+
+html.mt-modern .mh-shop .pc-pagination button.is-active {
+  border-color: transparent;
+  background: #fff;
+  color: #000;
+}
+
+/* phones: the pills run edge to edge */
+@media (max-width: 900px) {
+  html.mt-modern .mh-shop {
+    padding-top: 24px;
+  }
+
+  .mh-pills {
+    margin: 18px -24px 0;
+    padding: 0 24px 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .mh-pills {
+    margin: 18px -16px 0;
+    padding: 0 16px 2px;
+  }
+}
+
+/* the pills above already choose the category, so the filters don't repeat it */
+html.mt-modern .mh-shop .pc-side .pc-fs:first-of-type {
+  display: none;
+}
+
+html.mt-modern .mh-shop .pc-side .pc-fs:nth-of-type(2) {
+  border-top: none;
+}
+
+/* white arrow on the sort list */
+html.mt-modern .mh-shop select.mt-input {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23ffffff' stroke-width='1.6'/></svg>");
+}
+
+/* phones: the Sort / Filters bar matches the black page */
+@media (max-width: 900px) {
+  html.mt-modern .mh-shop .pc--shop .pc-toolbar {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    background: rgba(5, 5, 5, 0.9);
+  }
+
+  html.mt-modern .mh-shop .pc-sort-btn,
+  html.mt-modern .mh-shop .pc-filters-btn {
+    border-color: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: #111;
+  }
+
+  html.mt-modern .mh-shop .pc-quick__chip {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+}
+
+html.mt-modern .mh-shop .pc-chip svg {
+  color: #000;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   MODERN SHOP: STRUCTURE
+   one bar (Hide filters · Sort), quick filters above the products, filters you can hide,
+   cards without boxes (big square photo, then name and price on the page)
+========================================================= */
+.mh-shopbar {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  /* the bar sticks under the menu bar while you scroll */
+  .mh-shopbar {
+    position: sticky;
+    top: var(--nb-h);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 24px 0 0;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(5, 5, 5, 0.86);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    transition: top 0.28s ease;
+  }
+
+  .mh-shopbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: none;
+    color: #fff;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .mh-shopbar__toggle:hover {
+    border-color: #fff;
+  }
+
+  .mh-shopbar__toggle svg {
+    font-size: 1.1rem;
+  }
+
+  html.mt-modern .mh-shop .sh-head {
+    margin-bottom: 28px;
+  }
+
+  /* filters column + products: 3 big cards per row */
+  html.mt-modern .mh-shop .pc--shop {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  html.mt-modern .mh-shop .pc-side {
+    top: calc(var(--nb-h) + 92px);
+  }
+
+  html.mt-modern .mh-shop .pc--shop .pc-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 20px;
+  }
+
+  /* filters hidden: the products take the full width, 4 per row */
+  html.mt-modern .mh-shop.is-nofilters .pc--shop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html.mt-modern .mh-shop.is-nofilters .pc-side {
+    display: none;
+  }
+
+  html.mt-modern .mh-shop.is-nofilters .pc--shop .pc-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* quick filters (On sale, In stock, prices, brands) as a row above the products */
+  html.mt-modern .mh-shop .pc-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 24px;
+  }
+
+  html.mt-modern .mh-shop .pc-quick__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: none;
+    color: var(--mh-muted);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  html.mt-modern .mh-shop .pc-quick__chip:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+  }
+
+  /* the quick row shows what's on, so the tags for those aren't repeated */
+  html.mt-modern .mh-shop .pc-chips .pc-chip--quick {
+    display: none;
+  }
+
+  html.mt-modern .mh-shop .pc-chips:not(:has(.pc-chip:not(.pc-chip--quick))) {
+    display: none;
+  }
+}
+
+/* cards without boxes */
+html.mt-modern .mh-shop .pc-card,
+html.mt-modern .mh-shop .pc-card:hover {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html.mt-modern .mh-shop .pc-card:hover {
+  transform: none;
+}
+
+html.mt-modern .mh-shop .pc-media {
+  height: auto;
+  aspect-ratio: 1;
+  padding: 32px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #f2f2f2;
+}
+
+html.mt-modern .mh-shop .pc-media img {
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html.mt-modern .mh-shop .pc-card:hover .pc-media img {
+  transform: scale(1.05);
+}
+
+html.mt-modern .mh-shop .pc-body {
+  position: relative;
+  padding: 16px 2px 0;
+}
+
+/* the category shows quietly under the name */
+html.mt-modern .mh-shop .pc-cat {
+  display: block;
+  order: 2;
+  margin-top: 2px;
+  color: var(--mh-faint);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+html.mt-modern .mh-shop .pc-name {
+  order: 1;
+  margin: 0;
+  font-size: 1rem;
+}
+
+html.mt-modern .mh-shop .pc-price-row {
+  order: 3;
+  min-height: 0;
+  margin-top: 10px;
+  padding-right: 52px;
+}
+
+/* a round white cart button beside the price, always there */
+html.mt-modern .mh-shop .pc-actions,
+html.mt-modern .mh-shop .pc-card:hover .pc-actions {
+  position: absolute;
+  top: auto;
+  right: 2px;
+  bottom: 0;
+  left: auto;
+  display: block;
+  margin: 0;
+  opacity: 1;
+  transform: none;
+}
+
+html.mt-modern .mh-shop .pc-actions .pc-add,
+html.mt-modern .mh-shop .pc-actions .pc-add:not(.pc-added) {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+html.mt-modern .mh-shop .pc-add__text {
+  display: none;
+}
+
+html.mt-modern .mh-shop .pc-card:hover .pc-label.pc-sale {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  html.mt-modern .mh-shop .pc--shop .pc-grid {
+    gap: 28px 12px;
+  }
+
+  html.mt-modern .mh-shop .pc-media {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  html.mt-modern .mh-shop .pc-body {
+    padding-top: 12px;
+  }
+
+  html.mt-modern .mh-shop .pc-name {
+    font-size: 0.92rem;
+  }
+
+  html.mt-modern .mh-shop .pc-cat {
+    display: none;
+  }
+
+  html.mt-modern .mh-shop .pc-actions .pc-add,
+  html.mt-modern .mh-shop .pc-actions .pc-add:not(.pc-added) {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+}
+
+/* computers: the quick filters only show while the filters column is hidden (no repeating it) */
+@media (min-width: 901px) {
+  html.mt-modern .mh-shop:not(.is-nofilters) .pc-quick {
+    display: none;
+  }
+
+  html.mt-modern .mh-shop:not(.is-nofilters) .pc-chips .pc-chip--quick {
+    display: inline-flex;
+  }
+
+  html.mt-modern .mh-shop:not(.is-nofilters) .pc-chips:not(:has(.pc-chip:not(.pc-chip--quick))) {
+    display: flex;
+  }
+}
+
+/* ===== Modern shop: calmer and smaller ===== */
+@media (min-width: 901px) {
+  /* 4 per row with the filters, 5 without */
+  html.mt-modern .mh-shop .pc--shop .pc-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px 16px;
+  }
+
+  html.mt-modern .mh-shop.is-nofilters .pc--shop .pc-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  html.mt-modern .mh-shop .pc-media {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  html.mt-modern .mh-shop .pc-name {
+    font-size: 0.94rem;
+  }
+
+  html.mt-modern .mh-shop .pc-price,
+  html.mt-modern .mh-shop .pc-price--sale {
+    font-size: 1.05rem;
+  }
+
+  /* the filter column stays where it is (it doesn't follow the scroll) */
+  html.mt-modern .mh-shop .pc-side {
+    position: static;
+    margin-top: 4px;
+  }
+
+  /* the "Hide filters" button already names it */
+  html.mt-modern .mh-shop .pc-side__head {
+    display: none;
+  }
+
+  html.mt-modern .mh-shop .pc-fs:nth-of-type(2) .pc-fs__head {
+    padding-top: 0;
+  }
+}
+
+/* counts: plain grey numbers instead of badges */
+html.mt-modern .mh-shop .pc-opt__count,
+html.mt-modern .mh-shop .pc-opt.is-on .pc-opt__count {
+  min-width: 0;
+  padding: 0;
+  background: none;
+  color: var(--mh-faint);
+  font-weight: 500;
+}
+
+html.mt-modern .mh-shop .pc-opt.is-on .pc-opt__count {
+  color: #fff;
+}
+
+/* computers with a mouse: the cart button shows on the card you're on */
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  html.mt-modern .mh-shop .pc-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  html.mt-modern .mh-shop .pc-card:hover .pc-actions,
+  html.mt-modern .mh-shop .pc-card:focus-within .pc-actions {
+    opacity: 1;
+  }
+
+  html.mt-modern .mh-shop .pc-price-row {
+    padding-right: 48px;
+  }
+
+  html.mt-modern .mh-shop .pc-actions .pc-add,
+  html.mt-modern .mh-shop .pc-actions .pc-add:not(.pc-added) {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+}
+
+/* the category sits right under the name (no space kept for a second line) */
+html.mt-modern .mh-shop .pc-name {
+  min-height: 0;
+}
+
+/* =========================================================
+   HOME, SHOP AND PRODUCT PAGES (classic): black and white like the menu bar and footer
+   (sales stay red; the other pages keep the gold)
+========================================================= */
+html.mt-shell .hp-home,
+html.mt-shell .hp-shop,
+html.mt-shell .hp-product {
+  --mt-accent: #e8e8e8;
+  --mt-accent-bright: #ffffff;
+  --mt-border: rgba(255, 255, 255, 0.1);
+  --mt-border-strong: rgba(255, 255, 255, 0.2);
+  --mt-font-display: var(--mh-font);
+  background: var(--mh-bg);
+}
+
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-label--best {
+  background: #fff;
+  color: #000;
+}
+
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-label--new {
+  background: #000;
+  color: #fff;
+}
+
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-cat {
+  color: var(--mh-faint);
+}
+
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-row-arrows button {
+  border-color: transparent;
+  background: #fff;
+  color: #000;
+}
+
+/* "Need help choosing?": a modern band. Text on the left, round pill buttons on the right,
+   WhatsApp as the main white button, a soft icy glow in the corner. Phones: 3 small tiles. */
+html.mt-shell .hp-home .hp-help {
+  position: relative;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  padding: 34px 40px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(255, 255, 255, 0.084), transparent 70%),
+    #0c0c0c;
+}
+html.mt-shell .hp-home .hp-help::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ice-line), transparent);
+  pointer-events: none;
+}
+html.mt-shell .hp-home .hp-help__text { display: grid; gap: 6px; min-width: 0; }
+html.mt-shell .hp-home .hp-help__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ice);
+}
+html.mt-shell .hp-home .hp-help__title {
+  font-family: var(--mh-font, inherit);
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+html.mt-shell .hp-home .hp-help__sub { margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 0.95rem; }
+
+html.mt-shell .hp-home .hp-help__options { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+html.mt-shell .hp-home .hp-help__option {
+  height: 50px;
+  padding: 0 20px 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+html.mt-shell .hp-home .hp-help__option:hover {
+  border-color: var(--ice-line);
+  background: var(--ice-soft);
+  transform: translateY(-1px);
+}
+html.mt-shell .hp-home .hp-help__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+html.mt-shell .hp-home .hp-help__arrow { color: rgba(255, 255, 255, 0.4); }
+html.mt-shell .hp-home .hp-help__option:hover .hp-help__arrow { color: var(--ice); }
+
+/* WhatsApp: the main button, white */
+html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa) {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
+}
+html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa):hover { background: #f2f2f2; border-color: #f2f2f2; }
+html.mt-shell .hp-home .hp-help__icon--wa { background: #25d366; color: #fff; }
+html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa) .hp-help__arrow { color: #000; }
+
+@media (max-width: 1024px) {
+  html.mt-shell .hp-home .hp-help { grid-template-columns: 1fr; padding: 28px; }
+  html.mt-shell .hp-home .hp-help__options { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+  html.mt-shell .hp-home .hp-help { padding: 0; border: none; background: none; gap: 0; }
+  html.mt-shell .hp-home .hp-help::after { display: none; }
+  html.mt-shell .hp-home .hp-help__text {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+  }
+  html.mt-shell .hp-home .hp-help__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html.mt-shell .hp-home .hp-help__option {
+    height: auto;
+    padding: 12px 4px;
+    border-radius: 18px;
+    background: #0f0f0f;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa) { background: #fff; }
+  html.mt-shell .hp-home .hp-help__option:hover { transform: none; }
+}
+
+/* =========================================================
+   Categories as circles (home page): round photos in one row, name and count under them
+========================================================= */
+.mh-circles {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 110px; /* small round photos like the original home page */
+  justify-content: center;
+  gap: 26px;
+  padding: 6px 0 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.mh-circles::-webkit-scrollbar {
+  display: none;
+}
+
+.mh-circ {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--mh-text);
+  text-align: center;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.mh-circ__pic {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--mh-surface);
+  transition: box-shadow 0.3s ease;
+}
+
+.mh-circ__pic > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mh-circ__pic > svg {
+  position: static;
+  width: 1em;
+  height: 1em;
+  font-size: 1.7rem;
+  color: #000;
+}
+
+/* hover: the photo zooms a little and a thin white ring appears */
+.mh-circ:hover .mh-circ__pic,
+.mh-circ:focus-visible .mh-circ__pic {
+  box-shadow: 0 0 0 2px var(--mh-bg), 0 0 0 4px #fff;
+}
+
+.mh-circ:focus-visible {
+  outline: none;
+}
+
+.mh-circ:hover .mh-circ__pic > *:not(svg) {
+  transform: scale(1.08);
+}
+
+.mh-circ__name {
+  max-width: 100%;
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.mh-circ small {
+  margin-top: -8px;
+  color: var(--mh-faint);
+  font-size: 0.78rem;
+}
+
+/* "All products": a white circle with an icon */
+.mh-circ--all .mh-circ__pic {
+  background: #fff;
+}
+
+@media (max-width: 1100px) {
+  .mh-circles {
+    grid-auto-columns: 96px;
+    justify-content: start;
+    gap: 18px;
+  }
+}
+
+/* phones: about four and a half visible, swipe for more, edge to edge */
+@media (max-width: 900px) {
+  .mh-circles {
+    grid-auto-columns: 21%;
+    justify-content: start;
+    gap: 14px;
+    margin: 0 -24px;
+    padding: 6px 24px 4px;
+    scroll-padding-inline: 24px;
+  }
+
+  .mh-circ {
+    gap: 8px;
+  }
+
+  .mh-circ__name {
+    font-size: 0.8rem;
+  }
+
+  .mh-circ small {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .mh-circles {
+    margin: 0 -16px;
+    padding: 6px 16px 4px;
+    scroll-padding-inline: 16px;
+  }
+}
+
+/* phones: the "See all" links in the section titles without the gold tint */
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .mt-section-head .mt-link {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================================
+   ICY DIAMOND TOUCH: on every page, only in small places.
+   Big buttons stay white; the accent marks what's chosen, small titles, links and focus.
+========================================================= */
+/* small titles above headings, and the bar beside section titles */
+.mt-eyebrow,
+.mf-cols h3 {
+  color: var(--ice);
+}
+
+.mt-box .mt-section-head h2::before {
+  background: var(--ice-grad);
+}
+
+/* menu bar: cart / wishlist count, the page you're on, hover */
+html.mt-shell .nb-badge {
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+html.mt-shell .nb-modern__link.active,
+html.mt-shell .nb-modern__link:hover,
+html.mt-shell .nb-modern .nb-link.nb-mega__link:hover,
+html.mt-shell .nb-modern .nb-mega.is-open .nb-link.nb-mega__link {
+  color: var(--ice);
+}
+
+/* footer links on hover */
+.mf a:hover {
+  color: var(--ice);
+}
+
+/* text boxes while typing */
+.mt-page input:focus,
+.mt-page textarea:focus,
+.mt-page select:focus,
+.ad input:focus,
+.ad textarea:focus,
+.ad select:focus,
+.auth-page input:focus,
+.auth-modal input:focus {
+  border-color: var(--ice-line) !important;
+  box-shadow: 0 0 0 3px var(--ice-soft) !important;
+  outline: none;
+}
+
+/* "See all" links and plain links */
+.mt-link:hover,
+.mt-section-head .mt-link:hover {
+  color: var(--ice);
+}
+
+/* home: the ring around a category circle on hover, the active banner dot */
+.mh-circ:hover .mh-circ__pic,
+.mh-circ:focus-visible .mh-circ__pic {
+  box-shadow: 0 0 0 2px var(--mh-bg), 0 0 0 4px var(--ice);
+}
+
+.mh-dots button.is-active {
+  background: var(--ice-grad);
+}
+
+/* shop: the chosen filter option and its count, ticked boxes */
+.pc-opt.is-on .pc-opt__radio {
+  border-color: var(--ice);
+  box-shadow: inset 0 0 0 4px var(--mt-surface), inset 0 0 0 9px var(--ice);
+}
+
+.pc-opt.is-on .pc-opt__count,
+html.mt-modern .mh-shop .pc-opt.is-on .pc-opt__count {
+  color: var(--ice);
+}
+
+/* product page: the chosen photo and the category */
+.pd-thumbs button.is-active {
+  border-color: var(--ice);
+}
+
+.pd-cat {
+  color: var(--ice);
+}
+
+/* page numbers: the current one */
+.pc-pagination button.is-active {
+  border-color: var(--ice-line);
+  color: var(--ice);
+}
+
+/* chat button */
+.chatbot-float {
+  color: var(--ice);
+}
+
+/* admin: the page you're on, chosen tab, the chart, small icons */
+.ad-nav a.is-active::before {
+  background: var(--ice-grad);
+}
+
+.ad-nav a.is-active svg {
+  color: var(--ice);
+}
+
+.ad-tabs button.is-active {
+  border-bottom-color: var(--ice);
+}
+
+.ad-tabs button.is-active span {
+  background: var(--ice-soft);
+  color: var(--ice);
+}
+
+.ad-chart__bar {
+  background: var(--ice-grad);
+}
+
+.ad-kpi__icon {
+  background: var(--ice-soft);
+  color: var(--ice);
+}
+
+.ad-check:checked {
+  border-color: var(--ice);
+  background: var(--ice);
+}
+
+/* sale prices in icy (the red "-20%" badge stays): prices are what people look at */
+.pc-price.pc-price--sale,
+html.mt-modern .mh .pc-price--sale,
+html.mt-modern .mh-shop .pc-price--sale,
+.pd-price.pd-price--sale {
+  color: var(--ice);
+}
+
+/* "Added": a short icy glow on the button */
+.pc-add.pc-added {
+  border-color: var(--ice-line) !important;
+  background: var(--ice-soft) !important;
+  color: var(--ice) !important;
+  animation: ice-added 0.9s ease-out;
+}
+
+@keyframes ice-added {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.33);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-add.pc-added {
+    animation: none;
+  }
+}
+
+/* =========================================================
+   ICY DIAMOND, LIKE THE CONTACT PAGE: every page except home, shop and sign-in
+   (stores, cart, wishlist, account, orders, about, help pages, product, 404, chat, admin)
+   - big title: white fading into icy
+   - small icon squares: icy tint with an icy icon
+   - text links / "actions": icy
+   - chosen options and highlighted cards: icy outline or icy gradient
+   - clickable cards: icy outline on hover
+========================================================= */
+.mt-page:not(.hp-home):not(.hp-shop) h1.mt-title,
+.cart-head h1,
+.cart-empty h1,
+.ad-head h1 {
+  background: linear-gradient(180deg, #ffffff 30%, var(--ice) 140%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* the item count next to some titles keeps its own grey */
+.cart-head h1 span,
+.loc-title .loc-total,
+.mt-title .mt-total {
+  -webkit-text-fill-color: var(--mt-muted);
+}
+
+/* small icon squares and circles */
+.mt-page:not(.hp-home):not(.hp-shop) [class*="__icon"]:not(svg):not(.ft-toggle__icon),
+.cart-page [class*="__icon"]:not(svg),
+.mt-empty__icon,
+.ab-reason__icon,
+.ad [class*="__icon"]:not(svg) {
+  background: var(--ice-soft);
+  color: var(--ice);
+}
+
+/* small text links and "actions" */
+.mt-page:not(.hp-home):not(.hp-shop) [class*="__action"]:not([class*="__actions"]),
+.mt-page:not(.hp-home):not(.hp-shop) [class*="__more"],
+.mt-page:not(.hp-home):not(.hp-shop) [class*="__link"]:not(.nb-drawer__link),
+.cart-page .cart-row__links button:hover,
+.cart-page .cart-row__links a:hover,
+.mt-page:not(.hp-home):not(.hp-shop) .mt-link,
+.ad .mt-link,
+.ad-back {
+  color: var(--ice);
+}
+
+/* icons inside store cards, account rows, order details */
+.loc-card__details svg,
+.loc-hours summary > svg:first-child,
+.cart-summary__trust svg,
+.acc-link svg,
+.pd-trust svg {
+  color: var(--ice);
+}
+
+/* chosen options: icy gradient pills, icy outlined cards */
+.ad-seg button.is-active,
+.mt-page:not(.hp-home):not(.hp-shop) [class*="chips"] button.is-active {
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+.cart-pay__option.is-selected,
+.ad-layout.is-active,
+.ad-promo-slot.is-selected {
+  border-color: var(--ice-line);
+  box-shadow: 0 0 0 3px var(--ice-soft);
+}
+
+/* clickable cards: icy outline on hover */
+.loc-card:hover,
+.acc-link:hover,
+.ab-reason:hover,
+.mod-card:hover,
+.ad-kpi:hover,
+.mo-card:hover {
+  border-color: var(--ice-line);
+}
+
+/* =========================================================
+   CHAT, like the contact page
+========================================================= */
+.chatbot-box .cb-head {
+  border-bottom-color: var(--ice-soft);
+}
+
+.cb-avatar {
+  border-color: var(--ice-line);
+}
+
+.cb-online {
+  color: var(--ice);
+}
+
+.cb-bubble--user,
+.cb-input button {
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+.cb-chip {
+  border-color: var(--ice-line);
+  background: var(--ice-soft);
+  color: var(--ice);
+}
+
+.cb-chip:hover {
+  background: rgba(255, 255, 255, 0.144);
+}
+
+.cb-product__price {
+  color: var(--ice);
+}
+
+.chatbot-float {
+  border-color: var(--ice-line);
+}
+
+.cb-teaser__text {
+  border-color: var(--ice-line);
+}
+
+/* "Best Seller" badge everywhere (shop, home, product page, admin): white with a thin dark border,
+   so it stands out on white product photos */
+.pc-label.pc-label--best,
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-label--best,
+html.mt-modern .mh .pc-label--best,
+.mt-badge.mt-badge--best {
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  background: #ffffff;
+  color: #000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+/* wishlist in the menu bar: a red heart and a red count once something is saved */
+html.mt-shell .nb-wish.has-items svg {
+  color: #ff4d5e;
+}
+
+html.mt-shell .nb-wish .nb-badge {
+  background: #e5484d;
+  color: #fff;
+}
+
+/* =========================================================
+   ADMIN: more icy diamond (only the admin, the shop pages keep white buttons)
+========================================================= */
+/* 1. main buttons: icy gradient */
+.ad .mt-btn--primary,
+.ad .mt-btn--primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+.ad .mt-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* 2. the page you're on in the sidebar: soft icy background */
+.ad-nav a.is-active {
+  background: var(--ice-soft);
+  color: #fff;
+}
+
+/* 3. table rows: a faint icy tint under the mouse */
+.ad-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* 4. dashboard: the revenue number in icy */
+.ad-kpi--accent .ad-kpi__value {
+  display: inline-block; /* the icy fill covers the whole number, even a long one */
+  max-width: 100%;
+  font-size: clamp(1.35rem, 1.9vw, 1.75rem);
+  white-space: nowrap;
+  background: var(--ice-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ad-kpi--accent {
+  border-color: var(--ice-line);
+}
+
+/* 5. switches ("Shown" in products and others): white with a black knob when on, dark glass when off */
+.ad-switch input:checked {
+  background: linear-gradient(180deg, #ffffff, #e6e6e6);
+  box-shadow: inset 0 1px 0 #fff;
+}
+.ad-switch input:checked::after {
+  background: #0b0b0b;
+}
+.ad-switch input:not(:checked) {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   CART: more icy diamond (the page where people decide to buy)
+========================================================= */
+/* the order summary and checkout boxes get an icy edge */
+.cart-page .cart-summary,
+.cart-page .cart-checkout {
+  border-color: var(--ice-line);
+  box-shadow: 0 0 0 1px var(--ice-soft), 0 24px 60px rgba(255, 255, 255, 0.03);
+}
+
+/* the total in icy */
+.cart-page .cart-summary__line--total span:last-child,
+.cart-page .cart-summary__line--total strong {
+  background: var(--ice-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* "You save $X" */
+.cart-page .cart-summary__saved {
+  color: var(--ice);
+}
+
+/* checkout / place order: the icy gradient button */
+.cart-page .cart-btn--primary {
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+/* the step numbers (1 Delivery details, 2 Payment) */
+.cart-page .cart-step {
+  background: var(--ice-grad);
+  color: #0b0b0b;
+}
+
+/* each item: an icy outline under the mouse, icy quantity box */
+.cart-page .cart-row {
+  transition: background 0.2s ease;
+}
+
+.cart-page .cart-row:hover {
+  background: rgba(255, 255, 255, 0.024);
+}
+
+.cart-page .cart-qty {
+  border-color: var(--ice-line);
+}
+
+.cart-page .cart-qty button:hover:not(:disabled) {
+  background: var(--ice-soft);
+  color: var(--ice);
+}
+
+/* the chosen payment option */
+.cart-page .cart-pay__option.is-selected {
+  background: var(--ice-soft);
+}
+
+.cart-page .cart-summary__saved {
+  border-color: var(--ice-line);
+  background: var(--ice-soft);
+}
+
+/* sale prices in the cart: icy, like the rest of the shop */
+.cart-page .cart-row__total.is-sale,
+.cart-page .cart-row__price .cart-row__total.is-sale {
+  color: var(--ice);
+}
+
+/* =========================================================
+   A BIT MORE ICY (try-out, 2026-11-09): delete this block to go back
+   Home, shop and product: soft icy lines and glows on hover, the main "Buy now" button icy
+========================================================= */
+/* a thin icy line along the menu bar's bottom edge */
+html.mt-shell .nb::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.21), transparent);
+  pointer-events: none;
+}
+
+
+/* product cards: icy edge and glow on hover */
+html.mt-shell .pc-card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+html.mt-shell .pc-card:hover {
+  border-color: var(--ice-line) !important;
+  box-shadow: 0 10px 30px -12px rgba(255, 255, 255, 0.21) !important;
+}
+
+/* cart buttons on cards: icy on hover */
+html.mt-shell .pc-add:not(.pc-added):hover {
+  background: var(--ice-grad) !important;
+  border-color: transparent !important;
+  color: #000 !important;
+}
+
+
+/* category circles: a faint icy ring all the time (stronger on hover, above) */
+.mh-circ__pic {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.132);
+}
+
+/* shop: the chosen category pill and filter chips */
+.mh-pills button.is-active {
+  background: var(--ice-grad) !important;
+  border-color: transparent !important;
+  color: #000 !important;
+}
+html.mt-shell .pc-chip {
+  border-color: var(--ice-line);
+}
+
+/* product page: "Buy now" icy like the cart's checkout button; the price a touch icy */
+html.mt-shell .hp-product .pd-actions .mt-btn--primary,
+html.mt-shell .pd-buybar .mt-btn--primary {
+  background: var(--ice-grad) !important;
+  border-color: transparent !important;
+  color: #000 !important;
+  box-shadow: 0 8px 24px -10px rgba(255, 255, 255, 0.36);
+}
+html.mt-shell .hp-product .pd-perks svg {
+  color: var(--ice);
+}
+
+/* footer: icy line on top */
+html.mt-shell .mf {
+  position: relative;
+}
+html.mt-shell .mf::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ice-line), transparent);
+  pointer-events: none;
+}
+
+/* Phones and tablets (no mouse, so no hover): the icy shows when you tap instead,
+   and the round cart buttons get a faint icy ring */
+@media (hover: none) {
+  html.mt-shell .pc-add:not(.pc-added) {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.21);
+  }
+  html.mt-shell .pc-add:not(.pc-added):active {
+    background: var(--ice-grad) !important;
+    border-color: transparent !important;
+    color: #000 !important;
+  }
+  html.mt-shell .pc-card:active {
+    border-color: var(--ice-line) !important;
+    box-shadow: 0 10px 30px -12px rgba(255, 255, 255, 0.21) !important;
+  }
+  .mh-circ:active .mh-circ__pic {
+    box-shadow: 0 0 0 2px var(--mh-bg), 0 0 0 4px var(--ice);
+  }
+}
+
+/* Phone menu (☰) and search: icy like the laptop */
+html.mt-shell .nb-drawer__label {
+  color: var(--ice);
+}
+html.mt-shell .nb-drawer a.active,
+html.mt-shell .nb-drawer a[aria-current="page"] {
+  color: var(--ice);
+}
+html.mt-shell .ns-form:focus-within {
+  border-color: var(--ice-line) !important;
+  box-shadow: 0 0 0 3px var(--ice-soft) !important;
+}
+html.mt-shell .ns-form:focus-within .ns-submit,
+html.mt-shell .ns-item.is-active .ns-item__price,
+html.mt-shell .ns-all.is-active {
+  color: var(--ice);
+}
+
+/* Menu bar: no see-through strip on top (the old gold line's 2px border showed the page through it
+   when the bar slid back in on phones); the dark blur layer also reaches the very top edge */
+html.mt-shell .nb {
+  border-top: 0 !important;
+}
+html.mt-shell .nb::before {
+  top: -2px;
+}
+
+/* =========================================================
+   GLASSY BLACK AND WHITE (2026-11-09): the accent is glassy white on every page
+   (the icy blue values are in --ice at the top of this file); glows and lines below are white too
+========================================================= */
+
+/* the blue glows and lines that don't use the colours above */
+html.mt-shell:has(.hp-home) .nb::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+}
+html.mt-shell .hp-home .hp-help {
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(255, 255, 255, 0.07), transparent 70%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+@media (max-width: 640px) {
+  html.mt-shell .hp-home .hp-help {
+    background: none;
+    box-shadow: none;
+  }
+}
+html.mt-shell .pc-card:hover {
+  box-shadow: 0 10px 30px -12px rgba(255, 255, 255, 0.18) !important;
+}
+html.mt-shell .hp-home .mh-circ__pic {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+html.mt-shell .hp-home .mh-circ:hover .mh-circ__pic,
+html.mt-shell .hp-home .mh-circ:focus-visible .mh-circ__pic {
+  box-shadow: 0 0 0 2px var(--mh-bg), 0 0 0 4px #fff;
+}
+
+/* "Add to cart" on hover / tap: glassy black instead of blue (white text on frosted dark) */
+html.mt-shell .pc-add:not(.pc-added):hover,
+html.mt-shell .pc-add:not(.pc-added):active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+html.mt-shell .pc-add.pc-added {
+  animation-name: white-added;
+}
+@keyframes white-added {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+  }
+}
+@media (hover: none) {
+  html.mt-shell .pc-add:not(.pc-added) {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+  }
+  html.mt-shell .pc-card:active {
+    box-shadow: 0 10px 30px -12px rgba(255, 255, 255, 0.18) !important;
+  }
+}
+
+/* sale prices on the home page: white and bold (the red "-18%" badge shows it's on sale) */
+html.mt-shell .pc-price--sale,
+html.mt-shell .pd-price--sale {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ===== Sharp glass (crisp thin edges, a light shine along the top): section boxes, cards, hearts, buttons ===== */
+/* the boxed sections: dark glass */
+html.mt-shell .mt-box {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 40%, rgba(255, 255, 255, 0.03) 100%), #0a0a0a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1px 0 rgba(255, 255, 255, 0.03), 0 20px 50px -30px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* product cards: a crisp edge with a shine on top */
+html.mt-shell .pc-card {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+html.mt-shell .pc-card:hover {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 14px 34px -16px rgba(255, 255, 255, 0.22) !important;
+}
+
+/* heart buttons on photos: sharp dark glass */
+html.mt-shell .pc-card .wl-btn {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.58) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* "Add to cart" on hover / tap: sharper frosted glass */
+html.mt-shell .pc-add:not(.pc-added):hover,
+html.mt-shell .pc-add:not(.pc-added):active {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06)) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 6px 18px -8px rgba(255, 255, 255, 0.35);
+}
+
+/* round white cart buttons (phones): glossy white glass */
+html.mt-shell .pc-add:not(.pc-added):not(:hover) {
+  background-image: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 4px 14px -6px rgba(255, 255, 255, 0.35);
+}
+
+/* "See all" pills: glass */
+html.mt-shell .mt-section-head .mt-link {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* banner dots on a crisp glass pill */
+html.mt-shell .hp-home .mh-dots {
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(20, 20, 20, 0.35);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* "Need help choosing?": sharp dark glass; its buttons glass too */
+html.mt-shell .hp-home .hp-help {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(255, 255, 255, 0.08), transparent 70%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 50%, rgba(255, 255, 255, 0.04)), #0a0a0a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+html.mt-shell .hp-home .hp-help__option:not(:has(.hp-help__icon--wa)) {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa) {
+  background: linear-gradient(180deg, #ffffff, #ececec);
+  box-shadow: inset 0 1px 0 #fff, 0 6px 18px -8px rgba(255, 255, 255, 0.35);
+}
+@media (max-width: 640px) {
+  html.mt-shell .hp-home .hp-help {
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+  html.mt-shell .hp-home .hp-help__option:has(.hp-help__icon--wa) {
+    box-shadow: inset 0 1px 0 #fff;
+  }
+}
+
+/* phones: the sections run edge to edge, so no side edges or rounded corners */
+@media (max-width: 900px) {
+  html.mt-shell .hp-home .mt-box {
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* ===== Sharp glass on every page: panels and cards (cart, contact, account, orders, stores,
+   sign-in, policies, admin), floating menus as real frosted glass, glossy buttons ===== */
+html.mt-shell :is(.mt-panel, .mt-cta, .cart-box, .cart-list, .cart-summary, .ct-channel, .acc-panel, .acc-link, .loc-card,
+  .mo-panel, .mo-stat, .pd-keyspecs, .pol-nav, .ab-cat, .auth-card, .ad-login__card, .ad-kpi, .ad-sales, .ad-sales__kpi, .pc-side) {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.012) 45%, rgba(255, 255, 255, 0.03) 100%), #0b0b0b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+/* the item list inside the cart box: no box of its own */
+html.mt-shell .cart-box .cart-list {
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+/* boxes inside a glass box: lighter, so they don't double up */
+html.mt-shell :is(.ad-sales__kpi, .mo-stat) {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+}
+/* hover on the clickable ones: a bright crisp edge */
+html.mt-shell :is(.ct-channel, .acc-link, .loc-card, .ab-cat):hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 14px 34px -16px rgba(255, 255, 255, 0.18);
+}
+
+/* menus that open on top of the page: real frosted glass */
+html.mt-shell :is(.mc, .ns-panel, .ad-dialog, .auth-modal__panel, .nb-menu, .nb-mega__panel) {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(14, 14, 14, 0.8);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 30px 70px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* main buttons: glossy white with a shine; second buttons: glass */
+html.mt-shell .mt-btn--primary:not(:disabled) {
+  background-image: linear-gradient(180deg, #ffffff 0%, #e9e9e9 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(0, 0, 0, 0.1), 0 8px 22px -12px rgba(255, 255, 255, 0.45);
+}
+html.mt-shell .mt-btn--primary:not(:disabled):hover {
+  background-image: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+  transform: translateY(-1px);
+}
+html.mt-shell .mt-btn--secondary {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+html.mt-shell .mt-btn--secondary:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+}
+
+/* =========================================================
+   ADMIN: colours that mean something, so it's quick and easy to read
+   green = money / on / good · orange = needs attention · red = problem · each number its own colour
+========================================================= */
+/* brighter grey text in the admin (small lines, table labels, hints) */
+.ad {
+  --mt-muted: rgba(245, 245, 245, 0.74);
+  --mt-faint: rgba(245, 245, 245, 0.56);
+  --ad-green: #34d399;
+  --ad-blue: #60a5fa;
+  --ad-violet: #a78bfa;
+  --ad-amber: #fbbf24;
+  --ad-teal: #2dd4bf;
+  --ad-red: #f87171;
+}
+
+/* dashboard numbers: coloured icon and a thin coloured line on top */
+.ad .ad-tone--green { --tone: var(--ad-green); }
+.ad .ad-tone--blue { --tone: var(--ad-blue); }
+.ad .ad-tone--violet { --tone: var(--ad-violet); }
+.ad .ad-tone--amber { --tone: var(--ad-amber); }
+.ad .ad-tone--teal { --tone: var(--ad-teal); }
+html.mt-shell .ad .ad-kpi[class*="ad-tone--"] {
+  box-shadow: inset 0 2px 0 var(--tone), inset 0 3px 0 rgba(255, 255, 255, 0.06), 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+.ad .ad-kpi[class*="ad-tone--"] .ad-kpi__icon {
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+}
+.ad .ad-kpi[class*="ad-tone--"]:hover {
+  border-color: color-mix(in srgb, var(--tone) 55%, transparent);
+}
+/* the money number in green */
+.ad .ad-kpi--accent .ad-kpi__value {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--ad-green);
+}
+.ad .ad-kpi--accent {
+  border-color: color-mix(in srgb, var(--ad-green) 35%, transparent);
+}
+/* the small line under each number: green when all good, orange when something needs you */
+.ad .ad-kpi__sub--good { color: var(--ad-green); }
+.ad .ad-kpi__sub--warn { color: var(--ad-amber); font-weight: 600; }
+
+/* sales chart: green bars; category bars: blue to violet */
+.ad .ad-chart__bar {
+  background: linear-gradient(180deg, #6ee7b7 0%, #10b981 100%);
+}
+.ad .ad-chart__col:hover .ad-chart__bar {
+  background: linear-gradient(180deg, #a7f3d0 0%, #34d399 100%);
+}
+.ad .ad-catbars__track span {
+  background: linear-gradient(90deg, var(--ad-blue), var(--ad-violet));
+}
+.ad .ad-sales__change.is-up { color: var(--ad-green); }
+.ad .ad-sales__change.is-down { color: var(--ad-red); }
+
+/* switches ("Shown", "Active"): green when on */
+.ad .ad-switch input:checked {
+  background: #22c55e;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.ad .ad-switch input:checked::after {
+  background: #ffffff;
+}
+
+/* stock: orange when low, red when sold out */
+.ad .ad-stock-low,
+.ad .ad-rank small.ad-stock-low { color: var(--ad-amber); }
+.ad .ad-stock-out,
+.ad .ad-rank small.ad-stock-out { color: var(--ad-red); }
+
+/* order tabs: each status count in its own colour (same as the status badges) */
+.ad .ad-tabs button[data-tab="pending"] span { background: color-mix(in srgb, var(--ad-amber) 18%, transparent); color: var(--ad-amber); }
+.ad .ad-tabs button[data-tab="processing"] span { background: color-mix(in srgb, var(--ad-blue) 18%, transparent); color: var(--ad-blue); }
+.ad .ad-tabs button[data-tab="done"] span { background: color-mix(in srgb, var(--ad-green) 18%, transparent); color: var(--ad-green); }
+.ad .ad-tabs button[data-tab="cancelled"] span { background: color-mix(in srgb, var(--ad-red) 18%, transparent); color: var(--ad-red); }
+.ad .ad-tabs button[data-tab="pending"].is-active { border-bottom-color: var(--ad-amber); }
+.ad .ad-tabs button[data-tab="processing"].is-active { border-bottom-color: var(--ad-blue); }
+.ad .ad-tabs button[data-tab="done"].is-active { border-bottom-color: var(--ad-green); }
+.ad .ad-tabs button[data-tab="cancelled"].is-active { border-bottom-color: var(--ad-red); }
+
+/* ===== ADMIN, every page: more friendly colours ===== */
+/* side menu: each section has its own colour (icon), the open page is tinted in it */
+.ad .ad-nav a { --nav: rgba(255, 255, 255, 0.7); }
+.ad .ad-nav a[href="/admin/dashboard"] { --nav: #e5e7eb; }
+.ad .ad-nav a[href="/products/admin"] { --nav: var(--ad-violet); }
+.ad .ad-nav a[href="/categories/admin"] { --nav: var(--ad-teal); }
+.ad .ad-nav a[href="/banners/admin"] { --nav: #f472b6; }
+.ad .ad-nav a[href="/places/admin"] { --nav: #22d3ee; }
+.ad .ad-nav a[href="/orders/admin"] { --nav: var(--ad-blue); }
+.ad .ad-nav a[href="/customers/admin"] { --nav: var(--ad-amber); }
+.ad .ad-nav a[href="/contacts/admin"] { --nav: #fb923c; }
+.ad .ad-nav a[href="/admin/settings"] { --nav: #9ca3af; }
+.ad .ad-nav a svg,
+.ad .ad-nav a.is-active svg {
+  color: var(--nav);
+}
+.ad .ad-nav a.is-active {
+  background: color-mix(in srgb, var(--nav) 14%, transparent) !important;
+  color: #fff;
+}
+.ad .ad-nav a.is-active::before {
+  background: var(--nav) !important;
+}
+/* new orders / unread messages count in the menu: orange, easy to spot */
+.ad .ad-nav__count {
+  background: var(--ad-amber) !important;
+  color: #111 !important;
+  font-weight: 700;
+}
+
+/* number boxes on every admin page (dashboard, customers...): a colour each, in order */
+.ad .ad-kpis > .ad-kpi:nth-child(5n + 1) { --tone: var(--ad-green); }
+.ad .ad-kpis > .ad-kpi:nth-child(5n + 2) { --tone: var(--ad-blue); }
+.ad .ad-kpis > .ad-kpi:nth-child(5n + 3) { --tone: var(--ad-violet); }
+.ad .ad-kpis > .ad-kpi:nth-child(5n + 4) { --tone: var(--ad-amber); }
+.ad .ad-kpis > .ad-kpi:nth-child(5n + 5) { --tone: var(--ad-teal); }
+html.mt-shell .ad .ad-kpis > .ad-kpi {
+  box-shadow: inset 0 2px 0 var(--tone), inset 0 3px 0 rgba(255, 255, 255, 0.06), 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+.ad .ad-kpis > .ad-kpi .ad-kpi__icon {
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+}
+.ad .ad-kpis > .ad-kpi:hover {
+  border-color: color-mix(in srgb, var(--tone) 55%, transparent);
+}
+
+/* tabs on the other pages: counts coloured by meaning */
+.ad .ad-tabs button[data-tab="new"] span { background: color-mix(in srgb, var(--ad-blue) 20%, transparent); color: var(--ad-blue); }
+.ad .ad-tabs button[data-tab="read"] span { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); }
+.ad .ad-tabs button[data-tab="ordered"] span { background: color-mix(in srgb, var(--ad-green) 18%, transparent); color: var(--ad-green); }
+.ad .ad-tabs button[data-tab="returning"] span { background: color-mix(in srgb, var(--ad-violet) 20%, transparent); color: var(--ad-violet); }
+.ad .ad-tabs button[data-tab="none"] span { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); }
+.ad .ad-tabs button[data-tab="new"].is-active { border-bottom-color: var(--ad-blue); }
+.ad .ad-tabs button[data-tab="ordered"].is-active { border-bottom-color: var(--ad-green); }
+.ad .ad-tabs button[data-tab="returning"].is-active { border-bottom-color: var(--ad-violet); }
+
+/* customers: a coloured circle per person, "Top customer" in gold, money spent in green */
+.ad .ad-table tbody tr:nth-child(6n + 1) .ad-cust__avatar { --av: var(--ad-blue); }
+.ad .ad-table tbody tr:nth-child(6n + 2) .ad-cust__avatar { --av: var(--ad-violet); }
+.ad .ad-table tbody tr:nth-child(6n + 3) .ad-cust__avatar { --av: var(--ad-teal); }
+.ad .ad-table tbody tr:nth-child(6n + 4) .ad-cust__avatar { --av: #f472b6; }
+.ad .ad-table tbody tr:nth-child(6n + 5) .ad-cust__avatar { --av: var(--ad-amber); }
+.ad .ad-table tbody tr:nth-child(6n + 6) .ad-cust__avatar { --av: var(--ad-green); }
+.ad .ad-cust__avatar {
+  background: color-mix(in srgb, var(--av, #9ca3af) 22%, transparent) !important;
+  color: var(--av, #e5e7eb) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--av, #9ca3af) 45%, transparent);
+}
+.ad .ad-tag--gold {
+  background: color-mix(in srgb, var(--ad-amber) 18%, transparent) !important;
+  color: var(--ad-amber) !important;
+  border: 1px solid color-mix(in srgb, var(--ad-amber) 40%, transparent);
+}
+.ad .ad-table td[data-label="Total spent"] {
+  color: var(--ad-green);
+}
+
+/* messages: new ones stand out with a blue line and dot */
+.ad .ad-msg.is-new {
+  box-shadow: inset 3px 0 0 var(--ad-blue);
+  background: color-mix(in srgb, var(--ad-blue) 6%, transparent);
+}
+.ad .ad-msg__dot {
+  background: var(--ad-blue) !important;
+}
+
+/* action buttons: edit blue, copy violet, delete red */
+.ad .ad-row-actions button:not(.ad-icon-btn--danger):hover,
+.ad .ad-icon-btn:not(.ad-icon-btn--danger):hover {
+  color: var(--ad-blue) !important;
+  background: color-mix(in srgb, var(--ad-blue) 14%, transparent) !important;
+}
+.ad .ad-icon-btn--danger {
+  color: color-mix(in srgb, var(--ad-red) 75%, #fff) !important;
+}
+.ad .ad-icon-btn--danger:hover {
+  color: var(--ad-red) !important;
+  background: color-mix(in srgb, var(--ad-red) 16%, transparent) !important;
+}
+.ad .ad-btn-danger {
+  border-color: color-mix(in srgb, var(--ad-red) 45%, transparent) !important;
+  color: var(--ad-red) !important;
+  background: color-mix(in srgb, var(--ad-red) 8%, transparent) !important;
+}
+.ad .ad-btn-danger:hover {
+  background: color-mix(in srgb, var(--ad-red) 16%, transparent) !important;
+}
+
+/* ticked boxes and selected rows: blue */
+.ad .ad-check:checked {
+  border-color: var(--ad-blue) !important;
+  background: var(--ad-blue) !important;
+}
+.ad .ad-check:checked::after {
+  border-color: #0b1220;
+}
+.ad .ad-table tbody tr:has(.ad-check:checked) {
+  background: color-mix(in srgb, var(--ad-blue) 8%, transparent);
+}
+
+/* typing in a box: blue ring (easy to see where you are) */
+.ad input:focus,
+.ad textarea:focus,
+.ad select:focus {
+  border-color: color-mix(in srgb, var(--ad-blue) 70%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-blue) 20%, transparent) !important;
+}
+
+/* tips: blue boxes; warnings: orange */
+.ad .ad-hint {
+  color: color-mix(in srgb, var(--ad-blue) 55%, #fff);
+}
+.ad .ad-hint--warn {
+  color: var(--ad-amber);
+}
+
+/* picture upload boxes: blue dashed edge on hover */
+.ad .ad-upload:hover,
+.ad .ad-gallery__add:hover {
+  border-color: var(--ad-blue) !important;
+  background: color-mix(in srgb, var(--ad-blue) 7%, transparent) !important;
+}
+.ad .ad-upload svg,
+.ad .ad-gallery__add svg {
+  color: var(--ad-blue);
+}
+
+/* banners and stores: "Live" / open in green */
+.ad .ad-banner-row__switch:has(input:checked) {
+  color: var(--ad-green);
+}
+.ad .ad-hours__closed {
+  color: var(--ad-red);
+}
+
+/* panel titles: a small coloured mark before them */
+.ad .ad-panel-head h2::before,
+.ad .ad-panel-head h3::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-right: 9px;
+  vertical-align: -0.08em;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--ad-blue), var(--ad-violet));
+}
+
+/* ===== ADMIN: important actions and forms, coloured like pro dashboards ===== */
+/* main actions (Add product, Save changes, Add banner...): solid blue, the clearest button on the page */
+html.mt-shell .ad .mt-btn--primary:not(:disabled) {
+  border-color: transparent;
+  background: linear-gradient(180deg, #5b8def 0%, #3b6fe0 100%);
+  background-image: linear-gradient(180deg, #5b8def 0%, #3b6fe0 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 22px -10px rgba(59, 111, 224, 0.75);
+}
+html.mt-shell .ad .mt-btn--primary:not(:disabled):hover {
+  background-image: linear-gradient(180deg, #6b9bf5 0%, #4a7cea 100%);
+}
+html.mt-shell .ad .mt-btn--primary:disabled {
+  opacity: 0.55;
+}
+
+/* customers who haven't spent anything: grey, not green */
+.ad .ad-table td[data-label="Total spent"].is-zero {
+  color: var(--mt-faint);
+}
+
+/* panel titles with a coloured icon (product form); those don't need the small mark */
+.ad .ad-panel-head h2:has(.ad-ph-icon)::before {
+  display: none;
+}
+.ad .ad-panel-head h2:has(.ad-ph-icon) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ad .ad-ph-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 1.05rem;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent);
+}
+.ad .ad-ph-icon--blue { --c: var(--ad-blue); }
+.ad .ad-ph-icon--green { --c: var(--ad-green); }
+.ad .ad-ph-icon--pink { --c: #f472b6; }
+.ad .ad-ph-icon--violet { --c: var(--ad-violet); }
+
+/* labels brighter; required fields marked with a red star */
+.ad .mt-field > span {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+.ad .ad-req {
+  color: var(--ad-red);
+  font-weight: 700;
+}
+.ad .ad-req-note {
+  margin-right: auto;
+  align-self: center;
+  color: var(--mt-faint);
+}
+
+/* mistakes: red edge and red message */
+.ad .mt-field--invalid input,
+.ad .mt-field--invalid select,
+.ad .mt-field--invalid textarea,
+.ad .mt-field--invalid .ad-prefix {
+  border-color: color-mix(in srgb, var(--ad-red) 70%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-red) 16%, transparent) !important;
+}
+.ad .mt-field__error {
+  color: var(--ad-red) !important;
+  font-weight: 600;
+}
+
+/* money: the $ in green */
+.ad .ad-prefix--money em {
+  color: var(--ad-green);
+  font-weight: 700;
+}
+
+/* live stock status under the stock box */
+.ad .ad-stock-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.ad .ad-stock-state::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ad .ad-stock-state--ok { color: var(--ad-green); }
+.ad .ad-stock-state--low { color: var(--ad-amber); }
+.ad .ad-stock-state--out { color: var(--ad-red); }
+
+/* sale preview: "-17% · saves $300" as a red sale chip */
+.ad .ad-sale-preview {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ad-red) 14%, transparent);
+  color: #fca5a5 !important;
+  font-weight: 600;
+}
+.ad .ad-sale-preview strong {
+  color: #fff;
+  background: #e5484d;
+  padding: 0 6px;
+  border-radius: 999px;
+}
+
+/* "Show in the shop": says clearly if customers can see it */
+.ad .ad-shown-state {
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 600;
+}
+.ad .ad-shown-state.is-on {
+  background: color-mix(in srgb, var(--ad-green) 16%, transparent);
+  color: var(--ad-green);
+}
+.ad .ad-shown-state.is-off {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* new photos waiting to be saved: blue edge */
+.ad .ad-gallery__item.is-new {
+  box-shadow: 0 0 0 2px var(--ad-blue);
+}
+
+/* the save bar at the bottom of forms: glass, so it stands apart */
+.ad .ad-form-actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 10, 0.75);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* ===== SHOP: colour only where it means something (prices stay white, buttons stay white) ===== */
+/* savings in green: product page and cart */
+html.mt-shell .pd-save {
+  color: #6fd59c;
+  font-weight: 600;
+}
+html.mt-shell .pd-save .pd-save__ends {
+  color: var(--mt-muted);
+  font-weight: 500;
+}
+html.mt-shell .cart-page .cart-summary__saved {
+  border-color: rgba(111, 213, 156, 0.3);
+  background: rgba(111, 213, 156, 0.1);
+  color: #6fd59c;
+}
+
+/* cart: secure checkout, cash on delivery, returns, delivery in a soft green (feels safe) */
+html.mt-shell .cart-trust svg {
+  color: #6fd59c;
+}
+
+/* contact: "Message sent" with a green tick */
+html.mt-shell .ct-sent__icon {
+  border-color: rgba(111, 213, 156, 0.35) !important;
+  background: rgba(111, 213, 156, 0.12) !important;
+  color: #6fd59c !important;
+}
+
+/* forms on the shop (sign in, checkout, contact...): a mistake gets a red edge and red text */
+html.mt-shell .mt-page .mt-field--invalid :is(input, select, textarea),
+html.mt-shell .auth-modal .mt-field--invalid :is(input, select, textarea) {
+  border-color: rgba(240, 138, 138, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(240, 138, 138, 0.14) !important;
+}
+html.mt-shell .mt-field__error {
+  color: #f08a8a;
+}
+
+/* ===== SHOP, signed-in pages and help pages: colours that guide (small, meaningful) ===== */
+/* My orders: the three number boxes (all orders blue, in progress orange, completed green) */
+html.mt-shell .mo-stats > .mo-stat { --tone: #60a5fa; }
+html.mt-shell .mo-stats > .mo-stat:nth-child(2) { --tone: #fbbf24; }
+html.mt-shell .mo-stats > .mo-stat:nth-child(3) { --tone: #34d399; }
+html.mt-shell .mo-stats > .mo-stat {
+  box-shadow: inset 0 2px 0 var(--tone), 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+html.mt-shell .mo-stats > .mo-stat:nth-child(n + 2) strong {
+  color: var(--tone);
+}
+
+/* order progress: finished steps green, the current one blue with a soft ring */
+html.mt-shell .mod-steps li.is-done .mod-steps__dot {
+  border-color: #34d399;
+  background: #34d399;
+  color: #06281b;
+}
+html.mt-shell .mod-steps li.is-current .mod-steps__dot {
+  border-color: #60a5fa;
+  background: #60a5fa;
+  color: #0b1220;
+  box-shadow: 0 0 0 5px rgba(96, 165, 250, 0.2);
+}
+html.mt-shell .mod-steps li.is-done:last-child .mod-steps__dot,
+html.mt-shell .mod-steps li.is-current:last-child .mod-steps__dot {
+  border-color: #34d399;
+  background: #34d399;
+  color: #06281b;
+  box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.18);
+}
+html.mt-shell .mod-steps li.is-done + li::before {
+  background: #34d399;
+}
+html.mt-shell .mod-steps li.is-current .mod-steps__label {
+  color: #93c5fd;
+}
+
+/* account: a coloured circle with your letter; shortcuts with coloured icons */
+html.mt-shell .acc-avatar {
+  background: linear-gradient(135deg, #60a5fa, #a78bfa) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 30px -10px rgba(167, 139, 250, 0.6);
+}
+html.mt-shell .acc-links > :nth-child(1) svg { color: #60a5fa; }
+html.mt-shell .acc-links > :nth-child(2) svg { color: #f87171; }
+html.mt-shell .acc-links > :nth-child(3) svg { color: rgba(255, 255, 255, 0.6); }
+html.mt-shell .acc-links > :nth-child(3):hover svg { color: #f87171; }
+
+/* contact: each way to reach us in its own colour (WhatsApp green, call blue, email violet, store orange) */
+html.mt-shell .ct-channels > .ct-channel:nth-child(1) { --c: #25d366; }
+html.mt-shell .ct-channels > .ct-channel:nth-child(2) { --c: #60a5fa; }
+html.mt-shell .ct-channels > .ct-channel:nth-child(3) { --c: #a78bfa; }
+html.mt-shell .ct-channels > .ct-channel:nth-child(4) { --c: #fbbf24; }
+html.mt-shell .ct-channels > .ct-channel .ct-channel__icon {
+  background: color-mix(in srgb, var(--c) 16%, transparent) !important;
+  color: var(--c) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent) !important;
+}
+html.mt-shell .ct-channels > .ct-channel:hover {
+  border-color: color-mix(in srgb, var(--c) 55%, transparent) !important;
+}
+
+/* product page: delivery, cash on delivery, returns icons in soft colours */
+html.mt-shell .pd-perks li:nth-child(1) svg { color: #60a5fa; }
+html.mt-shell .pd-perks li:nth-child(2) svg { color: #34d399; }
+html.mt-shell .pd-perks li:nth-child(3) svg { color: #fbbf24; }
+
+/* checkout: the step numbers turn green, the chosen payment gets a green edge */
+html.mt-shell .cart-page .cart-step {
+  background: linear-gradient(180deg, #4ade80, #22c55e) !important;
+  color: #052e16 !important;
+}
+html.mt-shell .cart-pay__option.is-selected {
+  border-color: rgba(52, 211, 153, 0.6) !important;
+  background: rgba(52, 211, 153, 0.07) !important;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.12) !important;
+}
+
+/* ===== STORES (Find a store) ===== */
+/* address pin like a map pin (red), phone green */
+html.mt-shell .loc-card__details li:nth-child(1) svg { color: #f87171; }
+html.mt-shell .loc-card__details li:nth-child(2) svg { color: #34d399; }
+/* opening hours box tinted by status: open green, opening soon / closing soon orange, closed red */
+html.mt-shell .loc-hours:has(.loc-hours__status.is-open) {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.06);
+}
+html.mt-shell .loc-hours:has(.loc-hours__status.is-soon) {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.06);
+}
+html.mt-shell .loc-hours:has(.loc-hours__status.is-closed) {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.05);
+}
+html.mt-shell .loc-hours:has(.loc-hours__status.is-open) > summary > svg:first-child { color: #34d399; }
+html.mt-shell .loc-hours:has(.loc-hours__status.is-soon) > summary > svg:first-child { color: #fbbf24; }
+html.mt-shell .loc-hours:has(.loc-hours__status.is-closed) > summary > svg:first-child { color: #f87171; }
+html.mt-shell .loc-hours__status.is-open { color: #34d399; }
+html.mt-shell .loc-hours__status.is-closed { color: #f87171; }
+/* today's row in the hours list */
+html.mt-shell .loc-hours__list li.is-today {
+  color: #fff;
+  font-weight: 600;
+}
+/* "Call": a green call button (like a phone app) */
+html.mt-shell .loc-card__actions a[href^="tel:"] {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.1);
+  color: #6ee7b7;
+}
+html.mt-shell .loc-card__actions a[href^="tel:"]:hover {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.18);
+}
+/* store cards: a crisp edge on hover */
+html.mt-shell .loc-card:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* ===== WISHLIST ===== */
+/* the small title and the hearts in red/pink, like saved favourites */
+html.mt-shell .hp-wishlist .wl-head .mt-eyebrow {
+  color: #fb7185;
+}
+html.mt-shell .hp-wishlist .pc-card .wl-btn.is-saved {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(60, 10, 14, 0.55) !important;
+  color: #ff4d5e !important;
+}
+/* where it's saved: on this device = blue info bar, in your account = green */
+html.mt-shell .wl-where.is-device {
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(96, 165, 250, 0.08);
+}
+html.mt-shell .wl-where.is-device svg { color: #60a5fa; }
+html.mt-shell .wl-where:not(.is-device) {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.07);
+}
+html.mt-shell .wl-where:not(.is-device) svg { color: #34d399; }
+/* empty wishlist: a red heart */
+html.mt-shell .wl-empty .mt-empty__icon {
+  background: rgba(248, 113, 113, 0.12) !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  color: #ff4d5e !important;
+}
+
+/* ===== CONTACT: a bit more colour ===== */
+/* "We reply within 24 hours." with a green "online" dot */
+html.mt-shell .mt-panel:has(.ct-topic) .ct-card__sub::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
+  vertical-align: 0.12em;
+}
+/* the chosen topic in its own colour (order blue, product violet, returns orange, other white) */
+html.mt-shell .ct-topic__chips button:nth-child(1) { --c: #60a5fa; }
+html.mt-shell .ct-topic__chips button:nth-child(2) { --c: #a78bfa; }
+html.mt-shell .ct-topic__chips button:nth-child(3) { --c: #fbbf24; }
+html.mt-shell .ct-topic__chips button:nth-child(4) { --c: #e5e7eb; }
+html.mt-shell .ct-topic__chips button.is-active {
+  border-color: color-mix(in srgb, var(--c) 70%, transparent) !important;
+  background: color-mix(in srgb, var(--c) 16%, transparent) !important;
+  color: var(--c) !important;
+  box-shadow: none !important;
+}
+html.mt-shell .ct-topic__chips button:not(.is-active):hover {
+  border-color: color-mix(in srgb, var(--c) 50%, transparent) !important;
+}
+/* quick answers: the open question gets a blue line and blue arrow */
+html.mt-shell .ct-faq__item[open] {
+  box-shadow: inset 2px 0 0 #60a5fa;
+  padding-left: 12px;
+}
+html.mt-shell .ct-faq__item[open] summary,
+html.mt-shell .ct-faq__item[open] .ct-faq__chev {
+  color: #93c5fd;
+}
+html.mt-shell .ct-faq__item summary:hover {
+  color: #fff;
+}
+
+/* ===== ABOUT ===== */
+/* the numbers strip: each number in its own colour */
+html.mt-shell .ab-stats .ab-stat:nth-child(1) strong { color: #60a5fa; }
+html.mt-shell .ab-stats .ab-stat:nth-child(2) strong { color: #a78bfa; }
+html.mt-shell .ab-stats .ab-stat:nth-child(3) strong { color: #2dd4bf; }
+html.mt-shell .ab-stats .ab-stat:nth-child(4) strong { color: #34d399; }
+/* "Why shop with MegaTech": a colour per reason (same colours as elsewhere) */
+html.mt-shell .ab-reasons > :nth-child(1) { --c: #60a5fa; }
+html.mt-shell .ab-reasons > :nth-child(2) { --c: #34d399; }
+html.mt-shell .ab-reasons > :nth-child(3) { --c: #fbbf24; }
+html.mt-shell .ab-reasons > :nth-child(4) { --c: #22d3ee; }
+html.mt-shell .ab-reasons > :nth-child(5) { --c: #a78bfa; }
+html.mt-shell .ab-reasons > :nth-child(6) { --c: #f472b6; }
+html.mt-shell .ab-reasons .ab-icon {
+  background: color-mix(in srgb, var(--c) 16%, transparent) !important;
+  color: var(--c) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent) !important;
+}
+html.mt-shell .ab-reasons > .ab-reason:hover {
+  border-color: color-mix(in srgb, var(--c) 50%, transparent);
+}
+/* founders: coloured circles */
+html.mt-shell .ab-founders__avatars > :nth-child(1) {
+  background: linear-gradient(135deg, #60a5fa, #a78bfa) !important;
+  color: #fff !important;
+}
+html.mt-shell .ab-founders__avatars > :nth-child(2) {
+  background: linear-gradient(135deg, #34d399, #22d3ee) !important;
+  color: #06281b !important;
+}
+
+/* ===== SIGN IN: the perks on the left with coloured icons ===== */
+html.mt-shell .auth-perks > :nth-child(1) { --c: #60a5fa; }
+html.mt-shell .auth-perks > :nth-child(2) { --c: #f87171; }
+html.mt-shell .auth-perks > :nth-child(3) { --c: #fbbf24; }
+html.mt-shell .auth-perks > :nth-child(4) { --c: #a78bfa; }
+html.mt-shell .auth-perks .auth-perks__icon {
+  border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--c) 18%, rgba(0, 0, 0, 0.3)) !important;
+  color: var(--c) !important;
+}
+
+/* ===== HELP PAGES (delivery, returns, privacy, terms) ===== */
+html.mt-shell .pol-nav a.active,
+html.mt-shell .pol-nav a.is-active,
+html.mt-shell .pol-nav a[aria-current="page"] {
+  border-left-color: #60a5fa !important;
+  background: rgba(96, 165, 250, 0.1) !important;
+  color: #fff;
+}
+html.mt-shell .pol-section h2::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-right: 10px;
+  border-radius: 2px;
+  vertical-align: -0.08em;
+  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+}
+
+/* ===== PAGE NOT FOUND: an orange "lost" icon ===== */
+html.mt-shell .mt-panel.mt-empty .mt-empty__icon {
+  background: rgba(251, 191, 36, 0.14) !important;
+  color: #fbbf24 !important;
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.3);
+}
+
+/* ===== CART: empty cart and the cart itself ===== */
+/* empty cart: a coloured cart icon with a soft glow, and three short reasons with coloured icons */
+html.mt-shell .cart-empty__icon {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.22), rgba(167, 139, 250, 0.22)) !important;
+  border-color: rgba(147, 197, 253, 0.35) !important;
+  color: #93c5fd !important;
+  box-shadow: 0 18px 50px -18px rgba(96, 165, 250, 0.55) !important;
+}
+html.mt-shell .cart-empty .mt-btn--secondary svg {
+  color: #ff4d5e;
+}
+.cart-empty__perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.88rem;
+}
+.cart-empty__perks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.cart-empty__perks li:nth-child(1) svg { color: #34d399; }
+.cart-empty__perks li:nth-child(2) svg { color: #60a5fa; }
+.cart-empty__perks li:nth-child(3) svg { color: #fbbf24; }
+
+/* the cart: "Save for later" turns red (heart), "Remove" turns red, the item count is a small chip */
+html.mt-shell .cart-row__links button:not(.cart-row__remove):hover,
+html.mt-shell .cart-row__links button:not(.cart-row__remove):hover svg {
+  color: #ff6b7a;
+}
+html.mt-shell .cart-row__remove:hover,
+html.mt-shell .cart-row__remove:hover svg {
+  color: #f87171 !important;
+}
+html.mt-shell .cart-head h1 span {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.14);
+  color: #93c5fd;
+  font-size: 0.95rem;
+  font-weight: 600;
+  vertical-align: 0.3em;
+}
+/* the delivery note under payment: blue truck */
+html.mt-shell .cart-page .cart-delivery-note svg,
+html.mt-shell .cart-page .cart-delivery svg {
+  color: #60a5fa;
+}
+
+/* ===== FOOTER: WhatsApp, Instagram and email in their real colours ===== */
+html.mt-shell .mf-socials a[aria-label*="WhatsApp"] {
+  background: #25d366;
+  color: #fff;
+}
+html.mt-shell .mf-socials a[aria-label*="Instagram"] {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+  color: #fff;
+}
+html.mt-shell .mf-socials a[aria-label*="Email"] {
+  background: #ea4335;
+  color: #fff;
+}
+html.mt-shell .mf-socials a {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+html.mt-shell .mf-socials a:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* shop: "In stock only" / "On sale only" switches green when on (white on white was hard to read) */
+html.mt-shell .pc-switch input:checked {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+}
+html.mt-shell .pc-switch input:checked::after {
+  background: #fff !important;
+}
+
+/* ===== PRODUCT PAGE: a few trust colours (the photos stay the star) ===== */
+/* stock as a small pill with a dot: green in stock, orange only a few left, red sold out */
+html.mt-shell .pd-price-row .pc-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+html.mt-shell .pd-price-row .pc-stock::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+html.mt-shell .pd-price-row .pc-stock--in {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+}
+html.mt-shell .pd-price-row .pc-stock--in::before {
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
+}
+html.mt-shell .pd-price-row .pc-stock--low {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+html.mt-shell .pd-price-row .pc-stock--out {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+/* specifications: a blue-violet mark on the title, names in soft blue-grey, rows light up on hover */
+html.mt-shell .pd-keyspecs h2::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-right: 9px;
+  border-radius: 2px;
+  vertical-align: -0.1em;
+  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+}
+html.mt-shell .pd-keyspecs th {
+  color: #a5b4cf;
+  font-weight: 500;
+}
+html.mt-shell .pd-keyspecs td {
+  color: #fff;
+  font-weight: 500;
+}
+html.mt-shell .pd-keyspecs tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+html.mt-shell .pd-keyspecs tbody tr:hover {
+  background: rgba(96, 165, 250, 0.07);
+}
+html.mt-shell .pd-keyspecs__more {
+  color: #93c5fd !important;
+}
+html.mt-shell .pd-keyspecs__more:hover {
+  background: rgba(96, 165, 250, 0.08) !important;
+}
+
+/* photos: the chosen small picture gets a blue ring */
+html.mt-shell .pd-thumbs button.is-active {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+}
+
+/* "Save for later": a red heart (filled red once saved) */
+html.mt-shell .pd-wish svg {
+  color: #ff6b7a;
+}
+html.mt-shell .pd-wish:hover {
+  color: #ff8a96;
+}
+
+/* shop filters: what you chose is green (same as the green switches); product cards stay black and white */
+html.mt-shell .pc-opt.is-on .pc-opt__radio {
+  border-color: #22c55e !important;
+  box-shadow: inset 0 0 0 4px var(--mt-surface), inset 0 0 0 9px #22c55e !important;
+}
+html.mt-shell .pc-opt.is-on .pc-opt__box {
+  border-color: #22c55e !important;
+  background: #22c55e !important;
+}
+html.mt-shell .pc-opt.is-on .pc-opt__count {
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: #4ade80 !important;
+}
+html.mt-shell .pc-fs__dot {
+  background: #22c55e !important;
+}
+html.mt-shell .pc-chip {
+  border-color: rgba(34, 197, 94, 0.45) !important;
+  background: rgba(34, 197, 94, 0.1) !important;
+  color: #bbf7d0 !important;
+}
+
+/* Best Seller badge: warm gold with dark text (green = New, red = Sale, gold = Best Seller) */
+.pc-label.pc-label--best,
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-label--best,
+html.mt-modern .mh .pc-label--best,
+.mt-badge.mt-badge--best,
+html.mt-shell .pc-label--best {
+  border: 1px solid rgba(146, 64, 14, 0.35) !important;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%) !important;
+  color: #3b2300 !important;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+.mt-badge.mt-badge--best::before {
+  background: #3b2300 !important;
+}
+
+/* New badge: green again (green = New, red = Sale, gold = Best Seller) */
+.pc-label.pc-label--new,
+html.mt-shell :is(.hp-home, .hp-shop, .hp-product) .pc-label--new,
+html.mt-modern .mh .pc-label--new,
+html.mt-shell .pc-label--new {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(180deg, #22c55e 0%, #15803d 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ===== Customer pages: "View" order links and actions ===== */
+/* My orders: "View ›" is a blue pill, so each order clearly opens */
+html.mt-shell .mo-action a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.1);
+  color: #93c5fd !important;
+  font-weight: 600;
+}
+html.mt-shell .mo-action a:hover,
+html.mt-shell tr:hover .mo-action a {
+  border-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.2);
+  color: #dbeafe !important;
+}
+html.mt-shell .mo-table tbody tr:hover {
+  background: rgba(96, 165, 250, 0.04);
+}
+/* order page: "Contact us" link blue, "Cancel order" red */
+html.mt-shell .mod-contact a,
+html.mt-shell .mt-panel a[href="/contact"] {
+  color: #93c5fd;
+}
+html.mt-shell .mod-cancel .mt-btn--secondary,
+html.mt-shell .mod-cancel button.mt-btn {
+  border-color: rgba(248, 113, 113, 0.5) !important;
+  background: rgba(248, 113, 113, 0.1) !important;
+  color: #fca5a5 !important;
+}
+/* order page: delivery detail icons coloured (name blue, phone green, address red pin) */
+html.mt-shell .mod-contact li:nth-child(1) svg { color: #60a5fa; }
+html.mt-shell .mod-contact li:nth-child(2) svg { color: #34d399; }
+html.mt-shell .mod-contact li:nth-child(3) svg { color: #f87171; }
+
+/* ===== Menu bar cart: green once something is in it (the wishlist heart is red the same way) ===== */
+html.mt-shell .nb-cart__btn.has-items svg {
+  color: #34d399;
+}
+html.mt-shell .nb-cart__btn .nb-badge,
+html.mt-shell .nb-cart__btn.has-items .nb-badge {
+  background: #22c55e !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px #000;
+}
+
+/* ===== MY ACCOUNT: more colour ===== */
+/* the two panels: blue mark for your details, orange for password (security) */
+html.mt-shell .acc-panel > h2::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-right: 10px;
+  border-radius: 2px;
+  vertical-align: -0.08em;
+  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+}
+html.mt-shell .acc-grid > .acc-panel:nth-child(2) > h2::before {
+  background: linear-gradient(180deg, #fcd34d, #f59e0b);
+}
+html.mt-shell .acc-grid > .acc-panel:nth-child(1) {
+  box-shadow: inset 0 2px 0 #60a5fa, 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+html.mt-shell .acc-grid > .acc-panel:nth-child(2) {
+  box-shadow: inset 0 2px 0 #f59e0b, 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+/* "Customer since" and "Google sign-in on" as small coloured chips */
+html.mt-shell .acc-since {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.14);
+  color: #c4b5fd !important;
+}
+html.mt-shell .acc-chip {
+  background: rgba(52, 211, 153, 0.14) !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  color: #6ee7b7 !important;
+}
+/* the shortcut cards light up in their colour */
+html.mt-shell .acc-links > :nth-child(1):hover { border-color: rgba(96, 165, 250, 0.55); background: rgba(96, 165, 250, 0.06); }
+html.mt-shell .acc-links > :nth-child(2):hover { border-color: rgba(248, 113, 113, 0.55); background: rgba(248, 113, 113, 0.06); }
+html.mt-shell .acc-links > :nth-child(3):hover { border-color: rgba(248, 113, 113, 0.45); }
+/* typing in a box: blue ring; "Forgot your current password?" in orange */
+html.mt-shell .acc-panel input:focus,
+html.mt-shell .acc-panel textarea:focus {
+  border-color: rgba(96, 165, 250, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18) !important;
+}
+html.mt-shell .acc-forgot {
+  color: #fbbf24 !important;
+}
+/* the letter circle in the menu bar: same blue-violet as on My account */
+html.mt-shell .nb-avatar:not(.nb-avatar--guest) {
+  background: linear-gradient(135deg, #60a5fa, #a78bfa) !important;
+  color: #fff !important;
+}
+
+/* ===== CHAT: friendly colours (blue = you, green = online, a colour per quick question) ===== */
+/* header: a blue-violet line under it, green "Online" with a glowing dot */
+html.mt-shell .chatbot-box .cb-head {
+  border-bottom: 1px solid rgba(129, 140, 248, 0.25) !important;
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.12), transparent) !important;
+}
+html.mt-shell .cb-online {
+  color: #34d399 !important;
+}
+html.mt-shell .cb-avatar {
+  border-color: rgba(129, 140, 248, 0.5) !important;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25)) !important;
+}
+/* your messages in blue (like a phone chat), the assistant's stay dark */
+html.mt-shell .cb-bubble--user {
+  background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+html.mt-shell .cb-bubble--bot {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+/* send button blue */
+html.mt-shell .cb-input button {
+  background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+  color: #fff !important;
+}
+html.mt-shell .cb-input input:focus,
+html.mt-shell .cb-input textarea:focus {
+  border-color: rgba(96, 165, 250, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18) !important;
+}
+/* quick questions: each in its own soft colour */
+html.mt-shell .cb-chips .cb-chip { --c: #60a5fa; }
+html.mt-shell .cb-chips .cb-chip:nth-child(5n + 2) { --c: #34d399; }
+html.mt-shell .cb-chips .cb-chip:nth-child(5n + 3) { --c: #a78bfa; }
+html.mt-shell .cb-chips .cb-chip:nth-child(5n + 4) { --c: #fbbf24; }
+html.mt-shell .cb-chips .cb-chip:nth-child(5n + 5) { --c: #f472b6; }
+html.mt-shell .cb-chips .cb-chip {
+  border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--c) 10%, transparent) !important;
+  color: color-mix(in srgb, var(--c) 70%, #fff) !important;
+}
+html.mt-shell .cb-chips .cb-chip:hover {
+  background: color-mix(in srgb, var(--c) 22%, transparent) !important;
+  border-color: var(--c) !important;
+}
+/* product cards in the chat: price white, in stock green, sold out red; main button blue */
+html.mt-shell .cb-product__price {
+  color: #fff !important;
+}
+html.mt-shell .cb-stock {
+  color: #34d399;
+}
+html.mt-shell .cb-btn--primary {
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+  color: #fff !important;
+}
+/* order cards: status in its colour */
+html.mt-shell .cb-status--pending { color: #fbbf24 !important; }
+html.mt-shell .cb-status--processing { color: #60a5fa !important; }
+html.mt-shell .cb-status--done { color: #34d399 !important; }
+html.mt-shell .cb-status--cancelled { color: #f87171 !important; }
+html.mt-shell .cb-stock.is-low { color: #fbbf24; }
+html.mt-shell .cb-stock.is-out { color: #f87171; }

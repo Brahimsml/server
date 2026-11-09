@@ -6,11 +6,11 @@
 .cb-launch {
   --cb-surface: #121212;
   --cb-surface-2: #1a1a1a;
-  --cb-border: rgba(196, 154, 52, 0.2);
+  --cb-border: rgba(255, 255, 255, 0.2);
   --cb-text: #f5f5f5;
   --cb-muted: rgba(245, 245, 245, 0.62);
-  --cb-accent: #c49a34;
-  --cb-accent-bright: #e4c15a;
+  --cb-accent: #e8e8e8;
+  --cb-accent-bright: #ffffff;
 
   position: fixed;
   right: 24px;
@@ -23,23 +23,27 @@
 }
 
 .chatbot-float {
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid rgba(196, 154, 52, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   background: #1a1a1a;
-  color: #e4c15a;
+  color: #ffffff;
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.chatbot-float svg {
+  font-size: 22px;
+}
+
 .chatbot-float:hover {
   transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(196, 154, 52, 0.18);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(255, 255, 255, 0.18);
 }
 
 .cb-teaser {
@@ -80,11 +84,11 @@
 .chatbot-box {
   --cb-surface: #121212;
   --cb-surface-2: #1a1a1a;
-  --cb-border: rgba(196, 154, 52, 0.2);
+  --cb-border: rgba(255, 255, 255, 0.2);
   --cb-text: #f5f5f5;
   --cb-muted: rgba(245, 245, 245, 0.62);
-  --cb-accent: #c49a34;
-  --cb-accent-bright: #e4c15a;
+  --cb-accent: #e8e8e8;
+  --cb-accent-bright: #ffffff;
 
   position: fixed;
   right: 24px;
@@ -127,7 +131,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 12px 14px 16px;
-  background: linear-gradient(135deg, #202020, #131313);
+  background: #141414;
   border-bottom: 1px solid var(--cb-border);
 }
 
@@ -137,7 +141,7 @@
   flex-shrink: 0;
   border-radius: 12px;
   object-fit: cover;
-  border: 1px solid rgba(196, 154, 52, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .cb-avatar--small {
@@ -242,7 +246,7 @@
 
 .cb-bubble--user {
   border-radius: 14px 14px 4px 14px;
-  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  background: #ffffff;
   color: #131313;
   font-weight: 500;
 }
@@ -363,7 +367,7 @@
   gap: 5px;
   padding: 7px 10px;
   border-radius: 9px;
-  border: 1px solid rgba(196, 154, 52, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
   color: var(--cb-text);
   font: inherit;
@@ -376,18 +380,18 @@
 }
 
 .cb-btn:hover:not(:disabled) {
-  background: rgba(196, 154, 52, 0.14);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .cb-btn--primary {
   border-color: transparent;
-  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  background: #ffffff;
   color: #131313;
 }
 
 .cb-btn--primary:hover:not(:disabled) {
   filter: brightness(1.06);
-  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  background: #ffffff;
 }
 
 .cb-btn.is-added {
@@ -457,7 +461,7 @@
 }
 
 .cb-order:hover {
-  border-color: rgba(196, 154, 52, 0.45);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .cb-status {
@@ -491,8 +495,8 @@
 .cb-chip {
   padding: 7px 11px;
   border-radius: 999px;
-  border: 1px solid rgba(196, 154, 52, 0.4);
-  background: rgba(196, 154, 52, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.07);
   color: var(--cb-accent-bright);
   font: inherit;
   font-size: 0.8rem;
@@ -503,7 +507,7 @@
 }
 
 .cb-chip:hover {
-  background: rgba(196, 154, 52, 0.18);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* "Added to your cart" strip */
@@ -565,7 +569,7 @@
 
 .cb-input input:focus {
   border-color: var(--cb-accent);
-  box-shadow: 0 0 0 3px rgba(196, 154, 52, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 .cb-input input::placeholder {
@@ -579,7 +583,7 @@
   place-items: center;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(180deg, #e4c15a, #c49a34);
+  background: #ffffff;
   color: #131313;
   cursor: pointer;
 }
@@ -600,7 +604,7 @@
   .chatbot-float {
     width: 48px;
     height: 48px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(196, 154, 52, 0.14);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.14);
   }
 
   .chatbot-float svg {
@@ -639,8 +643,8 @@
 
 /* iPhone home bar / notch: keep the chat button clear of them */
 .cb-launch {
-  right: calc(24px + env(safe-area-inset-right, 0px));
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 640px) {

@@ -44,6 +44,7 @@ export const FilterTabs = ({ tabs, value, onChange, label }) => (
         role="tab"
         aria-selected={value === t.value}
         className={value === t.value ? "is-active" : ""}
+        data-tab={t.value}
         onClick={() => onChange(t.value)}
       >
         {t.label} <span>{t.count}</span>
