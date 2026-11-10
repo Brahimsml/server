@@ -6,7 +6,7 @@ import FramedImage from "./FramedImage";
 
 // The shape (width / height) of each banner box: the top slider, and promo banners by layout
 export const TOP_BANNER_ASPECT = 32 / 9;
-export const PROMO_ASPECT = { wide: 4, halves: 2, thirds: 4 / 3 };
+export const PROMO_ASPECT = { wide: 4, halves: 2, thirds: 4 / 3, grid: 3 / 2 };
 
 /*
   One home page banner (Admin → Banners): the picture, the fade behind the text and the text.

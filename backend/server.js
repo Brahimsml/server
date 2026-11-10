@@ -1685,15 +1685,15 @@ app.delete("/banners/:id", verifyAdmin, async (req, res) => {
    PROMO SECTIONS (Admin → Banners → Promo sections)
    A row of 1-3 promo banners between the home page sections. Each slot is a banners row
    (placement 'promo', section_id, slot), so it has the same design settings and pictures.
-   The admin form sends "data" (JSON) plus the new pictures as image_0, image_1, image_2.
+   The admin form sends "data" (JSON) plus the new pictures as image_0 … image_3.
 */
-const PROMO_LAYOUTS = { wide: 1, halves: 2, thirds: 3 };
+const PROMO_LAYOUTS = { wide: 1, halves: 2, thirds: 3, grid: 4 }; // grid = 4 squares, 2 × 2 (Apple style)
 const PROMO_POSITIONS = ["after_trust", "after_categories", "after_best", "after_new", "bottom"];
 const promoUpload = multer({
   storage,
-  limits: { fileSize: MAX_UPLOAD_SIZE, files: 3 },
+  limits: { fileSize: MAX_UPLOAD_SIZE, files: 4 },
   fileFilter: imageFileFilter,
-}).fields([{ name: "image_0" }, { name: "image_1" }, { name: "image_2" }]);
+}).fields([{ name: "image_0" }, { name: "image_1" }, { name: "image_2" }, { name: "image_3" }]);
 
 const promoPosition = (value) => {
   const v = String(value || "");

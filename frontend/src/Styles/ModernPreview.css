@@ -4264,3 +4264,259 @@ html.mt-shell .cb-status--done { color: #34d399 !important; }
 html.mt-shell .cb-status--cancelled { color: #f87171 !important; }
 html.mt-shell .cb-stock.is-low { color: #fbbf24; }
 html.mt-shell .cb-stock.is-out { color: #f87171; }
+
+/* =========================================================
+   PROMO "4 squares (2 × 2)" (Admin → Banners → Promo sections → layout "grid")
+   Like Apple and Samsung: big square tiles, the headline centred at the top, a white pill button,
+   the product under it. Phones keep 2 × 2, smaller (like the Samsung app).
+========================================================= */
+html.mt-shell .hp-promos--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+html.mt-shell .hp-promos--grid .hp-promo {
+  border-radius: 26px;
+}
+html.mt-shell .hp-promos--grid .hp-promo .hp-slide.hp-slide--banner {
+  aspect-ratio: 3 / 2;
+  align-items: flex-start;
+  justify-content: center;
+}
+/* a dark fade from the top, so the headline is easy to read on any picture */
+html.mt-shell .hp-promos--grid .hp-slide--banner::after,
+html.mt-shell .hp-promos--grid .hp-slide--banner.hp-banner--center::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.5) 34%, rgba(0, 0, 0, 0) 60%) !important;
+}
+html.mt-shell .hp-promos--grid .hp-slide--banner.hp-banner--text-dark::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 28%, rgba(255, 255, 255, 0) 55%) !important;
+}
+html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__copy {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  padding: 8% 9% 0;
+  text-align: center;
+}
+html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__title {
+  margin-left: auto;
+  margin-right: auto;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__desc {
+  margin-left: auto;
+  margin-right: auto;
+}
+html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__actions {
+  justify-content: center;
+}
+html.mt-shell .hp-promos--grid .hp-promo-link,
+html.mt-shell .hp-promos--grid .hp-slide__actions .mt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6em 1.4em;
+  border-radius: 999px;
+  background: #fff !important;
+  color: #000 !important;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+}
+/* hover: the picture grows a little */
+html.mt-shell .hp-promos--grid .hp-banner__img {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (hover: hover) {
+  html.mt-shell .hp-promos--grid .hp-promo:hover .hp-banner__img {
+    transform: scale(1.04);
+  }
+}
+@media (min-width: 861px) {
+  html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__copy {
+    font-size: max(2.3cqw, 12px);
+  }
+  html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__title {
+    font-size: 2.7em;
+  }
+  html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__desc {
+    font-size: 1.15em;
+  }
+}
+/* phones: still 2 × 2, small square tiles with the title on top */
+@media (max-width: 860px) {
+  html.mt-shell .hp-promos.hp-promos--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 10px;
+    overflow: visible;
+  }
+  html.mt-shell .hp-promos--grid + .hp-promo-dots {
+    display: none;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo {
+    border-radius: 18px;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide.hp-slide--banner {
+    position: relative;
+    display: flex;
+    aspect-ratio: 1 / 1;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-banner__img {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__copy {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 12px 10px 0;
+    background: none;
+    text-align: center;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner::after {
+    inset: 0;
+    bottom: 0;
+    height: auto;
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 34%, rgba(0, 0, 0, 0) 62%) !important;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide__cat {
+    font-size: 0.6rem;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__title {
+    margin: 3px 0 0;
+    font-size: 1rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__desc {
+    display: none;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__actions {
+    display: flex;
+    justify-content: center;
+    width: auto;
+    margin: 6px auto 0;
+  }
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__actions .mt-btn,
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide--banner .hp-promo-link {
+    min-height: 0;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+}
+
+/* 4 tiles on the home page: almost edge to edge like Apple (a thin 12px gap and edge), a bit wider than tall */
+html.mt-shell .hp-home .hp-promo-wrap:has(.hp-promos--grid) {
+  width: calc(100vw - 24px);
+  max-width: none;
+  margin-left: calc(50% - 50vw + 12px);
+}
+html.mt-shell .hp-home:has(.hp-promos--grid) {
+  overflow-x: clip;
+}
+html.mt-shell .hp-home .hp-promos--grid {
+  gap: 12px;
+}
+html.mt-shell .hp-home .hp-promos--grid .hp-promo {
+  border-radius: 20px;
+}
+@media (max-width: 860px) {
+  html.mt-shell .hp-home .hp-promo-wrap:has(.hp-promos--grid) {
+    width: calc(100vw - 16px);
+    margin-left: calc(50% - 50vw + 8px);
+  }
+  html.mt-shell .hp-home .hp-promos.hp-promos--grid {
+    gap: 8px;
+  }
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo {
+    border-radius: 16px;
+  }
+}
+
+/* exactly like apple.com: square corners, no border, 3:2 tiles with the text near the top */
+html.mt-shell .hp-home .hp-promos--grid .hp-promo,
+html.mt-shell .hp-promos--grid .hp-promo {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+@media (min-width: 861px) {
+  html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__copy {
+    padding: 6.5% 8% 0;
+    font-size: max(2.1cqw, 12px);
+  }
+  html.mt-shell .hp-promos--grid .hp-slide--banner .hp-slide__title {
+    font-size: 2.8em;
+    margin-bottom: 0.15em;
+  }
+}
+
+/* =========================================================
+   ALL PROMO SECTIONS (1 wide, 2 side by side, 3 tiles, 4 tiles): the same Apple-style frame
+   almost edge to edge with a thin gap, square corners, no border, white pill button.
+   Each layout keeps its own shape and text position.
+========================================================= */
+html.mt-shell .hp-home .hp-promo-wrap {
+  width: calc(100vw - 24px);
+  max-width: none;
+  margin-left: calc(50% - 50vw + 12px);
+}
+html.mt-shell .hp-home {
+  overflow-x: clip;
+}
+html.mt-shell .hp-home .hp-promos {
+  gap: 12px;
+}
+html.mt-shell .hp-home .hp-promo {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+html.mt-shell .hp-home .hp-promo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6em 1.4em;
+  border-radius: 999px;
+  background: #fff !important;
+  color: #000 !important;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+}
+@media (max-width: 860px) {
+  html.mt-shell .hp-home .hp-promo-wrap {
+    width: calc(100vw - 16px);
+    margin-left: calc(50% - 50vw + 8px);
+  }
+  html.mt-shell .hp-home .hp-promos {
+    gap: 8px;
+  }
+}
+/* promo sections have no title above them, so less empty space above them (wherever they sit) */
+html.mt-shell .hp-home .hp-promo-wrap.mt-section {
+  margin-top: 40px;
+}
+@media (max-width: 860px) {
+  html.mt-shell .hp-home .hp-promo-wrap.mt-section {
+    margin-top: 24px;
+  }
+}
+/* the same space under a promo section as above it (40px computers, 24px phones), wherever it sits */
+html.mt-shell .hp-home .hp-promo-wrap.mt-section + * {
+  margin-top: 40px !important;
+}
+@media (max-width: 860px) {
+  html.mt-shell .hp-home .hp-promo-wrap.mt-section + * {
+    margin-top: 24px !important;
+  }
+}

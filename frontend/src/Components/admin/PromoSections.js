@@ -25,6 +25,7 @@ const LAYOUTS = [
   { value: "wide", label: "1 wide banner", count: 1, size: "2400 × 600" },
   { value: "halves", label: "2 side by side", count: 2, size: "1200 × 600" },
   { value: "thirds", label: "3 tiles", count: 3, size: "800 × 600" },
+  { value: "grid", label: "4 tiles (2 × 2)", count: 4, size: "1500 × 1000" },
 ];
 const layoutOf = (value) => LAYOUTS.find((l) => l.value === value) || LAYOUTS[1];
 
@@ -57,7 +58,9 @@ const EMPTY_SLOT = {
   img_fill: "dark",
 };
 const EMPTY = { layout: "halves", position: "after_new", active: true, starts_on: "", ends_on: "" };
-const three = (value) => [0, 1, 2].map(() => value);
+// one entry per possible banner (the biggest layout, 2 × 2, has 4), so switching layout keeps the work
+const SLOT_IDS = [0, 1, 2, 3];
+const eachSlot = (value) => SLOT_IDS.map(() => value);
 
 function PromoSections({ categories, onCount }) {
   const { notify, confirm } = useAdmin();
@@ -67,10 +70,10 @@ function PromoSections({ categories, onCount }) {
 
   const [editing, setEditing] = useState(null); // null = closed, "new", or a section id
   const [values, setValues] = useState(EMPTY);
-  const [slots, setSlots] = useState(three(EMPTY_SLOT)); // always 3, so switching layout keeps the work
-  const [files, setFiles] = useState(three(null));
-  const [previews, setPreviews] = useState(three(""));
-  const [existing, setExisting] = useState(three(""));
+  const [slots, setSlots] = useState(eachSlot(EMPTY_SLOT));
+  const [files, setFiles] = useState(eachSlot(null));
+  const [previews, setPreviews] = useState(eachSlot(""));
+  const [existing, setExisting] = useState(eachSlot(""));
   const [current, setCurrent] = useState(0); // the slot being edited
   const [device, setDevice] = useState("computer");
   const [formError, setFormError] = useState("");
@@ -104,15 +107,15 @@ function PromoSections({ categories, onCount }) {
     setEditing(id);
     setValues(next);
     setSlots(nextSlots);
-    setFiles(three(null));
-    setPreviews(three(""));
+    setFiles(eachSlot(null));
+    setPreviews(eachSlot(""));
     setExisting(nextExisting);
     setCurrent(0);
     setFormError("");
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
-  const openNew = () => openForm(EMPTY, three(EMPTY_SLOT), three(""), "new");
+  const openNew = () => openForm(EMPTY, eachSlot(EMPTY_SLOT), eachSlot(""), "new");
 
   const openEdit = (sec) => {
     const bySlot = (i) => sec.slots.find((b) => Number(b.slot) === i);
@@ -124,7 +127,7 @@ function PromoSections({ categories, onCount }) {
         starts_on: sec.starts_on || "",
         ends_on: sec.ends_on || "",
       },
-      [0, 1, 2].map((i) => {
+      SLOT_IDS.map((i) => {
         const b = bySlot(i);
         return b
           ? {
@@ -143,7 +146,7 @@ function PromoSections({ categories, onCount }) {
             }
           : EMPTY_SLOT;
       }),
-      [0, 1, 2].map((i) => bySlot(i)?.image || ""),
+      SLOT_IDS.map((i) => bySlot(i)?.image || ""),
       sec.id
     );
   };
