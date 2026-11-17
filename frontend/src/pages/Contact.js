@@ -187,7 +187,16 @@ function Contact() {
                   <Icon />
                 </span>
                 <strong>{title}</strong>
-                <span className="ct-channel__detail">{detail}</span>
+                <span className="ct-channel__detail">
+                  {typeof detail === "string" && detail.includes("@") ? (
+                    <>
+                      {detail.split("@")[0]}@<wbr />
+                      {detail.split("@")[1]}
+                    </>
+                  ) : (
+                    detail
+                  )}
+                </span>
                 <span className="ct-channel__action">
                   {action} <ArrowForwardIcon fontSize="inherit" />
                 </span>

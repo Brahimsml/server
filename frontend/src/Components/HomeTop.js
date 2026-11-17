@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import GridViewOutlinedIcon from "@mui/icons-material/GridViewOutlined";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import BannerSlide from "./BannerSlide";
 import FramedImage from "./FramedImage";
 import { imageSrcSet, imageUrl, onImageError } from "../utils/shop";
@@ -104,12 +106,38 @@ export const CategoryTiles = ({ circles, productCount, categoryCount, className 
   );
 };
 
-// Categories as round photos in one row (10 fit on a computer; phones swipe), "All products" at the end
+// Categories as round photos in one row (10 fit on a computer; phones swipe), "All products" at the end.
+// More than fit: the row starts at the left (nothing cut off) and ‹ › arrows show on computers.
 export const CategoryCircles = ({ circles, productCount, className = "" }) => {
+  const rowRef = useRef(null);
+  const [ends, setEnds] = useState({ start: true, end: true });
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return undefined;
+    const update = () => setEnds({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [circles.length]);
+  const go = (dir) => rowRef.current?.scrollBy({ left: dir * rowRef.current.clientWidth * 0.8, behavior: "smooth" });
   if (!circles.length) return null;
   return (
-    <Reveal className={`mh-cats ${className}`} aria-label="Shop by category">
-      <div className="mh-circles">
+    <Reveal className={`mh-cats mh-cats--arrows ${className}`} aria-label="Shop by category">
+      {!ends.start && (
+        <button type="button" className="mh-circles__arrow mh-circles__arrow--prev" onClick={() => go(-1)} aria-label="Previous categories">
+          <ChevronLeftIcon />
+        </button>
+      )}
+      {!ends.end && (
+        <button type="button" className="mh-circles__arrow mh-circles__arrow--next" onClick={() => go(1)} aria-label="More categories">
+          <ChevronRightIcon />
+        </button>
+      )}
+      <div className="mh-circles" ref={rowRef}>
         {circles.map((cat) => (
           <Link key={cat.name} to={shopLink(cat.name)} className="mh-circ">
             <span className="mh-circ__pic">

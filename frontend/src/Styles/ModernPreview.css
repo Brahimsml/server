@@ -4520,3 +4520,74 @@ html.mt-shell .hp-home .hp-promo-wrap.mt-section + * {
     margin-top: 24px !important;
   }
 }
+
+/* =========================================================
+   PHONE POLISH (2026-11-17)
+========================================================= */
+@media (max-width: 900px) {
+  /* top banner: the dots sit on the picture (bottom middle), so the text strip under it has room */
+  html.mt-shell .mh-hero .mh-dots {
+    position: absolute;
+    top: calc(50vw - 30px); /* the picture is 2:1 on phones: the dots sit at its bottom */
+    bottom: auto;
+    left: 50%;
+    margin: 0;
+    transform: translateX(-50%);
+  }
+  /* promo banners: a little less space above and below (phone screens are short) */
+  html.mt-shell .hp-home .hp-promo-wrap.mt-section {
+    margin-top: 16px;
+  }
+  html.mt-shell .hp-home .hp-promo-wrap.mt-section + * {
+    margin-top: 16px !important;
+  }
+  /* contact: the email address breaks at the @ instead of in the middle of a word */
+  .ct-channel__detail {
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  /* sign in: the card starts near the top instead of floating in the middle */
+  .auth-page {
+    align-items: flex-start;
+    padding-top: 28px;
+  }
+  /* filters panel: the two switches get more room */
+  .pc-switch {
+    min-height: 40px;
+  }
+  /* footer: room at the bottom so the chat button never covers the icons or links */
+  html.mt-shell .mf {
+    padding-bottom: 84px;
+  }
+}
+/* category circles: centred when they fit, start at the left when they don't (nothing cut off) */
+.mh-circles {
+  justify-content: safe center;
+}
+.mh-cats--arrows {
+  position: relative;
+}
+.mh-circles__arrow {
+  display: none;
+}
+@media (min-width: 901px) {
+  .mh-circles__arrow {
+    position: absolute;
+    top: 40px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: rgba(15, 15, 15, 0.85);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+  .mh-circles__arrow--prev { left: -8px; }
+  .mh-circles__arrow--next { right: -8px; }
+  .mh-circles__arrow:hover { background: #222; }
+}

@@ -583,7 +583,7 @@ const ProductsItem = ({
   const sideItems = [{ name: "All", label: "All products", count: totalCount }, ...categories];
 
   // Long lists show the first few, plus whatever is selected, until "Show all"
-  const CAT_LIMIT = 7; // "All products" + 6 categories
+  const CAT_LIMIT = 6; // "All products" + 5 categories (same 5 as brands, like big stores)
   const BRAND_LIMIT = 5;
   const shownCats = showAllCats
     ? sideItems
@@ -669,10 +669,27 @@ const ProductsItem = ({
             )}
             {sideItems.length > CAT_LIMIT && (
               <button type="button" className="pc-fs__more" onClick={() => setShowAllCats((v) => !v)}>
-                {showAllCats ? "Show less" : `Show all ${sideItems.length - 1}`}
+                {showAllCats ? "Show less" : `See all ${sideItems.length - 1}`}
               </button>
             )}
           </div>
+        )}
+
+        {/* Availability right after Category: two quick switches, visible without scrolling */}
+        {section(
+          "stock",
+          "Availability",
+          inStockOnly || saleOnly,
+          <>
+            <label className="pc-switch">
+              <span>In stock only</span>
+              <input type="checkbox" role="switch" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
+            </label>
+            <label className="pc-switch">
+              <span>On sale only</span>
+              <input type="checkbox" role="switch" checked={saleOnly} onChange={(e) => setSaleOnly(e.target.checked)} />
+            </label>
+          </>
         )}
 
         {section(
@@ -708,27 +725,11 @@ const ProductsItem = ({
               ))}
               {brandList.length > BRAND_LIMIT && (
                 <button type="button" className="pc-fs__more" onClick={() => setShowAllBrands((v) => !v)}>
-                  {showAllBrands ? "Show less" : `Show all ${brandList.length} brands`}
+                  {showAllBrands ? "Show less" : `See all ${brandList.length}`}
                 </button>
               )}
             </div>
           )}
-
-        {section(
-          "stock",
-          "Availability",
-          inStockOnly || saleOnly,
-          <>
-            <label className="pc-switch">
-              <span>In stock only</span>
-              <input type="checkbox" role="switch" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
-            </label>
-            <label className="pc-switch">
-              <span>On sale only</span>
-              <input type="checkbox" role="switch" checked={saleOnly} onChange={(e) => setSaleOnly(e.target.checked)} />
-            </label>
-          </>
-        )}
 
         <div className="pc-sheet-foot">
           {activeFilters > 0 && (
