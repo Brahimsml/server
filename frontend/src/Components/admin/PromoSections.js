@@ -25,7 +25,7 @@ const LAYOUTS = [
   { value: "wide", label: "1 wide banner", count: 1, size: "2400 × 600" },
   { value: "halves", label: "2 side by side", count: 2, size: "1200 × 600" },
   { value: "thirds", label: "3 tiles", count: 3, size: "800 × 600" },
-  { value: "grid", label: "4 tiles (2 × 2)", count: 4, size: "1500 × 1000" },
+  { value: "grid", label: "4 tiles (2 × 2)", count: 4, size: "1200 × 600" },
 ];
 const layoutOf = (value) => LAYOUTS.find((l) => l.value === value) || LAYOUTS[1];
 

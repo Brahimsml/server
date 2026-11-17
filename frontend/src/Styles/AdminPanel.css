@@ -3889,7 +3889,7 @@ a.ad-kpi:hover {
 
 /* "4 squares (2 × 2)": empty picture boxes are square too */
 .hp-promos--grid .ad-promo-slot__empty {
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 2 / 1;
 }
 
 /* the small phone preview: 2 × 2 squares with the title on top, like the real phone */

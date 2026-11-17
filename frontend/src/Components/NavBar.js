@@ -169,10 +169,12 @@ const NavBar = () => {
   // While scrolling:
   //  - computers: the bar turns into a slim one (logo, search, account, cart; no category row)
   //    and goes back to full size at the top of the page, like Best Buy / Newegg
-  //  - phones: the bar slides away while you scroll down and comes back as soon as you scroll up
+  //  - phones: the bar slides away while you scroll down and comes back as soon as you scroll up,
+  //    then as one slim row (menu · search · wishlist · cart) until you're back at the top
   // On phones it stays put near the top, while a menu is open, or while you're using it.
   const [barHidden, setBarHidden] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [slim, setSlim] = useState(false); // phones: one row (menu · search · wishlist · cart) once you scroll down
   useEffect(() => {
     let lastY = window.scrollY;
     const computer = window.matchMedia("(min-width: 901px)");
@@ -185,6 +187,7 @@ const NavBar = () => {
         return;
       }
       setCompact(false);
+      setSlim(y > 160);
       const header = headerRef.current;
       const inUse = header && (header.matches(":hover") || header.contains(document.activeElement));
       if (y < 160 || openMenu || mobileOpen || miniCart.open) setBarHidden(false);
@@ -203,9 +206,10 @@ const NavBar = () => {
   useEffect(() => {
     document.body.classList.toggle("nb-hidden", barHidden);
     document.body.classList.toggle("nb-compact", compact);
+    document.body.classList.toggle("nb-slim", slim);
     document.body.classList.add("nb-has-search"); // phones: the bar is taller (search row)
-    return () => document.body.classList.remove("nb-hidden", "nb-compact", "nb-has-search");
-  }, [barHidden, compact]);
+    return () => document.body.classList.remove("nb-hidden", "nb-compact", "nb-has-search", "nb-slim");
+  }, [barHidden, compact, slim]);
 
   const toggleMenu = (name) => setOpenMenu((cur) => (cur === name ? null : name));
 
@@ -241,7 +245,7 @@ const NavBar = () => {
     {/* computers: keeps the full bar's space, so the page never moves when the bar gets slim */}
     <div className="nb-spacer" aria-hidden="true" />
     <header
-      className={`nb mt-scope ${barHidden ? "is-hidden" : ""} ${compact ? "is-compact" : ""}`}
+      className={`nb mt-scope ${barHidden ? "is-hidden" : ""} ${compact ? "is-compact" : ""} ${slim ? "is-slim" : ""}`}
       ref={headerRef}
       style={barHidden ? { top: -((headerRef.current?.offsetHeight || 130) + 4) } : undefined}
     >

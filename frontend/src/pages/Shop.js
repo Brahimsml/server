@@ -25,7 +25,21 @@ const Shop = () => {
   const [loadError, setLoadError] = useState(false);
   const [sortHost, setSortHost] = useState(null); // where "Sort by" sits on the title row (computers)
   const modern = useModernLook(); // modern look preview (Styles/ModernPreview.css)
-  const [hideFilters, setHideFilters] = useState(false); // modern look, computers: products take the full width
+  // computers: "Hide filters" gives the products the full width (remembered while browsing)
+  const [hideFilters, setHideFilters] = useState(() => {
+    try {
+      return sessionStorage.getItem("mt-hide-filters") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleFilters = () =>
+    setHideFilters((v) => {
+      try {
+        sessionStorage.setItem("mt-hide-filters", v ? "0" : "1");
+      } catch {}
+      return !v;
+    });
 
   useEffect(() => {
     let alive = true;
@@ -67,7 +81,7 @@ const Shop = () => {
     : [];
 
   return (
-    <div className={`mt-page hp hp-shop ${modern ? "mh mh-shop" : ""} ${modern && hideFilters ? "is-nofilters" : ""}`}>
+    <div className={`mt-page hp hp-shop ${modern ? "mh mh-shop" : ""} ${hideFilters ? "is-nofilters" : ""}`}>
       <div className="mt-container">
         <header className="sh-head">
           <nav className="sh-crumbs" aria-label="Breadcrumb">
@@ -99,7 +113,14 @@ const Shop = () => {
               )}
             </h1>
             {/* computers: "Sort by" sits here, on the right of the title (modern look: in the bar below) */}
-            {!modern && <div className="sh-sort" ref={setSortHost} />}
+            {!modern && (
+              <div className="sh-tools">
+                <button type="button" className="sh-hidefilters" aria-pressed={!hideFilters} onClick={toggleFilters}>
+                  <TuneIcon fontSize="inherit" /> {hideFilters ? "Show filters" : "Hide filters"}
+                </button>
+                <div className="sh-sort" ref={setSortHost} />
+              </div>
+            )}
           </div>
           {pills.length > 0 && (
             <div className="mh-pills" role="group" aria-label="Categories">
@@ -118,7 +139,7 @@ const Shop = () => {
         {/* modern look, computers: show / hide the filters on the left, sort on the right */}
         {modern && (
           <div className="mh-shopbar">
-            <button type="button" className="mh-shopbar__toggle" aria-pressed={!hideFilters} onClick={() => setHideFilters((v) => !v)}>
+            <button type="button" className="mh-shopbar__toggle" aria-pressed={!hideFilters} onClick={toggleFilters}>
               <TuneIcon fontSize="inherit" /> {hideFilters ? "Show filters" : "Hide filters"}
             </button>
             <div className="sh-sort" ref={setSortHost} />

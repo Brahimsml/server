@@ -4591,3 +4591,306 @@ html.mt-shell .hp-home .hp-promo-wrap.mt-section + * {
   .mh-circles__arrow--next { right: -8px; }
   .mh-circles__arrow:hover { background: #222; }
 }
+/* "See all deals" / "View all products" pills: on hover a white fill with black text (was black on dark) */
+html.mt-shell .mt-section-head .mt-link:hover,
+html.mt-shell .mt-box .mt-section-head .mt-link:hover {
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+html.mt-shell .mt-section-head .mt-link:hover svg {
+  color: #000000;
+}
+
+/* =========================================================
+   PROMO SECTIONS: ONE SIZE (2026-11-17)
+   Computers: every promo row is the same height (~350px): the 4 tiles are 2:1 like "2 side by side".
+   Phones: every promo is the same card (16:10 picture, text strip under it); 2, 3 and 4 tiles swipe.
+========================================================= */
+@media (min-width: 861px) {
+  html.mt-shell .hp-promos--grid .hp-promo .hp-slide.hp-slide--banner {
+    aspect-ratio: 2 / 1 !important;
+  }
+}
+@media (max-width: 860px) {
+  /* one card size for every swipe row */
+  html.mt-shell .hp-home .hp-promos.hp-promos--halves,
+  html.mt-shell .hp-home .hp-promos.hp-promos--thirds,
+  html.mt-shell .hp-home .hp-promos.hp-promos--grid {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 84%;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  html.mt-shell .hp-home .hp-promos--grid + .hp-promo-dots {
+    display: flex;
+  }
+  html.mt-shell .hp-home .hp-promos .hp-promo {
+    scroll-snap-align: start;
+    border-radius: 0;
+  }
+  /* the picture: the same 16:10 shape everywhere (the wide banner too) */
+  html.mt-shell .hp-home .hp-promos .hp-promo .hp-slide.hp-slide--banner {
+    position: relative;
+    display: block;
+    aspect-ratio: auto !important;
+  }
+  html.mt-shell .hp-home .hp-promos .hp-promo .hp-slide--banner .hp-banner__img {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 10 !important;
+  }
+  /* the 4 tiles on phones: like the others (text under the picture, not on it) */
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo .hp-slide--banner::after {
+    display: none;
+  }
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 14px;
+    padding: 12px 14px 14px;
+    text-align: left;
+  }
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__title {
+    grid-column: 1;
+    margin: 2px 0 0;
+    font-size: 1.15rem;
+    text-shadow: none;
+  }
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo .hp-slide__cat {
+    grid-column: 1;
+    font-size: 0.68rem;
+  }
+  html.mt-shell .hp-home .hp-promos--grid .hp-promo .hp-slide--banner .hp-slide__actions {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    margin: 0;
+  }
+}
+/* phones: smoother promo swipe rows (a bit more space between cards, the next card peeks in softly) */
+@media (max-width: 860px) {
+  html.mt-shell .hp-home .hp-promos.hp-promos--halves,
+  html.mt-shell .hp-home .hp-promos.hp-promos--thirds,
+  html.mt-shell .hp-home .hp-promos.hp-promos--grid {
+    grid-auto-columns: 82%;
+    gap: 12px;
+    padding-right: 16px;
+    scroll-padding-inline: 0;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, rgba(0, 0, 0, 0.35) 100%);
+    mask-image: linear-gradient(90deg, #000 88%, rgba(0, 0, 0, 0.35) 100%);
+    scroll-behavior: smooth;
+  }
+}
+
+/* =========================================================
+   PHONE MENU BAR (2026-11-17): wishlist heart next to the cart; after you scroll down,
+   one slim row: ☰ · search · ♡ · cart (the logo row and search row become one)
+========================================================= */
+@media (max-width: 640px) {
+  html.mt-shell .nb-wish {
+    display: grid !important;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+  html.mt-shell .nb-wish .nb-act__label {
+    display: none;
+  }
+  html.mt-shell .nb-actions {
+    gap: 2px;
+  }
+  /* slim: the search bar moves up into the top row, between the menu and the icons; the logo steps aside */
+  html.mt-shell .nb.is-slim {
+    position: sticky;
+  }
+  html.mt-shell .nb.is-slim > .nb-inner > .nb-brand {
+    opacity: 0;
+    pointer-events: none;
+  }
+  html.mt-shell .nb.is-slim .nb-phone-search {
+    position: absolute;
+    top: env(safe-area-inset-top, 0px);
+    left: 54px;
+    right: 98px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+  html.mt-shell .nb.is-slim .nb-phone-search > * {
+    width: 100%;
+  }
+  html.mt-shell .nb.is-slim .nb-phone-search .ns-form {
+    height: 38px !important;
+  }
+  html.mt-shell .nb.is-slim .nb-phone-search input {
+    font-size: 0.92rem;
+  }
+  /* things that stick under the bar know it's one row now */
+  body.nb-has-search.nb-slim:not(.nb-hidden) {
+    --nb-h: 50px;
+  }
+  html.mt-shell .nb > .nb-inner > .nb-brand {
+    transition: opacity 0.2s ease;
+  }
+}
+@media (max-width: 640px) {
+  /* the shop's Sort · Filters bar sits right under the slim bar */
+  body.nb-has-search.nb-slim:not(.nb-hidden) .pc--shop .pc-toolbar {
+    top: calc(50px + env(safe-area-inset-top, 0px));
+  }
+}
+/* shop: the results area keeps at least a screen's height, so fewer results don't make the page jump */
+.pc--shop .pc-main {
+  min-height: calc(100vh - var(--nb-h, 74px));
+}
+
+/* =========================================================
+   SHOP: "Hide filters" (computers). The filters column slides away and the products take the full width.
+========================================================= */
+.sh-tools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sh-hidefilters {
+  display: none;
+}
+@media (min-width: 901px) {
+  .sh-hidefilters {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .sh-hidefilters:hover {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .sh-hidefilters svg {
+    font-size: 1.1rem;
+  }
+  /* filters hidden: one column, products across the full width */
+  .hp-shop.is-nofilters .pc--shop {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .hp-shop.is-nofilters .pc--shop > .pc-side {
+    display: none !important;
+  }
+  .hp-shop.is-nofilters .pc--shop .pc-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  .hp-shop .pc--shop .pc-main {
+    animation: sh-fade 0.3s ease;
+  }
+  @keyframes sh-fade {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+  }
+}
+@media (min-width: 1440px) {
+  .hp-shop.is-nofilters .pc--shop .pc-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+/* wishlist: the same card size as the shop (6 per row on laptops, like the shop with filters hidden) */
+@media (min-width: 1200px) {
+  .hp-wishlist .pc-grid:not(.pc-grid--row) {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 901px) and (max-width: 1199px) {
+  .hp-wishlist .pc-grid:not(.pc-grid--row) {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+/* =========================================================
+   CARD: once a product is in the cart, "Add to cart" becomes − n + (like shopping apps)
+========================================================= */
+.pc-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 36px;
+  padding: 0 4px;
+  border: 1px solid rgba(34, 197, 94, 0.55);
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #fff;
+}
+.pc-step--new {
+  animation: pc-step-in 0.35s ease;
+}
+@keyframes pc-step-in {
+  from { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  to { transform: none; box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+}
+.pc-step button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.pc-step button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+.pc-step button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pc-step button svg {
+  font-size: 1.15rem;
+}
+.pc-step span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pc-step span small {
+  margin-left: 3px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+/* phones: the control goes under the price across the card (the round button's spot is too small) */
+@media (max-width: 900px) {
+  .pc-actions:has(.pc-step) {
+    position: static !important;
+    width: 100%;
+    margin-top: 8px !important;
+  }
+  .pc-step {
+    height: 34px;
+  }
+  .pc-step span small {
+    display: none;
+  }
+}

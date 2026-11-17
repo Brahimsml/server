@@ -6,6 +6,9 @@ import TuneIcon from "@mui/icons-material/Tune";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import CloseIcon from "@mui/icons-material/Close";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartOutlined";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -106,25 +109,61 @@ const ProductsItem = ({
   const [brands, setBrands] = useState([]); // chosen brands (any of them)
   const [filtersOpen, setFiltersOpen] = useState(false); // phones: the filters panel
   // Filter panel: which sections are unfolded, and whether long lists show everything
-  const [openSections, setOpenSections] = useState({ category: true, price: true, brand: true, stock: true });
+  // Category and Availability start open; Price and Brand start closed (a short column, like big stores)
+  // unless they're already in use
+  const [openSections, setOpenSections] = useState({ category: true, price: false, brand: false, stock: true });
+
+  // When a filter changes: if the top of the results is above the screen, glide up to it once
+  // (instead of the page jumping because it got shorter); if it's already in view, nothing moves
+  const firstFilterRun = useRef(true);
+  useEffect(() => {
+    if (firstFilterRun.current) {
+      firstFilterRun.current = false;
+      return;
+    }
+    const el = mainRef.current;
+    if (!el || row) return;
+    const navH = parseFloat(getComputedStyle(document.body).getPropertyValue("--nb-h")) || 74;
+    const top = el.getBoundingClientRect().top;
+    if (top < navH) window.scrollTo({ top: window.scrollY + top - navH - 16, behavior: "smooth" });
+  }, [category, priceRange, brands, inStockOnly, saleOnly, sort]); // eslint-disable-line react-hooks/exhaustive-deps
   const [showAllCats, setShowAllCats] = useState(false);
   const [showAllBrands, setShowAllBrands] = useState(false);
-  const [pageSize, setPageSize] = useState(pageSizeNow);
-  useEffect(() => {
-    if (!window.matchMedia) return undefined;
-    const queries = [WIDE_SHOP, HUGE_SHOP].map((q) => window.matchMedia(q));
-    const onChange = () => setPageSize(pageSizeNow());
-    queries.forEach((mq) => mq.addEventListener?.("change", onChange));
-    return () => queries.forEach((mq) => mq.removeEventListener?.("change", onChange));
-  }, []);
+  const mainRef = useRef(null); // the results area (filters jump fix, full rows)
+  // Products per "Show more": always full rows, from how many cards fit across right now
+  // (2 on phones … 5 with the filters column, 6 with it hidden): at least 12, rounded up to full rows
+  const [cols, setCols] = useState(0);
+  const pageSize = cols ? cols * Math.max(3, Math.ceil(12 / cols)) : pageSizeNow();
   const [shown, setShown] = useState(pageSize); // "Show more" adds the next full rows
+  const colsRef = useRef(0);
+  useEffect(() => {
+    const host = mainRef.current;
+    if (!host || row || !window.ResizeObserver) return undefined;
+    const measure = () => {
+      const grid = host.querySelector(".pc-grid");
+      if (!grid) return;
+      const n = getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length;
+      if (n && n !== colsRef.current) {
+        colsRef.current = n;
+        setCols(n);
+        // keep what's already shown, rounded up to full rows of the new width
+        setShown((v) => Math.max(n * Math.max(3, Math.ceil(12 / n)), Math.ceil(v / n) * n));
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, [row]); // eslint-disable-line react-hooks/exhaustive-deps
   const [addedId, setAddedId] = useState(null);
   const addedTimer = useRef(null);
   const sideList = useRef(null);
   const rowRef = useRef(null);
   const [rowEnds, setRowEnds] = useState({ start: true, end: true });
 
-  const { addToCart } = useContext(CartContext);
+  const { addToCart, cart, updateQuantity, removeFromCart } = useContext(CartContext);
+  // how many of each product are in the cart (the card shows − n + once it's there, like shopping apps)
+  const inCart = useMemo(() => new Map((cart || []).map((it) => [it.id, it.quantity || 1])), [cart]);
 
   useEffect(() => () => clearTimeout(addedTimer.current), []);
 
@@ -150,8 +189,10 @@ const ProductsItem = ({
 
   // Back to the first rows whenever what's shown changes (or the screen size changes)
   useEffect(() => {
-    setShown(pageSize);
-  }, [category, query, sort, inStockOnly, saleOnly, priceRange, brands, pageSize]);
+    // from the width measured right now (the first render's guess can be one row size off)
+    const n = colsRef.current;
+    setShown(n ? n * Math.max(3, Math.ceil(12 / n)) : pageSizeNow());
+  }, [category, query, sort, inStockOnly, saleOnly, priceRange, brands]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // the category list: main entries in order, a group's categories right under it (indented)
   const categories = useMemo(
@@ -520,6 +561,34 @@ const ProductsItem = ({
                     </div>
 
                     <div className="pc-actions">
+                      {inCart.get(product.id) && !soldOut ? (
+                        // already in the cart: − n + (− at 1 takes it out; + stops at the stock)
+                        <div className={`pc-step ${justAdded ? "pc-step--new" : ""}`} role="group" aria-label={`${product.name} in your cart`}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              inCart.get(product.id) > 1
+                                ? updateQuantity(product.id, inCart.get(product.id) - 1)
+                                : removeFromCart(product.id)
+                            }
+                            aria-label={inCart.get(product.id) > 1 ? `One less ${product.name}` : `Remove ${product.name} from cart`}
+                          >
+                            {inCart.get(product.id) > 1 ? <RemoveIcon /> : <DeleteOutlineIcon />}
+                          </button>
+                          <span aria-live="polite">
+                            {inCart.get(product.id)}
+                            <small> in cart</small>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(product.id, inCart.get(product.id) + 1)}
+                            disabled={inCart.get(product.id) >= stock}
+                            aria-label={`One more ${product.name}`}
+                          >
+                            <AddIcon />
+                          </button>
+                        </div>
+                      ) : (
                       <button
                         type="button"
                         className={`mt-btn mt-btn--secondary mt-btn--sm pc-add ${justAdded ? "pc-added" : ""}`}
@@ -539,6 +608,7 @@ const ProductsItem = ({
                           </>
                         )}
                       </button>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -743,7 +813,9 @@ const ProductsItem = ({
         </div>
       </aside>
 
-      <div className="pc-main">{content}</div>
+      <div className="pc-main" ref={mainRef}>
+        {content}
+      </div>
     </div>
   );
 };
